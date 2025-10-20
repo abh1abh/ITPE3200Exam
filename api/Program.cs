@@ -2,7 +2,6 @@
 
 using System.Text;
 using HomecareAppointmentManagement.DAL;
-using HomecareAppointmentManagment.DAL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

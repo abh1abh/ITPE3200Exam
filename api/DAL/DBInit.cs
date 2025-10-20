@@ -1,13 +1,13 @@
 using System.Security.Claims;
-using HomecareAppointmentManagment.Models;
+using HomecareAppointmentManagement.Models;
 // using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace HomecareAppointmentManagment.DAL;
+namespace HomecareAppointmentManagement.DAL;
 
 public static class DBInit
 {
-    
+
     public static async Task SeedAsync(IApplicationBuilder app) // Seed method to initialize the database
     {
         using var scope = app.ApplicationServices.CreateScope(); // Create a scope for services

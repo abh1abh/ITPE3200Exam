@@ -1,7 +1,7 @@
 using HomecareAppointmentManagement.DAL;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HomecareAppointmentManagment.Controllers;
+namespace HomecareAppointmentmanagement.Controllers;
 
 public class ChangeLogController : Controller
 {

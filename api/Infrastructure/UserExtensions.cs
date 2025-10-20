@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace HomecareAppointmentManagment.Infrastructure;
+namespace HomecareAppointmentManagement.Infrastructure;
 
 public static class UserExtensions // Extension methods for ClaimsPrincipal and Authorized user
 {

@@ -1,12 +1,13 @@
-using HomecareAppointmentManagment.Models;
+using HomecareAppointmentManagement.Models;
+using HomecareAppointmentManagement.ViewModels;
 
 
-namespace HomecareAppointmentManagment.ViewModels;
+namespace HomecareAppointentManagement.ViewModels;
 
 
 public class AppointmentDetailsViewModel
 {
-    public AppointmentViewMode ViewMode { get; set; }
+    public AppointmentViewModel ViewMode { get; set; }
     public Appointment Appointment { get; set; } = new Appointment();
 
 }

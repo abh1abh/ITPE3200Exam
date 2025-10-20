@@ -1,7 +1,5 @@
 
 using System.ComponentModel.DataAnnotations;
-using HomecareAppointmentManagment.DTO;
-using HomecareAppointmentManagment.Models;
 
 namespace HomecareAppointmentManagement.DTO
 {

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using HomecareAppointmentManagment.Models;
+using HomecareAppointmentManagement.Models;
 
-namespace HomecareAppointmentManagment.DTO;
+namespace HomecareAppointmentManagement.DTO;
 
 public class ChangeLogDto
 {
