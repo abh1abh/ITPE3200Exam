@@ -9,8 +9,6 @@ public class ChangeLogDto
 
     public int? AppointmentId { get; set; }
 
-    public virtual Appointment Appointment { get; set; } = default!;
-
     [Required]
     [DataType(DataType.DateTime)]
     public DateTime ChangeDate { get; set; }

@@ -2,15 +2,22 @@ using System.Security.Claims;
 
 namespace HomecareAppointmentManagement.Infrastructure;
 
+
+public static class AppClaimTypes
+{
+    public const string ClientId = "ClientId";
+    public const string HealthcareWorkerId = "HealthcareWorkerId";
+}
+
 public static class UserExtensions // Extension methods for ClaimsPrincipal and Authorized user
 {
     // Try to get HealthcareWorkerId from claims
-    public static int? TryGetHealthcareWorkerId(this ClaimsPrincipal user)
-        => int.TryParse(user.FindFirstValue("HealthcareWorkerId"), out var id) ? id : (int?)null;
+    public static int? TryGetHealthcareWorkerId(this ClaimsPrincipal user) =>
+        int.TryParse(user.FindFirstValue(AppClaimTypes.HealthcareWorkerId), out var id) ? id : (int?)null;
 
     // Try to get ClientId from claims  
-    public static int? TryGetClientId(this ClaimsPrincipal user)
-        => int.TryParse(user.FindFirstValue("ClientId"), out var id) ? id : (int?)null;
+    public static int? TryGetClientId(this ClaimsPrincipal user) =>
+        int.TryParse(user.FindFirstValue(AppClaimTypes.ClientId), out var id) ? id : (int?)null;
 
     // Try to get Admin status from claims
     public static bool IsAdmin(this ClaimsPrincipal user) => user.IsInRole("Admin");
@@ -22,6 +29,6 @@ public static class UserExtensions // Extension methods for ClaimsPrincipal and 
     public static bool IsClient(this ClaimsPrincipal user) => user.IsInRole("Client");
 
     // Try to get UserId from claims
-    public static string? TryGetUserId(this ClaimsPrincipal user)
-    => user.FindFirstValue(ClaimTypes.NameIdentifier);
+    public static string? TryGetUserId(this ClaimsPrincipal user) =>
+        user.FindFirstValue(ClaimTypes.NameIdentifier);
 }

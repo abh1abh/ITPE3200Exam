@@ -10,4 +10,5 @@ public interface IClientRepository
     Task<bool> Create(Client client);
     Task<bool> Update(Client client);
     Task<bool> Delete(int id);
+    Task<Client?> GetByAuthUserId(string authUserId);
 }

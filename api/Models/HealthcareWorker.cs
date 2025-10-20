@@ -28,6 +28,5 @@ public class HealthcareWorker
     public virtual List<Appointment>? Appointments { get; set; }
     public virtual List<AvailableSlot>? AvailableSlots { get; set; }
 
-    // public string? IdentityUserId { get; set; }
-    // public virtual IdentityUser? IdentityUser { get; set; }
+    public string? AuthUserId { get; set; }
 }

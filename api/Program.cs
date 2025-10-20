@@ -1,5 +1,6 @@
 
 
+using System.Security.Claims;
 using System.Text;
 using HomecareAppointmentManagement;
 using HomecareAppointmentManagement.DAL;
@@ -74,7 +75,12 @@ builder.Services.AddScoped<IAvailableSlotRepository, AvailableSlotRepository>();
 builder.Services.AddScoped<IChangeLogRepository, ChangeLogRepository>();
 
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("IsAdmin", p => p.RequireRole("Admin"));
+    options.AddPolicy("IsHealthcareWorker", p => p.RequireRole("HealthcareWorker"));
+    options.AddPolicy("IsClient", p => p.RequireRole("Client"));
+});
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -93,7 +99,9 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
             builder.Configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT Key not found")
-        ))
+        )),
+        RoleClaimType = ClaimTypes.Role,
+        NameClaimType = ClaimTypes.Name
     };
 });
 
@@ -108,10 +116,34 @@ builder.Logging.AddSerilog(logger);
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+    var reset = builder.Configuration.GetValue<bool>("ResetDatabasesOnStartup");
+
+    var authDb = sp.GetRequiredService<AuthDbContext>();
+    var appDb  = sp.GetRequiredService<AppDbContext>();
+
+    if (reset) // If we need to reset, set flag in appsettings.Development.ResetDatabasesOnStartup = true
+    {
+        
+        await authDb.Database.EnsureDeletedAsync();
+        await appDb.Database.EnsureDeletedAsync();
+    }
+
+    // Always migrate (safe in prod/dev)
+    await authDb.Database.MigrateAsync();
+    await appDb.Database.MigrateAsync();
+
+    // Seed identity first (roles/users), then domain data
+    SeedResult seedResult =  await AuthDbInit.SeedAsync(sp);
+    await DBInit.SeedAsync(sp, seedResult);
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    await DBInit.SeedAsync(app);
+    // await DBInit.SeedAsync(app);
     app.UseSwagger();
     app.UseSwaggerUI();
 }

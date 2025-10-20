@@ -94,4 +94,17 @@ public class ClientRepository : IClientRepository
         }
     }
 
+    public async Task<Client?> GetByAuthUserId(string authUserId)
+    {
+        try
+        {
+            return await _db.Clients.FirstOrDefaultAsync(c => c.AuthUserId == authUserId); // Try to find client by AuthUserId
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("[ClientRepository] client FirstOrDefaultAsync(id) failed when GetByAuthUserId() for ClientId {ClientId:0000}, error messager: {e}", authUserId, e.Message);
+            return null;
+        }
+    }
+
 } 

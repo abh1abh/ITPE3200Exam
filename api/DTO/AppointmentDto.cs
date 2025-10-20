@@ -10,7 +10,7 @@ namespace HomecareAppointmentManagement.DTO
         [Range(1, int.MaxValue, ErrorMessage = "Client is required.")]
         public int ClientId { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Healthcare worker is required.")]
+        // [Range(1, int.MaxValue, ErrorMessage = "Healthcare worker is required.")]
         public int HealthcareWorkerId { get; set; }
 
         [Display(Name = "Start time")]

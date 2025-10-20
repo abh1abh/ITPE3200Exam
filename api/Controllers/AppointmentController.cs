@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using HomecareAppointmentManagement.DAL;
 using HomecareAppointmentManagement.DTO;
 // using HomecareAppointmentManagement.Infrastructure;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HomecareAppointmentManagement.Controllers;
 
-// [Authorize(Roles = "Client,Admin,HealthcareWorker")] // Authorize all relevant roles
+[Authorize(Roles = "Client,Admin,HealthcareWorker")] // Authorize all relevant roles
 [ApiController]
 [Route("api/[controller]")]
 public class AppointmentController : ControllerBase
@@ -38,62 +39,6 @@ public class AppointmentController : ControllerBase
         _changeLogRepository = changeLogRepository;
         _logger = logger;
     }
-
-    // public async Task<IActionResult> Index()
-    // {
-    //     // Determine role and fetch appropriate appointments
-    //     if (User.IsInRole("Admin"))
-    //     {
-    //         var all = await _appointmentRepository.GetAll();
-    //         if (all == null)
-    //         {
-    //             _logger.LogError("[AppointmentController] appointment list not found while executing _appointmentRepository.GetAll()");
-    //             return NotFound("Appointment list not found");
-    //         }
-    //         return View(new AppointmentViewModel
-    //         {
-    //             ViewMode = AppointmentViewMode.Admin,
-    //             Appointments = all
-    //         });
-    //     }
-
-    //     if (User.IsInRole("Client"))
-    //     {
-    //         var clientId = User.TryGetClientId();
-    //         if (clientId is null) return Forbid();
-    //         var clientAppointments = await _appointmentRepository.GetByClientId(clientId.Value);
-    //         if (clientAppointments == null)
-    //         {
-    //             _logger.LogError("[AppointmentController] appointment list not found while executing _appointmentRepository.GetByClientId() for ClientId {ClientId:0000}", clientId.Value);
-    //             return NotFound("Appointment list not found");
-    //         }
-    //         return View(new AppointmentViewModel
-    //         {
-    //             ViewMode = AppointmentViewMode.Client,
-    //             Appointments = clientAppointments
-    //         });
-    //     }
-
-    //     if (User.IsInRole("HealthcareWorker"))
-    //     {
-    //         var workerId = User.TryGetHealthcareWorkerId();
-    //         if (workerId is null) return Forbid();
-    //         var workerAppointments = await _appointmentRepository.GetByHealthcareWorkerId(workerId.Value);
-    //         if (workerAppointments == null)
-    //         {
-    //             _logger.LogError("[AppointmentController] appointment list not found while executing _appointmentRepository.GetByHealthcareWorkerId() for HealthcareWorkerId {HealthcareWorkerId:0000}", workerId.Value);
-    //             return NotFound("Appointment list not found");
-    //         }
-    //         return View(new AppointmentViewModel
-    //         {
-    //             ViewMode = AppointmentViewMode.Worker,
-    //             Appointments = workerAppointments
-    //         });
-    //     }
-    //     // If we reach here, the user has no valid role
-    //     return Forbid();
-
-    // }
 
     [HttpGet]
     public async Task<IActionResult> AppointmentList()
@@ -134,7 +79,7 @@ public class AppointmentController : ControllerBase
         return Ok(appointmentDtos);
     }
 
-    [HttpGet("/{id:int}")]
+    [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
         var appointment = await _appointmentRepository.GetById(id);
@@ -172,87 +117,21 @@ public class AppointmentController : ControllerBase
         return Ok(appointmentDto);
     }
 
-    // [Authorize(Roles = "Admin,Client")] // Restrict access to Admins and Clients, not HealthcareWorkers
-    // [HttpGet]
-    // public async Task<IActionResult> Create()
-    // {
-    //     var slots = await _availableSlotRepository.GetAll(); // Get all available slots
-
-    //     var viewModel = new AppointmentCreateViewModel // Create AppointmentCreateViewModel
-    //     {
-    //         IsAdmin = User.IsInRole("Admin"), // Flag if user is Admin 
-    //         Slots = (slots ?? Enumerable.Empty<AvailableSlot>())
-    //             .Where(s => !s.IsBooked && s.Start > DateTime.UtcNow)
-    //             .OrderBy(s => s.Start) // Only future unbooked slots
-    //     };
-
-    //     if (viewModel.IsAdmin) // If Admin, populate clients list since admin can create for any client
-    //     {
-    //         viewModel.Clients = await _clientRepository.GetAll();
-    //     }
-
-    //     if (viewModel.AppointmentTasks == null || viewModel.AppointmentTasks.Count == 0)
-    //     {
-    //         viewModel.AppointmentTasks = new() { new AppointmentTaskViewModel() }; // Initialize with one empty task
-    //     }
-    //     return View(viewModel);
-
-    // }
-
+    [Authorize(Roles ="Admin,Client")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AppointmentDto appointmentDto)
     {
 
-        // Local function to rehydrate model data on validation failure for redisplay
-        // async Task RehydrateAsync()
-        // {
-        //     var allSlots = await _availableSlotRepository.GetAll();
-        //     model.Slots = (allSlots ?? Enumerable.Empty<AvailableSlot>())
-        //         .Where(s => !s.IsBooked && s.Start > DateTime.UtcNow)
-        //         .OrderBy(s => s.Start)
-        //         .ToList();
-
-        //     model.IsAdmin = User.IsInRole("Admin");
-        //     if (model.IsAdmin)
-        //         model.Clients = (await _clientRepository.GetAll())?.ToList();
-
-        //     if (model.AppointmentTasks == null || model.AppointmentTasks.Count == 0)
-        //         model.AppointmentTasks = new() { new AppointmentTaskViewModel() };
-        // }
-
-
-        // Flags first
-        // model.IsAdmin = User.IsInRole("Admin");
-
-        // Normalize tasks once
+        // 1) Normalize & validate basic input
         appointmentDto.AppointmentTasks = (appointmentDto.AppointmentTasks ?? new())
             .Where(t => !string.IsNullOrWhiteSpace(t.Description))
             .ToList();
-
         if (appointmentDto.AppointmentTasks.Count == 0)
-            return BadRequest("Enter at least one task."); // At least one task required. 
-        
+            return BadRequest("Enter at least one task.");
 
-        // // Conditional admin requirement. Needs to specify client if admin
-        // if (model.IsAdmin && model.SelectedClientId is null)
-        //     ModelState.AddModelError(nameof(model.SelectedClientId),
-        //         "Admin must specify a client to create an appointment for.");
-
-        // Slot requirement check 
         if (appointmentDto.AvailableSlotId is null)
-        {
-            _logger.LogError("[AppointmentController] appointment needs to have slot to mark slot");
             return BadRequest("Please choose an available slot.");
-
-        }
             
-
-        // If model state invalid, rehydrate and return
-        // if (!ModelState.IsValid)
-        // {
-        //     await RehydrateAsync();
-        //     return View(model);
-        // }
 
         // Validate selected slot
         var slot = await _availableSlotRepository.GetById(appointmentDto.AvailableSlotId.Value); // Ignore, null checked above
@@ -260,26 +139,35 @@ public class AppointmentController : ControllerBase
         if (slot is null || slot.IsBooked || slot.Start <= DateTime.UtcNow) // Slot must exist, be unbooked, and in the future
         {
 
+            _logger.LogError("[AppointmentController] appointment needs to have slot to mark slot");
             return BadRequest("That slot is no longer available."); // Add model error
         }
 
         // Determine client ID 
-        // int? clientId = null;
-        // if (User.IsInRole("Client")) // If Client, use their own client ID
-        // {
-        //     clientId = User.TryGetClientId();
-        //     if (clientId is null) return Forbid(); // If we can't get client ID, forbid
-        // }
-        // else if (model.IsAdmin) // If Admin, use selected client ID
-        // {
-        //     // This should be non-null due to the earlier validation
-        //     clientId = model.SelectedClientId;
-        // }
+        int clientId;
+        if (User.IsInRole("Client")) // If Client, use their own client ID
+        {
+            var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(authUserId)) return Forbid();
+
+            var client = await _clientRepository.GetByAuthUserId(authUserId);
+            if (client is null) return Forbid();
+
+            clientId = client.ClientId; // If we can't get client ID, forbid
+        }
+        else // If Admin, use selected client ID
+        {
+            // This should be non-null due to the earlier validation
+            if (appointmentDto.ClientId == 0) return BadRequest("ClientId is required when creating as Admin.");
+            var targetClient = await _clientRepository.GetClientById(appointmentDto.ClientId);
+            if (targetClient is null) return BadRequest($"Client {appointmentDto.ClientId} not found.");
+            clientId = targetClient.ClientId;
+        }
 
         // Create appointment object
         var appointment = new Appointment
         {
-            ClientId = appointmentDto.ClientId,
+            ClientId = clientId,
             HealthcareWorkerId = slot.HealthcareWorkerId,
             Start = slot.Start,
             End = slot.End,
@@ -331,45 +219,34 @@ public class AppointmentController : ControllerBase
                 await _availableSlotRepository.Update(slot);
 
                 return StatusCode(500, "Could not create tasks. Please try again.");
-                
+
             }
         }
+
+
+        var result = new AppointmentDto
+        {
+            Id = appointment.Id,
+            ClientId = appointment.ClientId,
+            HealthcareWorkerId = appointment.HealthcareWorkerId,
+            Start = appointment.Start,
+            End = appointment.End,
+            Notes = appointment.Notes,
+            AvailableSlotId = appointment.AvailableSlotId,
+            AppointmentTasks = (await _appointmentTaskRepository.GetByAppointmentId(appointment.Id))?
+                .Select(t => new AppointmentTaskDto
+                {
+                    Id = t.Id,
+                    AppointmentId = t.AppointmentId,
+                    Description = t.Description,
+                    IsCompleted = t.IsCompleted
+                }).ToList(),
+            ChangeLogs = [] // do not accept from client
+        };
         // Redirect to index on success
-        return CreatedAtAction(nameof(AppointmentList), new { id = appointment.Id }, appointment);
+        return CreatedAtAction(nameof(GetById), new { id = appointment.Id }, result);
 
     }
-
-
-    // [HttpGet]
-    // public async Task<IActionResult> Edit(int id)
-    // {
-    //     var appointment = await _appointmentRepository.GetById(id); // Get appointment by ID
-    //     if (appointment == null)
-    //     {
-    //         _logger.LogWarning("[AppointmentController] appointment not found when editing for AppointmentId {AppointmentId:0000}", id);
-    //         return NotFound("Appointment not found");
-    //     }
-
-    //     var viewModel = new AppointmentEditViewModel // Create AppointmentEditViewModel
-    //     {
-    //         Id = appointment.Id,
-    //         ClientName = appointment.Client?.Name ?? $"Client #{appointment.ClientId}", // Client name or fallback
-    //         HealthcareWorkerName = appointment.HealthcareWorker?.Name ?? $"Worker #{appointment.HealthcareWorkerId}", // Worker name or fallback
-    //         Start = appointment.Start,
-    //         End = appointment.End,
-    //         Notes = appointment.Notes ?? string.Empty,
-    //         AppointmentTasks = (appointment.AppointmentTasks ?? new List<AppointmentTask>())
-    //             .Select(task => new AppointmentTaskEditItemViewModel
-    //             {
-    //                 Id = task.Id,
-    //                 Description = task.Description,
-    //                 IsCompleted = task.IsCompleted
-    //             })
-    //             .ToList()
-    //     };
-
-    //     return View(viewModel);
-    // }
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, AppointmentDto appointmentDto)
@@ -380,7 +257,10 @@ public class AppointmentController : ControllerBase
             return BadRequest("Bad request");
         }
 
-        var existing = await _appointmentRepository.GetById(appointmentDto.Id);
+        var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(authUserId)) return Forbid();
+
+        var existing = await _appointmentRepository.GetById(id);
         if (existing == null) // If appointment not found, return NotFound
         {
             _logger.LogError("[AppointmentController] appointment not found during edit for AppointmentId {AppointmentId:0000}", appointmentDto.Id);
@@ -430,7 +310,8 @@ public class AppointmentController : ControllerBase
         if (changes.Count == 0)
         {
             // Nothing to update/log; just go back
-            return RedirectToAction(nameof(AppointmentList), new { id = appointmentDto.Id });
+            return NoContent();
+
         }
 
         var updatedOk = await _appointmentRepository.Update(existing); // Update appointment
@@ -447,9 +328,9 @@ public class AppointmentController : ControllerBase
         // Create change log entry
         var log = new ChangeLog
         {
-            AppointmentId = appointmentDto.Id,
+            AppointmentId = existing.Id,
             ChangeDate = DateTime.UtcNow,
-            ChangedByUserId = "userId",
+            ChangedByUserId = authUserId,
             ChangeDescription = description
         };
 
@@ -460,21 +341,9 @@ public class AppointmentController : ControllerBase
             _logger.LogWarning("[AppointmentController] failed to create change log for AppointmentId {AppointmentId:0000}. Description: {Description}", appointmentDto.Id, description);
         }
 
-        return RedirectToAction(nameof(Index));
+        return NoContent();
 
     }
-
-    // [HttpGet]
-    // public async Task<IActionResult> Delete(int id)
-    // {
-    //     var appointment = await _appointmentRepository.GetById(id);
-    //     if (appointment == null)
-    //     {
-    //         _logger.LogError("[AppointmentController] appointment not found when deleting for AppointmentId {AppointmentId:0000}", id);
-    //         return NotFound("Appointment not found");
-    //     }
-    //     return View(appointment);
-    // }
 
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteConfirmed(int id)
@@ -525,7 +394,7 @@ public class AppointmentController : ControllerBase
         return RedirectToAction(nameof(AppointmentList));
     }
 
-    [HttpGet("/{id:int}/changelog")]
+    [HttpGet("{id:int}/changelog")]
     public async Task<IActionResult> ChangeLog(int id)
     {
         // Get appointment to verify existence and for authorization

@@ -81,7 +81,7 @@ namespace HomecareAppointmentManagement.Controllers
         }
 
 
-        private string GenerateJwtToken(AuthUser user)
+        private async Task<string> GenerateJwtToken(AuthUser user)
         {
             var jwtKey = _configuration["Jwt:Key"]; // The secret key used for the signature
             if (string.IsNullOrEmpty(jwtKey)) // Ensure the key is not null or empty
@@ -92,15 +92,24 @@ namespace HomecareAppointmentManagement.Controllers
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)); // Reading the key from the configuration
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256); // Using HMAC SHA256 algorithm for signing the token
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName!), // Subject of the token
-                new Claim(JwtRegisteredClaimNames.Email, user.Email!), // User's email
-                new Claim(ClaimTypes.NameIdentifier, user.Id), // Unique identifier for the user
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName!), // optional
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName!), // optional
+                new Claim(JwtRegisteredClaimNames.Email, user.Email!), // Unique identifier for the user
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique identifier for the token
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()) // Issued at timestamp
             };
-
+            
+            var roles = await _userManager.GetRolesAsync(user);
+            foreach (var r in roles)
+            {
+                // you configured RoleClaimType = ClaimTypes.Role in JwtBearer options
+                claims.Add(new Claim(ClaimTypes.Role, r));
+                // If you ever switch to using "role" in tokens, set RoleClaimType = "role" in JwtBearer options instead.
+            }
+            
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
