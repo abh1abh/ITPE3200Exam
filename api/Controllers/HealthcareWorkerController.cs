@@ -3,7 +3,7 @@ using HomecareAppointmentManagement.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HomecareAppointmentmanagement.Controllers;
+namespace HomecareAppointmentManagement.Controllers;
 
 
 [Authorize(Roles = "Admin")]

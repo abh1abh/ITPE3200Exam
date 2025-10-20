@@ -5,7 +5,7 @@ using HomecareAppointmentManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;           
 using Microsoft.AspNetCore.Mvc;
 
-namespace HomecareAppointmentmanagement.Controllers;
+namespace HomecareAppointmentManagement.Controllers;
 
 [Authorize(Roles = "HealthcareWorker,Admin")] // Authorization for Healthcare Workers and Admins
 public class AvailableSlotController : Controller

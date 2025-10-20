@@ -2,7 +2,7 @@ using HomecareAppointmentManagement.Models;
 using HomecareAppointmentManagement.ViewModels;
 
 
-namespace HomecareAppointentManagement.ViewModels;
+namespace HomecareAppointtManagement.ViewModels;
 
 
 public class AppointmentDetailsViewModel

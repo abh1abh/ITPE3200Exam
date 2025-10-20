@@ -1,6 +1,7 @@
 
 
 using System.Text;
+using HomecareAppointmentManagement;
 using HomecareAppointmentManagement.DAL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -22,36 +23,36 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// builder.Services.AddSwaggerGen(c =>
-// {
-//     c.SwaggerDoc("v1", new() { Title = "MyShop API", Version = "v1" });
-//     c.AddSecurityDefinition("Bearer", new()
-//     {
-//         Description = "JWT Authorization header using the Bearer scheme. Example: 'Authorization: Bearer {token}'",
-//         Name = "Authorization",
-//         In = ParameterLocation.Header,
-//         Type = SecuritySchemeType.ApiKey,
-//         Scheme = "Bearer",
-//     });
-//     c.AddSecurityRequirement(new OpenApiSecurityRequirement
-//     {{ new OpenApiSecurityScheme
-//         { Reference = new OpenApiReference
-//             { Type = ReferenceType.SecurityScheme,
-//                 Id = "Bearer"}},
-//         new string[] { }
-//         }});
-// });
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "MyShop API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new()
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: 'Authorization: Bearer {token}'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {{ new OpenApiSecurityScheme
+        { Reference = new OpenApiReference
+            { Type = ReferenceType.SecurityScheme,
+                Id = "Bearer"}},
+        new string[] { }
+        }});
+});
 
 
 builder.Services.AddDbContext<AppDbContext>(options => {
     options.UseSqlite(builder.Configuration["ConnectionStrings:AppDbContextConnection"]); });
 
-// builder.Services.AddDbContext<AuthDbContext>(options => {
-//     options.UseSqlite(builder.Configuration["ConnectionStrings:AuthDbContextConnection"]);});
+builder.Services.AddDbContext<AuthDbContext>(options => {
+    options.UseSqlite(builder.Configuration["ConnectionStrings:AuthDbContextConnection"]);});
 
-// builder.Services.AddIdentity<AuthUser, IdentityRole>()
-//     .AddEntityFrameworkStores<AuthDbContext>()
-//     .AddDefaultTokenProviders();
+builder.Services.AddIdentity<AuthUser, IdentityRole>()
+    .AddEntityFrameworkStores<AuthDbContext>()
+    .AddDefaultTokenProviders();
 
 
 builder.Services.AddCors(options =>
@@ -73,28 +74,28 @@ builder.Services.AddScoped<IAvailableSlotRepository, AvailableSlotRepository>();
 builder.Services.AddScoped<IChangeLogRepository, ChangeLogRepository>();
 
 
-// builder.Services.AddAuthorization();
-// builder.Services.AddAuthentication(options =>
-// {
-//     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-// }).AddJwtBearer(options =>
-// {
-//     options.SaveToken = true;
-//     options.RequireHttpsMetadata = false;
-//     options.TokenValidationParameters = new TokenValidationParameters()
-//     {
-//         ValidateIssuer = true,
-//         ValidateAudience = true,
-//         ValidateIssuerSigningKey = true,
-//         ValidAudience = builder.Configuration["JWT:Audience"],
-//         ValidIssuer = builder.Configuration["JWT:Issuer"],
-//         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-//             builder.Configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT Key not found")
-//         ))
-//     };
-// });
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateIssuerSigningKey = true,
+        ValidAudience = builder.Configuration["JWT:Audience"],
+        ValidIssuer = builder.Configuration["JWT:Issuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+            builder.Configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT Key not found")
+        ))
+    };
+});
 
 var loggerConfiguration = new LoggerConfiguration()
     .MinimumLevel.Information() // levels: Trace< Information < Warning < Erorr < Fatal
@@ -123,8 +124,8 @@ app.UseCors("CorsPolicy");
 
 // Correct order:
 // app.UseSession();
-// app.UseAuthentication();
-// app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
