@@ -107,17 +107,4 @@ public class AvailableSlotRepository : IAvailableSlotRepository
             return false; // Return false on failure
         }
     }
-
-    public async Task<IEnumerable<AvailableSlot>?> GetByHealthcarePersonnelId(int personnelId) 
-    {
-        try
-        {
-            return await _db.AvailableSlots.Where(a => a.HealthcareWorkerId == personnelId).ToListAsync(); // Get available slots by healthcare worker ID
-        }
-        catch (Exception e)
-        {
-            _logger.LogError("[AvailableSlotRepository] available slot Where(a => a.HealthcareWorkerId == personnelId).ToListAsync() failed when GetByHealthcareWorkerId() for WorkerId {WorkerId:0000}, error messager: {e}", personnelId, e.Message);
-            return null; // Return null on failure
-        }
-    }
 }

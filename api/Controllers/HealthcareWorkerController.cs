@@ -69,10 +69,6 @@ public class HealthcareWorkerController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] HealthcareWorkerDto workerDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
 
         var worker = new HealthcareWorker
         {
@@ -109,11 +105,6 @@ public class HealthcareWorkerController : ControllerBase
         if (id != workerDto.HealthcareWorkerId)
         {
             return BadRequest("ID mismatch");
-        }
-
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
         }
 
         var existingWorker = await _repository.GetById(id);

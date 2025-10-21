@@ -168,7 +168,7 @@ public class AvailableSlotController : ControllerBase
         if (existing == null) return NotFound();
 
         if (! await IsAuthorizedForSlot(existing))
-            return Forbid();
+            return Forbid(); 
 
         if (existing.IsBooked)
         {

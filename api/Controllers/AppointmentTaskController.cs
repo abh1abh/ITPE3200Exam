@@ -65,11 +65,6 @@ public class AppointmentTaskController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AppointmentTaskDto taskDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         var task = new AppointmentTask
         {
             AppointmentId = taskDto.AppointmentId,
@@ -101,11 +96,6 @@ public class AppointmentTaskController : ControllerBase
         if (id != taskDto.Id)
         {
             return BadRequest("ID mismatch");
-        }
-
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
         }
 
         var existingTask = await _repository.GetById(id);

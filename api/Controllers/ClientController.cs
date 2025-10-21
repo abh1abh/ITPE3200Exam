@@ -69,11 +69,6 @@ public class ClientController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] ClientDto clientDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         var client = new Client
         {
             Name = clientDto.Name,
@@ -110,11 +105,6 @@ public class ClientController : ControllerBase
         if (id != clientDto.ClientId)
         {
             return BadRequest("ID mismatch");
-        }
-        
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
         }
 
         var existingClient = await _clientRepository.GetClientById(id);

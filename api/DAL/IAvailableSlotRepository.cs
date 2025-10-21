@@ -10,5 +10,4 @@ public interface IAvailableSlotRepository
     Task<bool> Create(AvailableSlot availableSlot);
     Task<bool> Update(AvailableSlot availableSlot);
     Task<bool> Delete(int id);
-    Task<IEnumerable<AvailableSlot>?> GetByHealthcarePersonnelId(int personnelId);
 }
