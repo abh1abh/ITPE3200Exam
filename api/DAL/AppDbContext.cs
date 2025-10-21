@@ -35,7 +35,13 @@ namespace HomecareAppointmentManagement.DAL
                 .WithMany()
                 .HasForeignKey(c => c.AppointmentId)
                 .OnDelete(DeleteBehavior.SetNull); // Set FK to null on Appointment deletion
-            
+
+            modelBuilder.Entity<Appointment>()
+               .HasMany(a => a.ChangeLogs)
+               .WithOne(cl => cl.Appointment)
+               .HasForeignKey(cl => cl.AppointmentId)
+               .OnDelete(DeleteBehavior.Cascade); // or Restrict
+        
             // Male sure AuthUserId is unique  
             modelBuilder.Entity<HealthcareWorker>()
                 .HasIndex(x => x.AuthUserId)

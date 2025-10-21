@@ -18,6 +18,7 @@ public class AppointmentController : ControllerBase
     private readonly IClientRepository _clientRepository; // For client management
     private readonly IAppointmentTaskRepository _appointmentTaskRepository; // For appointment tasks
     private readonly IChangeLogRepository _changeLogRepository; // For change logs
+    private readonly IHealthcareWorkerRepository _healthcareWorkerRepository;
     private readonly ILogger<AppointmentController> _logger;
 
     public AppointmentController
@@ -27,6 +28,7 @@ public class AppointmentController : ControllerBase
         IClientRepository clientRepository,
         IAppointmentTaskRepository appointmentTaskRepository,
         IChangeLogRepository changeLogRepository,
+        IHealthcareWorkerRepository healthcareWorkerRepository,
         ILogger<AppointmentController> logger
     )
     {
@@ -35,6 +37,7 @@ public class AppointmentController : ControllerBase
         _clientRepository = clientRepository;
         _appointmentTaskRepository = appointmentTaskRepository;
         _changeLogRepository = changeLogRepository;
+        _healthcareWorkerRepository = healthcareWorkerRepository;
         _logger = logger;
     }
 
@@ -70,7 +73,7 @@ public class AppointmentController : ControllerBase
                 ChangeDate = cl.ChangeDate,
                 ChangedByUserId = cl.ChangedByUserId,
                 ChangeDescription = cl.ChangeDescription
-            }).ToList()
+            }).ToList() 
 
         });
 
@@ -442,12 +445,25 @@ public class AppointmentController : ControllerBase
         if (allowAdmin && User.IsInRole("Admin"))
             return (true, null);
 
-        // Ensure related data or compare flattened auth IDs
-        var clientAuth = appt.Client?.AuthUserId;            // or appt.ClientAuthUserId
-        var workerAuth = appt.HealthcareWorker?.AuthUserId;  // or appt.HealthcareWorkerAuthUserId
+         bool isClient = false;
+        bool isWorker = false;
 
-        var isClient =  clientAuth == authUserId;
-        var isWorker = workerAuth == authUserId;
+        // Only do lookups you need (avoid forcing both).
+        // If you have roles, use them to short-circuit which lookup to run.
+        if (appt.ClientId != 0 && User.IsInRole("Client"))
+        {
+            // Prefer a lightweight lookup that returns just the ID
+            var client = await _clientRepository.GetByAuthUserId(authUserId); 
+            if (client is null) return (false, Forbid());
+            isClient = appt.ClientId == client.ClientId;
+        }
+
+        if (appt.HealthcareWorkerId != 0 && User.IsInRole("HealthcareWorker"))
+        {
+            var worker = await _healthcareWorkerRepository.GetByAuthUserId(authUserId); 
+            if (worker is null) return (false, Forbid());
+            isWorker = appt.HealthcareWorkerId == worker.HealthcareWorkerId;
+        }
 
         return (isClient || isWorker) ? (true, null) : (false, Forbid());
     }

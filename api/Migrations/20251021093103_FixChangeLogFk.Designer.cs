@@ -3,6 +3,7 @@ using System;
 using HomecareAppointmentManagement.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251021093103_FixChangeLogFk")]
+    partial class FixChangeLogFk
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -117,6 +120,9 @@ namespace api.Migrations
                     b.Property<int>("AppointmentId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("AppointmentId1")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("ChangeDate")
                         .HasColumnType("TEXT");
 
@@ -132,6 +138,8 @@ namespace api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AppointmentId");
+
+                    b.HasIndex("AppointmentId1");
 
                     b.ToTable("ChangeLogs");
                 });
@@ -254,10 +262,14 @@ namespace api.Migrations
             modelBuilder.Entity("HomecareAppointmentManagement.Models.ChangeLog", b =>
                 {
                     b.HasOne("HomecareAppointmentManagement.Models.Appointment", "Appointment")
-                        .WithMany("ChangeLogs")
+                        .WithMany()
                         .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
+
+                    b.HasOne("HomecareAppointmentManagement.Models.Appointment", null)
+                        .WithMany("ChangeLogs")
+                        .HasForeignKey("AppointmentId1");
 
                     b.Navigation("Appointment");
                 });

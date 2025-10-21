@@ -187,13 +187,14 @@ public class AvailableSlotController : ControllerBase
     
     private async Task<bool> IsAuthorizedForSlot(AvailableSlot slot)
     {
+        if (User.IsInRole("Admin")) return true;
         var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (authUserId is null) return false;
 
         var worker = await _healthcareWorkerRepository.GetByAuthUserId(authUserId);
         if (worker is null) return false;
 
-        return User.IsInRole("Admin") || slot.HealthcareWorkerId == worker.HealthcareWorkerId;
+        return slot.HealthcareWorkerId == worker.HealthcareWorkerId;
     }
 
 }
