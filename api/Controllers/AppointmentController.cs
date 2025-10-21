@@ -86,6 +86,10 @@ public class AppointmentController : ControllerBase
             _logger.LogError("[AppointmentController] appointment not found while executing _appointmentRepository.GetById() for AppointmentId {AppointmentId:0000}", id);
             return NotFound("Appointment not found");
         }
+        
+        var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var (ok, error) = await AuthorizeAppointmentAsync(appointment, authUserId);
+        if (!ok) return error!;
 
         var appointmentDto = new AppointmentDto
         {
@@ -250,15 +254,24 @@ public class AppointmentController : ControllerBase
     public async Task<IActionResult> Update(int id, AppointmentDto appointmentDto)
     {
 
-        var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(authUserId)) return Forbid();
-
+        // var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // if (string.IsNullOrEmpty(authUserId))
+        // {
+        //     _logger.LogWarning("No user");
+        //     return Forbid();  
+        // } 
+        
         var existing = await _appointmentRepository.GetById(id);
         if (existing == null) // If appointment not found, return NotFound
         {
             _logger.LogError("[AppointmentController] appointment not found during edit for AppointmentId {AppointmentId:0000}", appointmentDto.Id);
             return NotFound("Appointment not found");
         }
+        
+        var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var (ok, error) = await AuthorizeAppointmentAsync(existing, authUserId);
+        if (!ok) return error!;
+               
 
         var changes = new List<string>(); // To track changes for logging
 
@@ -323,7 +336,7 @@ public class AppointmentController : ControllerBase
         {
             AppointmentId = existing.Id,
             ChangeDate = DateTime.UtcNow,
-            ChangedByUserId = authUserId,
+            ChangedByUserId = authUserId!, // Cannot be null since we check for null in AuthorizeAppointmentAsync
             ChangeDescription = description
         };
 
@@ -347,11 +360,17 @@ public class AppointmentController : ControllerBase
             _logger.LogError("[AppointmentController] appointment not found when deleting for AppointmentId {AppointmentId:0000}", id);
             return NotFound("Appointment not found");
         }
+
+        var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var (ok, error) = await AuthorizeAppointmentAsync(appointment, authUserId);
+        if (!ok) return error!;
+
         // Free up slot
         var slot = appointment.AvailableSlotId.HasValue
             ? await _availableSlotRepository.GetById(appointment.AvailableSlotId.Value)
             : null; // Get slot if linked, fallback to null
 
+        
         if (slot != null)
         {
             slot.IsBooked = false;
@@ -360,20 +379,14 @@ public class AppointmentController : ControllerBase
             {
                 _logger.LogWarning("[AppointmentController] failed to free up slot for AppointmentId {AppointmentId:0000}", id);
             }
-        }
-        var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-        if (authUserId == "")
-        {
-            _logger.LogWarning("[AppointmentController] failed to get AuthUserId for AppointmentId {AppointmentId:0000}", id);
-        }
-        
+        }        
 
         // Create change log entry for deletion
         bool logged = await _changeLogRepository.Create(new ChangeLog
         {
             AppointmentId = appointment.Id,
             ChangeDate = DateTime.UtcNow,
-            ChangedByUserId = authUserId,
+            ChangedByUserId = authUserId!, // Cannot be null since we check for null in AuthorizeAppointmentAsync
             ChangeDescription = "Appointment deleted."
         });
 
@@ -399,6 +412,10 @@ public class AppointmentController : ControllerBase
         var appointment = await _appointmentRepository.GetById(id);
         if (appointment == null) return NotFound("Appointment not found");
 
+        var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var (ok, error) = await AuthorizeAppointmentAsync(appointment, authUserId);
+        if (!ok) return error!;
+
         var logs = await _changeLogRepository.GetByAppointmentId(id);
 
         if (logs == null) return NotFound("Change log to found");
@@ -406,15 +423,35 @@ public class AppointmentController : ControllerBase
         var logDtos = logs.Select(log => new ChangeLogDto
         {
             Id = log.Id,
-            AppointmentId  = log.AppointmentId,
+            AppointmentId = log.AppointmentId,
             ChangeDate = log.ChangeDate,
             ChangedByUserId = log.ChangedByUserId,
             ChangeDescription = log.ChangeDescription,
         });
-
         return Ok(logDtos);
-
     }
+    private async Task<(bool allowed, IActionResult? error)> AuthorizeAppointmentAsync(Appointment appt, string? authUserId, bool allowAdmin = true)
+    {
+        if (string.IsNullOrEmpty(authUserId))
+        {
+            _logger.LogWarning("Not Autherized");
+            return (false, Unauthorized());
+            
+        }
+
+        if (allowAdmin && User.IsInRole("Admin"))
+            return (true, null);
+
+        // Ensure related data or compare flattened auth IDs
+        var clientAuth = appt.Client?.AuthUserId;            // or appt.ClientAuthUserId
+        var workerAuth = appt.HealthcareWorker?.AuthUserId;  // or appt.HealthcareWorkerAuthUserId
+
+        var isClient =  clientAuth == authUserId;
+        var isWorker = workerAuth == authUserId;
+
+        return (isClient || isWorker) ? (true, null) : (false, Forbid());
+    }
+
 }
 
 
