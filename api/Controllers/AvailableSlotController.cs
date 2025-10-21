@@ -1,202 +1,199 @@
 using HomecareAppointmentManagement.DAL;
-using HomecareAppointmentManagement.Infrastructure; 
 using HomecareAppointmentManagement.Models;
-using HomecareAppointmentManagement.ViewModels;
-using Microsoft.AspNetCore.Authorization;           
+using HomecareAppointmentManagement.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace HomecareAppointmentManagement.Controllers;
 
-[Authorize(Roles = "HealthcareWorker,Admin")] // Authorization for Healthcare Workers and Admins
-public class AvailableSlotController : Controller
+[Authorize(Roles = "HealthcareWorker,Admin")]
+[ApiController]
+[Route("api/[controller]")]
+public class AvailableSlotController : ControllerBase
 {
-    private readonly IAvailableSlotRepository _repository; 
+    private readonly IAvailableSlotRepository _availableSlotRepository;
+    private readonly IHealthcareWorkerRepository _healthcareWorkerRepository;
     private readonly ILogger<AvailableSlotController> _logger;
 
-    public AvailableSlotController(IAvailableSlotRepository repository, ILogger<AvailableSlotController> logger)
+    public AvailableSlotController(IAvailableSlotRepository availableSlotRepository, ILogger<AvailableSlotController> logger, IHealthcareWorkerRepository healthcareWorkerRepository)
     {
-        _repository = repository;
+        _availableSlotRepository = availableSlotRepository;
+        _healthcareWorkerRepository = healthcareWorkerRepository;
         _logger = logger;
+
     }
+
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> GetAll()
     {
-        if (User.IsAdmin()) // Admins see all slots
+        IEnumerable<AvailableSlot>? slots;
+        if (User.IsInRole("Admin"))
         {
-            var all = await _repository.GetAll();
-            return View(new AvailableSlotViewModel
-            {
-                IsAdmin = true,
-                AvailableSlots = all ?? Enumerable.Empty<AvailableSlot>()
-            });
+            slots = await _availableSlotRepository.GetAll();
+        }
+        else
+        {
+            var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (authUserId is null) return Forbid();
+            var worker = await _healthcareWorkerRepository.GetByAuthUserId(authUserId);
+            if (worker is null) return Forbid();
+            slots = await _availableSlotRepository.GetByWorkerId(worker.HealthcareWorkerId);
         }
 
-        var workerId = User.TryGetHealthcareWorkerId(); // Get logged-in worker ID
-        if (workerId is null) return Forbid(); 
-
-        var workerslots = await _repository.GetByWorkerId(workerId.Value); // Get slots for worker
-        if (workerslots == null) 
+        if (slots == null)
         {
-            _logger.LogWarning("[AvailableSlotController] available slot list not found while executing _repository.GetByWorkerId() for HealthcareWorkerId {HealthcareWorkerId:0000}", workerId.Value);
+            return NotFound("No available slots found.");
+        }
+
+        var slotDtos = slots.Select(s => new AvailableSlotDto
+        {
+            Id = s.Id,
+            HealthcareWorkerId = s.HealthcareWorkerId,
+            Start = s.Start,
+            End = s.End,
+            IsBooked = s.IsBooked
+        });
+
+        return Ok(slotDtos);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var existing = await _availableSlotRepository.GetById(id);
+        if (existing == null)
             return NotFound();
-        }
-        return View(new AvailableSlotViewModel
+
+        if (! await IsAuthorizedForSlot(existing))
+            return Forbid();;
+
+        return Ok(new AvailableSlotDto
         {
-            IsAdmin = false,
-            AvailableSlots = workerslots
+            Id = existing.Id,
+            HealthcareWorkerId = existing.HealthcareWorkerId,
+            Start = existing.Start,
+            End = existing.End,
+            IsBooked = existing.IsBooked
         });
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Details(int id)
-    {
-        var slot = await _repository.GetById(id); // Get slot by ID
-        if (slot == null) return NotFound();
-
-        if (!User.IsAdmin() && slot.HealthcareWorkerId != User.TryGetHealthcareWorkerId()) // Authorization check
-            return Forbid();
-
-        return View(slot);
-    }
-
-    [HttpGet]
-    public IActionResult Create() => View(); 
-
     [HttpPost]
-    [ValidateAntiForgeryToken] // CSRF protection
-    public async Task<IActionResult> Create(AvailableSlot slot) 
+    public async Task<IActionResult> Create([FromBody] AvailableSlotDto slotDto)
     {
-        slot.IsBooked = false; // New slots are not booked
-
-        if (!User.IsAdmin()) // Non-admins can only create slots for themselves
+        int workerId;
+        if (!User.IsInRole("Admin"))
         {
-            var myId = User.TryGetHealthcareWorkerId();
-            if (myId is null) return Forbid();
-            slot.HealthcareWorkerId = myId.Value; // Force the worker to be the logged-in user
-            ModelState.Remove(nameof(AvailableSlot.HealthcareWorkerId)); // Remove validation for HealthcareWorkerId field (need to review) (got it from AI suggestion)
-        }
-        // Need to review ModelState after removing the field validation 
-        if (!ModelState.IsValid) return View(slot);
+            var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(authUserId))
+                return Forbid();
 
-        var ok = await _repository.Create(slot); // Create the slot
+            var worker = await _healthcareWorkerRepository.GetByAuthUserId(authUserId);
+            if (worker == null)
+                return Forbid();
+            workerId = worker.HealthcareWorkerId;
+        }
+        else
+        {
+            workerId = slotDto.HealthcareWorkerId;
+        }
+
+        var slot = new AvailableSlot
+        {
+            Start = slotDto.Start,
+            End = slotDto.End,
+            IsBooked = false, // New slots are not booked
+            HealthcareWorkerId = workerId
+        };
+
+        var ok = await _availableSlotRepository.Create(slot);
         if (!ok)
         {
             _logger.LogError("[AvailableSlotController] available slot creation failed {@slot}", slot);
-            return View(slot);
+            return StatusCode(500, "Failed to create slot.");
         }
 
-        return RedirectToAction(nameof(Index));
+        slotDto.Id = slot.Id;
+        slotDto.IsBooked = slot.IsBooked;
+        
+        return CreatedAtAction(nameof(GetById), new { id = slot.Id }, slotDto);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Edit(int id)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] AvailableSlotDto slotDto)
     {
-        var slot = await _repository.GetById(id); // Get slot by ID
-        if (slot == null) return NotFound();
+        if (id != slotDto.Id) return BadRequest("ID mismatch");
 
-        if (!User.IsAdmin() && slot.HealthcareWorkerId != User.TryGetHealthcareWorkerId()) // Authorization check
-            return Forbid();
-
-        return View(slot);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Edit(int id, AvailableSlot slot)
-    {
-        if (id != slot.Id) return NotFound(); // ID mismatch check
-
-        var existing = await _repository.GetById(id); // Get existing slot
+        var existing = await _availableSlotRepository.GetById(id);
         if (existing == null) return NotFound();
 
-        if (!User.IsAdmin() && existing.HealthcareWorkerId != User.TryGetHealthcareWorkerId())
-            return Forbid(); 
+        if (! await IsAuthorizedForSlot(existing))
+            return Forbid();
 
-        // Prevent switching ownership
-        if (!User.IsAdmin()) slot.HealthcareWorkerId = existing.HealthcareWorkerId;
-
-        if (!ModelState.IsValid) return View(slot);
-
-        if (User.IsAdmin()) // Admin rules
+        if (User.IsInRole("Admin"))
         {
-            existing.HealthcareWorkerId = slot.HealthcareWorkerId;
-            existing.Start = slot.Start;
-            existing.End = slot.End;
-            existing.IsBooked = slot.IsBooked;
+            existing.HealthcareWorkerId = slotDto.HealthcareWorkerId;
+            existing.Start = slotDto.Start;
+            existing.End = slotDto.End;
+            existing.IsBooked = slotDto.IsBooked;
         }
         else // Healthcare Worker rules
         {
             if (!existing.IsBooked)
             {
-                existing.Start = slot.Start;
-                existing.End = slot.End;
-                existing.IsBooked = false;
+                existing.Start = slotDto.Start;
+                existing.End = slotDto.End;
+                existing.IsBooked = false; // Cannot book a slot via this endpoint
+            }
+            else
+            {
+                // If slot is booked, worker cannot change it.
+                return BadRequest("Cannot edit a booked slot.");
             }
         }
-        
-        var ok = await _repository.Update(existing); // Update the slot
+
+        var ok = await _availableSlotRepository.Update(existing);
         if (!ok)
         {
             _logger.LogError("[AvailableSlotController] update failed {@slot}", existing);
-            return View(slot);
+            return StatusCode(500, "Failed to update slot.");
         }
-        return RedirectToAction(nameof(Index));
+        return NoContent();
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Cancel(int id)
-    {
-        var existing = await _repository.GetById(id); // Get existing slot
-        if (existing == null) return NotFound();
-
-        if (!User.IsAdmin() && existing.HealthcareWorkerId != User.TryGetHealthcareWorkerId()) // Authorization check
-            return Forbid();
-
-        if (!existing.IsBooked) // If not booked, nothing to cancel
-        {
-            TempData["Message"] = "Slot is already not booked.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
-
-        existing.IsBooked = false;  // Mark slot as not booked
-        var ok = await _repository.Update(existing); // Update the slot
-        if (!ok)
-        {
-            _logger.LogError("[AvailableSlotController] cancel failed for {id}", id);
-            return RedirectToAction(nameof(Details), new { id });
-        }
-
-        return RedirectToAction(nameof(Details), new { id });
-    }
-
-
-    [HttpGet]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var slot = await _repository.GetById(id);
-        if (slot == null) return NotFound();
+        var existing = await _availableSlotRepository.GetById(id);
+        if (existing == null) return NotFound();
 
-        if (!User.IsAdmin() && slot.HealthcareWorkerId != User.TryGetHealthcareWorkerId()) // Authorization check
+        if (! await IsAuthorizedForSlot(existing))
             return Forbid();
 
-        return View(slot);
-    }
+        if (existing.IsBooked)
+        {
+            return BadRequest("Cannot delete a booked slot. Please cancel the appointment first.");
+        }
 
-    [HttpPost, ActionName("Delete")]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        var slot = await _repository.GetById(id); // Get slot by ID
-        if (slot == null) return NotFound();
-
-        if (!User.IsAdmin() && slot.HealthcareWorkerId != User.TryGetHealthcareWorkerId()) // Authorization check
-            return Forbid();
-
-        var ok = await _repository.Delete(id); // Delete the slot
+        var ok = await _availableSlotRepository.Delete(id);
         if (!ok)
         {
-            _logger.LogError("[AvailableSlotController] available slot deletion failed for {id}", id); // Log error
-            return BadRequest("Available slot deletion failed");
+            _logger.LogError("[AvailableSlotController] available slot deletion failed for {id}", id);
+            return StatusCode(500, "Failed to delete slot.");
         }
-        
-        return RedirectToAction(nameof(Index));
+
+        return NoContent();
     }
+    
+    private async Task<bool> IsAuthorizedForSlot(AvailableSlot slot)
+    {
+        var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (authUserId is null) return false;
+
+        var worker = await _healthcareWorkerRepository.GetByAuthUserId(authUserId);
+        if (worker is null) return false;
+
+        return User.IsInRole("Admin") || slot.HealthcareWorkerId == worker.HealthcareWorkerId;
+    }
+
 }

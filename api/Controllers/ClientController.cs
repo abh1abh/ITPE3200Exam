@@ -1,15 +1,16 @@
 using HomecareAppointmentManagement.DAL;
 using HomecareAppointmentManagement.Models;
-using HomecareAppointmentManagement.ViewModels;
+using HomecareAppointmentManagement.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HomecareAppointmentManagement.Controllers;
 
 [Authorize(Roles = "Admin")]
-public class ClientController : Controller
+[ApiController]
+[Route("api/[controller]")]
+public class ClientController : ControllerBase
 {
-
     private readonly IClientRepository _clientRepository;
     private readonly ILogger<ClientController> _logger;
 
@@ -19,95 +20,142 @@ public class ClientController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Table() 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
     {
-        var clients = await _clientRepository.GetAll(); 
-        if (!clients.Any())
+        var clients = await _clientRepository.GetAll();
+        if (clients == null || !clients.Any())
         {
-            _logger.LogError("[ClientController] client list not found while executing _clientRepository.GetAll()");
-            return NotFound("Client list not found");
+            _logger.LogWarning("[ClientController] No clients found.");
+            return NotFound("No clients found.");
         }
-        var clientsViewModel = new ClientViewModel(clients ?? new List<Client>(), "Table"); // Using "Table" view
-        return View(clientsViewModel);
+
+        var clientDtos = clients.Select(c => new ClientDto
+        {
+            ClientId = c.ClientId,
+            Name = c.Name,
+            Address = c.Address,
+            Phone = c.Phone,
+            Email = c.Email,
+            AuthUserId = c.AuthUserId
+        });
+
+        return Ok(clientDtos);
     }
 
-    public async Task<IActionResult> Details(int id) 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
     {
-        var client = await _clientRepository.GetClientById(id); // Get client by ID
+        var client = await _clientRepository.GetClientById(id);
         if (client == null)
         {
-            _logger.LogError("[ClientController] client not found while executing _clientRepository.GetClientById() for ClientId {ClientId:0000}", id);
+            _logger.LogError("[ClientController] Client not found for ClientId {ClientId:0000}", id);
             return NotFound("Client not found");
         }
-        return View(client);
-    }
 
-    [HttpGet]
-    public IActionResult Create()
-    {
-        return View();
+        var clientDto = new ClientDto
+        {
+            ClientId = client.ClientId,
+            Name = client.Name,
+            Address = client.Address,
+            Phone = client.Phone,
+            Email = client.Email,
+            AuthUserId = client.AuthUserId
+        };
+
+        return Ok(clientDto);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(Client client) 
+    public async Task<IActionResult> Create([FromBody] ClientDto clientDto)
     {
-        if (ModelState.IsValid) // Checks if the model is valid
+        if (!ModelState.IsValid)
         {
-            bool returnOk = await _clientRepository.Create(client); // Create the client
-            if (returnOk)
-                return RedirectToAction(nameof(Table)); // Redirect to Table on success
+            return BadRequest(ModelState);
         }
-        _logger.LogError("[ClientController] client creation failed {@client}", client); // Log error
-        return View(client);
+
+        var client = new Client
+        {
+            Name = clientDto.Name,
+            Address = clientDto.Address,
+            Phone = clientDto.Phone,
+            Email = clientDto.Email,
+            AuthUserId = clientDto.AuthUserId
+        };
+
+        bool created = await _clientRepository.Create(client);
+        if (!created)
+        {
+            _logger.LogError("[ClientController] Client creation failed {@client}", client);
+            return StatusCode(500, "A problem happened while handling your request.");
+        }
+
+        // It's good practice to return the created object, with its new ID
+        var createdDto = new ClientDto
+        {
+            ClientId = client.ClientId,
+            Name = client.Name,
+            Address = client.Address,
+            Phone = client.Phone,
+            Email = client.Email,
+            AuthUserId = client.AuthUserId
+        };
+
+        return CreatedAtAction(nameof(GetById), new { id = client.ClientId }, createdDto);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Edit(int id)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] ClientDto clientDto)
     {
-        var client = await _clientRepository.GetClientById(id); // Get client by ID
-        if (client == null)
+        if (id != clientDto.ClientId)
         {
-            _logger.LogError("[ClientController] client not found when editing for ClientId {ClientId:0000}", id);
+            return BadRequest("ID mismatch");
+        }
+        
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var existingClient = await _clientRepository.GetClientById(id);
+        if (existingClient == null)
+        {
             return NotFound("Client not found");
         }
-        return View(client);
-    }
 
-    [HttpPost]
-    public async Task<IActionResult> Edit(int id, Client client)
-    {
-        if (ModelState.IsValid) // Checks if the model is valid
+        existingClient.Name = clientDto.Name;
+        existingClient.Address = clientDto.Address;
+        existingClient.Phone = clientDto.Phone;
+        existingClient.Email = clientDto.Email;
+        existingClient.AuthUserId = clientDto.AuthUserId;
+
+        bool updated = await _clientRepository.Update(existingClient);
+        if (!updated)
         {
-            bool returnOk = await _clientRepository.Update(client); // Update the client
-            if (returnOk)
-                return RedirectToAction(nameof(Table)); // Redirect to Table on success
+            _logger.LogError("[ClientController] Client update failed for ClientId {ClientId:0000}, {@client}", id, existingClient);
+            return StatusCode(500, "A problem happened while handling your request.");
         }
-        _logger.LogError("[ClientController] client update failed for ClientId {ClientId:0000}, {@client}", id, client);
-        return View(client);
+
+        return NoContent();
     }
 
-    [HttpGet]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var client = await _clientRepository.GetClientById(id); // Get client by ID
+        var client = await _clientRepository.GetClientById(id);
         if (client == null)
         {
-            _logger.LogError("[ClientController] client not found when deleting for ClientId {ClientId:0000}", id);
             return NotFound("Client not found");
         }
-        return View(client);
-    }
 
-    [HttpPost, ActionName("Delete")]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        bool returnOk = await _clientRepository.Delete(id); // Delete the client
-        if (!returnOk) // Check if deletion was unsuccessful, log error, and return BadRequest
+        bool deleted = await _clientRepository.Delete(id);
+        if (!deleted)
         {
-            _logger.LogError("[ClientController] client deletion failed for ClientId {ClientId:0000}", id);
-            return BadRequest("Client deletion failed");
+            _logger.LogError("[ClientController] Client deletion failed for ClientId {ClientId:0000}", id);
+            return StatusCode(500, "A problem happened while handling your request.");
         }
-        return RedirectToAction(nameof(Table)); // Redirect to Table on success
+
+        return NoContent();
     }
 }
 

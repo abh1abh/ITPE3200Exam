@@ -1,115 +1,159 @@
 using HomecareAppointmentManagement.DAL;
 using HomecareAppointmentManagement.Models;
+using HomecareAppointmentManagement.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HomecareAppointmentManagement.Controllers;
 
-
 [Authorize(Roles = "Admin")]
-public class HealthcareWorkerController : Controller
+[ApiController]
+[Route("api/[controller]")]
+public class HealthcareWorkerController : ControllerBase
 {
     private readonly IHealthcareWorkerRepository _repository;
-    private readonly ILogger<HealthcareWorkerController> _logger; 
+    private readonly ILogger<HealthcareWorkerController> _logger;
 
-    public HealthcareWorkerController(IHealthcareWorkerRepository repository, ILogger<HealthcareWorkerController> logger) 
+    public HealthcareWorkerController(IHealthcareWorkerRepository repository, ILogger<HealthcareWorkerController> logger)
     {
         _repository = repository;
         _logger = logger;
     }
 
-    public async Task<IActionResult> Table()
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
     {
-        var healthcareWorkers = await _repository.GetAll(); // Get all healthcare workers
-        if (healthcareWorkers == null) 
+        var healthcareWorkers = await _repository.GetAll();
+        if (healthcareWorkers == null || !healthcareWorkers.Any())
         {
-            _logger.LogError("[HealthcareWorkerController] healthcare workers list not found while executing _repository.GetAll()");
-            return NotFound("Healthcare workers list not found");
+            _logger.LogWarning("[HealthcareWorkerController] No healthcare workers found.");
+            return NotFound("No healthcare workers found.");
         }
-        return View(healthcareWorkers);
+
+        var workerDtos = healthcareWorkers.Select(w => new HealthcareWorkerDto
+        {
+            HealthcareWorkerId = w.HealthcareWorkerId,
+            Name = w.Name,
+            Address = w.Address,
+            Phone = w.Phone,
+            Email = w.Email,
+            AuthUserId = w.AuthUserId
+        });
+
+        return Ok(workerDtos);
     }
 
-    public async Task<IActionResult> Details(int id) // Get details of a specific healthcare worker
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
     {
-        var worker = await _repository.GetById(id); // Get worker by ID
+        var worker = await _repository.GetById(id);
         if (worker == null)
         {
-            _logger.LogError("[HealthcareWorkerController] healthcare worker not found while executing _repository.GetById() for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
+            _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
             return NotFound("Healthcare worker not found");
         }
-        return View(worker);
-    }
 
-    [HttpGet]
-    public IActionResult Create()
-    {
-        return View();
+        var workerDto = new HealthcareWorkerDto
+        {
+            HealthcareWorkerId = worker.HealthcareWorkerId,
+            Name = worker.Name,
+            Address = worker.Address,
+            Phone = worker.Phone,
+            Email = worker.Email,
+            AuthUserId = worker.AuthUserId
+        };
+
+        return Ok(workerDto);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(HealthcareWorker worker)
+    public async Task<IActionResult> Create([FromBody] HealthcareWorkerDto workerDto)
     {
-        if (ModelState.IsValid) // Checks if the model is valid
+        if (!ModelState.IsValid)
         {
-            bool returnOk = await _repository.Create(worker); // Create the healthcare worker
-            if (returnOk)
-                return RedirectToAction(nameof(Index)); // Redirect to Index on success
+            return BadRequest(ModelState);
         }
-        _logger.LogError("[HealthcareWorkerController] healthcare worker creation failed {@worker}", worker); // Log error
-        return View(worker);
+
+        var worker = new HealthcareWorker
+        {
+            Name = workerDto.Name,
+            Address = workerDto.Address,
+            Phone = workerDto.Phone,
+            Email = workerDto.Email,
+            AuthUserId = workerDto.AuthUserId
+        };
+
+        bool created = await _repository.Create(worker);
+        if (!created)
+        {
+            _logger.LogError("[HealthcareWorkerController] Healthcare worker creation failed {@worker}", worker);
+            return StatusCode(500, "A problem happened while handling your request.");
+        }
+
+        var createdDto = new HealthcareWorkerDto
+        {
+            HealthcareWorkerId = worker.HealthcareWorkerId,
+            Name = worker.Name,
+            Address = worker.Address,
+            Phone = worker.Phone,
+            Email = worker.Email,
+            AuthUserId = worker.AuthUserId
+        };
+
+        return CreatedAtAction(nameof(GetById), new { id = worker.HealthcareWorkerId }, createdDto);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Edit(int id) // Get healthcare worker for editing
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] HealthcareWorkerDto workerDto)
     {
-        var worker = await _repository.GetById(id); // Get worker by ID
-        if (worker == null) // Check if worker exists
+        if (id != workerDto.HealthcareWorkerId)
         {
-            _logger.LogError("[HealthcareWorkerController] healthcare worker not found when editing for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
+            return BadRequest("ID mismatch");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var existingWorker = await _repository.GetById(id);
+        if (existingWorker == null)
+        {
             return NotFound("Healthcare worker not found");
         }
-        return View(worker);
+
+        existingWorker.Name = workerDto.Name;
+        existingWorker.Address = workerDto.Address;
+        existingWorker.Phone = workerDto.Phone;
+        existingWorker.Email = workerDto.Email;
+        existingWorker.AuthUserId = workerDto.AuthUserId;
+
+        bool updated = await _repository.Update(existingWorker);
+        if (!updated)
+        {
+            _logger.LogError("[HealthcareWorkerController] Healthcare worker update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, existingWorker);
+            return StatusCode(500, "A problem happened while handling your request.");
+        }
+
+        return NoContent();
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Edit(int id, HealthcareWorker worker)
-    {
-        if (id != worker.HealthcareWorkerId) // ID mismatch check
-        {
-            _logger.LogError("[HealthcareWorkerController] healthcare worker ID mismatch during edit for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
-            return NotFound("Healthcare worker ID mismatch");
-        }
-        if (ModelState.IsValid) // Checks if the model is valid
-        {
-            bool returnOk = await _repository.Update(worker); // Update the healthcare worker
-            if (returnOk)
-                return RedirectToAction(nameof(Index)); // Redirect to Index on success
-        }
-        _logger.LogError("[HealthcareWorkerController] healthcare worker update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, worker);
-        return View(worker); // Return the view with the worker model
-    }
-
-    [HttpGet]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var worker = await _repository.GetById(id); // Get worker by ID
-        if (worker == null) // Check if worker exists
+        var worker = await _repository.GetById(id);
+        if (worker == null)
         {
-            _logger.LogError("[HealthcareWorkerController] healthcare worker not found when deleting for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
             return NotFound("Healthcare worker not found");
         }
-        return View(worker); // Return the view with the worker model
-    }
 
-    [HttpPost, ActionName("Delete")]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        bool returnOk = await _repository.Delete(id); // Delete the healthcare worker
-        if (!returnOk) // Check if deletion was unsuccessful, log error, and return BadRequest
+        bool deleted = await _repository.Delete(id);
+        if (!deleted)
         {
-            _logger.LogError("[HealthcareWorkerController] healthcare worker deletion failed for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
-            return BadRequest("Healthcare worker deletion failed");
+            _logger.LogError("[HealthcareWorkerController] Healthcare worker deletion failed for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
+            return StatusCode(500, "A problem happened while handling your request.");
         }
-        return RedirectToAction(nameof(Index)); // Redirect to Index on success
+
+        return NoContent();
     }
 }

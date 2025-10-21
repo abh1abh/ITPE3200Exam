@@ -1,38 +1,65 @@
 using HomecareAppointmentManagement.DAL;
+using HomecareAppointmentManagement.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HomecareAppointmentManagement.Controllers;
 
-public class ChangeLogController : Controller
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public class ChangeLogController : ControllerBase
 {
     private readonly IChangeLogRepository _repository;
-    private readonly ILogger<ChangeLogController> _logger; 
+    private readonly ILogger<ChangeLogController> _logger;
 
-    public ChangeLogController(IChangeLogRepository repository, ILogger<ChangeLogController> logger) 
+    public ChangeLogController(IChangeLogRepository repository, ILogger<ChangeLogController> logger)
     {
         _repository = repository;
-        _logger = logger; 
+        _logger = logger;
     }
 
-    public async Task<IActionResult> Index() 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
     {
-        var logs = await _repository.GetAll(); // Get all change logs
-        if (logs == null) 
+        var logs = await _repository.GetAll();
+        if (logs == null)
         {
-            _logger.LogError("[ChangeLogController] change log list not found while executing _repository.GetAll()");
-            return NotFound("Change log list not found");
+            _logger.LogWarning("[ChangeLogController] No change logs found.");
+            return NotFound("No change logs found.");
         }
-        return View(logs);
+
+        var logDtos = logs.Select(log => new ChangeLogDto
+        {
+            Id = log.Id,
+            AppointmentId = log.AppointmentId,
+            ChangeDate = log.ChangeDate,
+            ChangedByUserId = log.ChangedByUserId,
+            ChangeDescription = log.ChangeDescription,
+        });
+
+        return Ok(logDtos);
     }
 
-    public async Task<IActionResult> Details(int id)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
     {
-        var log = await _repository.GetById(id); // Get log by ID
+        var log = await _repository.GetById(id);
         if (log == null)
         {
-            _logger.LogError("[ChangeLogController] change log not found while executing _repository.GetById() for ChangeLogId {ChangeLogId:0000}", id);
+            _logger.LogError("[ChangeLogController] Change log not found for ChangeLogId {ChangeLogId:0000}", id);
             return NotFound("Change log not found");
         }
-        return View(log); // Return the log view
+
+        var logDto = new ChangeLogDto
+        {
+            Id = log.Id,
+            AppointmentId = log.AppointmentId,
+            ChangeDate = log.ChangeDate,
+            ChangedByUserId = log.ChangedByUserId,
+            ChangeDescription = log.ChangeDescription,
+        };
+
+        return Ok(logDto);
     }
 }

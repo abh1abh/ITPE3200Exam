@@ -1,9 +1,7 @@
 using System.Security.Claims;
 using HomecareAppointmentManagement.DAL;
 using HomecareAppointmentManagement.DTO;
-// using HomecareAppointmentManagement.Infrastructure;
 using HomecareAppointmentManagement.Models;
-using HomecareAppointmentManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -251,11 +249,6 @@ public class AppointmentController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, AppointmentDto appointmentDto)
     {
-        if (!ModelState.IsValid) // Validate model state
-        {
-            _logger.LogWarning("[AppointmentController] appointment update failed for AppointmentId {AppointmentId:0000}", appointmentDto.Id);
-            return BadRequest("Bad request");
-        }
 
         var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(authUserId)) return Forbid();
@@ -346,7 +339,7 @@ public class AppointmentController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteConfirmed(int id)
+    public async Task<IActionResult> Delete(int id)
     {
         Appointment? appointment = await _appointmentRepository.GetById(id); // Get appointment by ID
         if (appointment == null) // If not found, log error and return NotFound
@@ -368,14 +361,19 @@ public class AppointmentController : ControllerBase
                 _logger.LogWarning("[AppointmentController] failed to free up slot for AppointmentId {AppointmentId:0000}", id);
             }
         }
-        // var userId = User.TryGetUserId() ?? string.Empty; // Get user ID for logging
+        var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        if (authUserId == "")
+        {
+            _logger.LogWarning("[AppointmentController] failed to get AuthUserId for AppointmentId {AppointmentId:0000}", id);
+        }
+        
 
         // Create change log entry for deletion
         bool logged = await _changeLogRepository.Create(new ChangeLog
         {
             AppointmentId = appointment.Id,
             ChangeDate = DateTime.UtcNow,
-            ChangedByUserId = "userId",
+            ChangedByUserId = authUserId,
             ChangeDescription = "Appointment deleted."
         });
 
@@ -388,10 +386,10 @@ public class AppointmentController : ControllerBase
         if (!returnOk) // If deletion fails, log error and return BadRequest
         {
             _logger.LogError("[AppointmentController] appointment deletion failed for AppointmentId {AppointmentId:0000}", appointment.Id);
-            return BadRequest("Appointment deletion failed");
+            return StatusCode(500, "Appointment deletion failed");
         }
 
-        return RedirectToAction(nameof(AppointmentList));
+        return NoContent();
     }
 
     [HttpGet("{id:int}/changelog")]
@@ -400,14 +398,6 @@ public class AppointmentController : ControllerBase
         // Get appointment to verify existence and for authorization
         var appointment = await _appointmentRepository.GetById(id);
         if (appointment == null) return NotFound("Appointment not found");
-
-        // Authorization based on user  
-        // var isAdmin = User.IsInRole("Admin");
-        // var isClientOwner = User.IsInRole("Client") && User.TryGetClientId() == appointment.ClientId;
-        // var isWorkerOwner = User.IsInRole("HealthcareWorker") && User.TryGetHealthcareWorkerId() == appointment.HealthcareWorkerId;
-
-        // Check if user from appointment are authorized
-        // if (!(isAdmin || isClientOwner || isWorkerOwner)) return Forbid();
 
         var logs = await _changeLogRepository.GetByAppointmentId(id);
 

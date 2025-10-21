@@ -1,112 +1,150 @@
 using HomecareAppointmentManagement.DAL;
 using HomecareAppointmentManagement.Models;
+using HomecareAppointmentManagement.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HomecareAppointmentManagement.Controllers;
 
-public class AppointmentTaskController : Controller
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public class AppointmentTaskController : ControllerBase
 {
     private readonly IAppointmentTaskRepository _repository;
-    private readonly ILogger<AppointmentTaskController> _logger; 
+    private readonly ILogger<AppointmentTaskController> _logger;
+
     public AppointmentTaskController(IAppointmentTaskRepository repository, ILogger<AppointmentTaskController> logger)
     {
         _repository = repository;
-        _logger = logger; 
+        _logger = logger;
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> GetAll()
     {
         var tasks = await _repository.GetAll();
-        if (tasks == null) 
+        if (tasks == null)
         {
-            _logger.LogError("[AppointmentTaskController] appointment task list not found while executing _repository.GetAll()");
-            return NotFound("Appointment task list not found");
+            _logger.LogWarning("[AppointmentTaskController] No appointment tasks found.");
+            return NotFound("No appointment tasks found.");
         }
-        return View(tasks);
-    }
-    [HttpGet]
-    public async Task<IActionResult> Details(int id)
-    {
-        var task = await _repository.GetById(id);
-        if (task == null) 
+
+        var taskDtos = tasks.Select(t => new AppointmentTaskDto
         {
-            _logger.LogError("[AppointmentTaskController] appointment task not found while executing _repository.GetById() for AppointmentTaskId {AppointmentTaskId:0000}", id);
-            return NotFound("Appointment task not found");
-        }
-        return View(task);
+            Id = t.Id,
+            AppointmentId = t.AppointmentId,
+            Description = t.Description,
+            IsCompleted = t.IsCompleted
+        });
+
+        return Ok(taskDtos);
     }
 
-    [HttpGet]
-    public IActionResult Create()
-    {
-        return View();
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Create(AppointmentTask task)
-    {
-        if (ModelState.IsValid) // Checks if the model is valid
-        {
-            bool returnOk = await _repository.Create(task); 
-            if (returnOk) 
-                return RedirectToAction(nameof(Index));
-        }
-        _logger.LogError("[AppointmentTaskController] appointment task creation failed {@task}", task);
-        return View(task);
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> Edit(int id)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
     {
         var task = await _repository.GetById(id);
         if (task == null)
         {
-            _logger.LogError("[AppointmentTaskController] appointment task not found when editing for AppointmentTaskId {AppointmentTaskId:0000}", id);
+            _logger.LogError("[AppointmentTaskController] Task not found for TaskId {TaskId:0000}", id);
             return NotFound("Appointment task not found");
         }
-        return View(task);
+
+        var taskDto = new AppointmentTaskDto
+        {
+            Id = task.Id,
+            AppointmentId = task.AppointmentId,
+            Description = task.Description,
+            IsCompleted = task.IsCompleted
+        };
+
+        return Ok(taskDto);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(int id, AppointmentTask task)
+    public async Task<IActionResult> Create([FromBody] AppointmentTaskDto taskDto)
     {
-        if (id != task.Id) // Check for ID mismatch
+        if (!ModelState.IsValid)
         {
-            _logger.LogError("[AppointmentTaskController] appointment task ID mismatch during edit for AppointmentTaskId {AppointmentTaskId:0000}", id);
-            return NotFound("Appointment task ID mismatch");
+            return BadRequest(ModelState);
         }
-        if (ModelState.IsValid) // Validate the model
+
+        var task = new AppointmentTask
         {
-            bool returnOk = await _repository.Update(task);
-            if (returnOk)
-                return RedirectToAction(nameof(Index));
+            AppointmentId = taskDto.AppointmentId,
+            Description = taskDto.Description,
+            IsCompleted = taskDto.IsCompleted
+        };
+
+        bool created = await _repository.Create(task);
+        if (!created)
+        {
+            _logger.LogError("[AppointmentTaskController] Task creation failed {@task}", task);
+            return StatusCode(500, "A problem happened while handling your request.");
         }
-        _logger.LogError("[AppointmentTaskController] appointment task update failed for AppointmentTaskId {AppointmentTaskId:0000}, {@task}", id, task);
-        return View(task);
+
+        var createdDto = new AppointmentTaskDto
+        {
+            Id = task.Id,
+            AppointmentId = task.AppointmentId,
+            Description = task.Description,
+            IsCompleted = task.IsCompleted
+        };
+
+        return CreatedAtAction(nameof(GetById), new { id = task.Id }, createdDto);
     }
 
-    [HttpGet]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] AppointmentTaskDto taskDto)
+    {
+        if (id != taskDto.Id)
+        {
+            return BadRequest("ID mismatch");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var existingTask = await _repository.GetById(id);
+        if (existingTask == null)
+        {
+            return NotFound("Appointment task not found");
+        }
+
+        existingTask.Description = taskDto.Description;
+        existingTask.IsCompleted = taskDto.IsCompleted;
+        // Do not allow changing the appointment id
+        // existingTask.AppointmentId = taskDto.AppointmentId;
+
+        bool updated = await _repository.Update(existingTask);
+        if (!updated)
+        {
+            _logger.LogError("[AppointmentTaskController] Task update failed for TaskId {TaskId:0000}, {@task}", id, existingTask);
+            return StatusCode(500, "A problem happened while handling your request.");
+        }
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         var task = await _repository.GetById(id);
         if (task == null)
         {
-            _logger.LogError("[AppointmentTaskController] appointment task not found when deleting for AppointmentTaskId {AppointmentTaskId:0000}", id);
             return NotFound("Appointment task not found");
         }
-        return View(task);
-    }
 
-    [HttpPost, ActionName("Delete")]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        bool returnOk = await _repository.Delete(id); 
-        if (!returnOk)
+        bool deleted = await _repository.Delete(id);
+        if (!deleted)
         {
-            _logger.LogError("[AppointmentTaskController] appointment task deletion failed for AppointmentTaskId {AppointmentTaskId:0000}", id);
-            return BadRequest("Appointment task deletion failed");
+            _logger.LogError("[AppointmentTaskController] Task deletion failed for TaskId {TaskId:0000}", id);
+            return StatusCode(500, "A problem happened while handling your request.");
         }
-        return RedirectToAction(nameof(Index));
+
+        return NoContent();
     }
 }

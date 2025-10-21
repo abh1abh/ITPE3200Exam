@@ -10,7 +10,6 @@ public class AvailableSlot : IValidatableObject
     [Range(1, int.MaxValue, ErrorMessage = "Healthcare worker is required.")]
     public int HealthcareWorkerId { get; set; }
 
-    [ValidateNever]
     public virtual HealthcareWorker HealthcareWorker { get; set; } = default!;
 
     [Required]

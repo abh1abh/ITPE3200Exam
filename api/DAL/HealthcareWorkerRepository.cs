@@ -90,4 +90,17 @@ public class HealthcareWorkerRepository : IHealthcareWorkerRepository
             return false; // Return false on failure
         }
     }
+
+    public async Task<HealthcareWorker?> GetByAuthUserId(string authUserId)
+    {
+        try
+        {
+            return await _db.HealthcareWorkers.FirstOrDefaultAsync(w => w.AuthUserId == authUserId); // Try to find healthcare worker by ID
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("[HealthcareWorkerRepository] healthcare worker FirstOrDefaultAsync(id) failed when GetByAuthUserId() for AuthUserId {AuthUserId:0000}, error messager: {e}", authUserId, e.Message);
+            return null; // Return null on failure
+        }
+    }
 }

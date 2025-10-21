@@ -102,7 +102,7 @@ public class ClientRepository : IClientRepository
         }
         catch (Exception e)
         {
-            _logger.LogError("[ClientRepository] client FirstOrDefaultAsync(id) failed when GetByAuthUserId() for ClientId {ClientId:0000}, error messager: {e}", authUserId, e.Message);
+            _logger.LogError("[ClientRepository] client FirstOrDefaultAsync(id) failed when GetByAuthUserId() for AuthUserId {AuthUserId:0000}, error messager: {e}", authUserId, e.Message);
             return null;
         }
     }

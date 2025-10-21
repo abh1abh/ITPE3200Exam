@@ -8,4 +8,5 @@ public interface IHealthcareWorkerRepository
     Task<bool> Create(HealthcareWorker healthcareWorker);
     Task<bool> Update(HealthcareWorker healthcareWorker);
     Task<bool> Delete(int id);
+    Task<HealthcareWorker?> GetByAuthUserId(string authUserId);
 }

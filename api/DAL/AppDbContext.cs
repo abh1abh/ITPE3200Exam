@@ -32,9 +32,14 @@ namespace HomecareAppointmentManagement.DAL
             // Keep ChangeLogs even when the Appointment row is deleted (suggestion from ChatGPT, might move to soft deleting later)
             modelBuilder.Entity<ChangeLog>()
                 .HasOne(c => c.Appointment)
-                .WithMany() 
+                .WithMany()
                 .HasForeignKey(c => c.AppointmentId)
                 .OnDelete(DeleteBehavior.SetNull); // Set FK to null on Appointment deletion
+            
+            // Male sure AuthUserId is unique  
+            modelBuilder.Entity<HealthcareWorker>()
+                .HasIndex(x => x.AuthUserId)
+                .IsUnique();
         }
     }
 }
