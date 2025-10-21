@@ -255,15 +255,7 @@ public class AppointmentController : ControllerBase
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, AppointmentDto appointmentDto)
-    {
-
-        // var authUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        // if (string.IsNullOrEmpty(authUserId))
-        // {
-        //     _logger.LogWarning("No user");
-        //     return Forbid();  
-        // } 
-        
+    {        
         var existing = await _appointmentRepository.GetById(id);
         if (existing == null) // If appointment not found, return NotFound
         {

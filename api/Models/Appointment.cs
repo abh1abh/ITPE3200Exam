@@ -35,7 +35,7 @@ public class Appointment : IValidatableObject
 
     public virtual List<AppointmentTask>? AppointmentTasks { get; set; }
 
-    public virtual List<ChangeLog>? ChangeLogs { get; set; }
+    public virtual List<ChangeLog>? ChangeLogs { get; set; } = new();
 
     // IValidatableObject implementation for cross validation
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

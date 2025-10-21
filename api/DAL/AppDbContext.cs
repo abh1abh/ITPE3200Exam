@@ -30,17 +30,11 @@ namespace HomecareAppointmentManagement.DAL
             base.OnModelCreating(modelBuilder); // Keep Identity mappings
 
             // Keep ChangeLogs even when the Appointment row is deleted (suggestion from ChatGPT, might move to soft deleting later)
-            modelBuilder.Entity<ChangeLog>()
-                .HasOne(c => c.Appointment)
-                .WithMany()
-                .HasForeignKey(c => c.AppointmentId)
-                .OnDelete(DeleteBehavior.SetNull); // Set FK to null on Appointment deletion
-
             modelBuilder.Entity<Appointment>()
-               .HasMany(a => a.ChangeLogs)
-               .WithOne(cl => cl.Appointment)
-               .HasForeignKey(cl => cl.AppointmentId)
-               .OnDelete(DeleteBehavior.Cascade); // or Restrict
+                .HasMany(a => a.ChangeLogs)
+                .WithOne(cl => cl.Appointment)
+                .HasForeignKey(cl => cl.AppointmentId)
+                .OnDelete(DeleteBehavior.SetNull);
         
             // Male sure AuthUserId is unique  
             modelBuilder.Entity<HealthcareWorker>()
