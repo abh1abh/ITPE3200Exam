@@ -310,7 +310,7 @@ public class AppointmentController : ControllerBase
         // If nothing actually changed
         if (changes.Count == 0)
         {
-            // Nothing to update/log; just go back
+            // Nothing to update/log, just go back
             return NoContent();
 
         }
@@ -330,6 +330,7 @@ public class AppointmentController : ControllerBase
         var log = new ChangeLog
         {
             AppointmentId = existing.Id,
+            AppointmentIdSnapshot = existing.Id,
             ChangeDate = DateTime.UtcNow,
             ChangedByUserId = authUserId!, // Cannot be null since we check for null in AuthorizeAppointmentAsync
             ChangeDescription = description
@@ -380,6 +381,7 @@ public class AppointmentController : ControllerBase
         bool logged = await _changeLogRepository.Create(new ChangeLog
         {
             AppointmentId = appointment.Id,
+            AppointmentIdSnapshot =appointment.Id,
             ChangeDate = DateTime.UtcNow,
             ChangedByUserId = authUserId!, // Cannot be null since we check for null in AuthorizeAppointmentAsync
             ChangeDescription = "Appointment deleted."
