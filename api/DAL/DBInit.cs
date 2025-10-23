@@ -92,7 +92,7 @@ public static class DBInit
 
         // Change logs for appointments
         appDbContext.ChangeLogs.AddRange(
-            new ChangeLog { AppointmentId = appts[0].Id, AppointmentIdSnapshot= appts[0].Id, ChangeDate = DateTime.Now, ChangedByUserId = workers[0].AuthUserId, ChangeDescription = "Rescheduled due to patient request" }
+            new ChangeLog { AppointmentId = appts[0].Id, AppointmentIdSnapshot= appts[0].Id, ChangeDate = DateTime.Now, ChangedByUserId = workers[0].AuthUserId!, ChangeDescription = "Rescheduled due to patient request" }
         );
         await appDbContext.SaveChangesAsync();
 
