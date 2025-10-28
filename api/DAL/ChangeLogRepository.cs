@@ -14,32 +14,6 @@ public class ChangeLogRepository : IChangeLogRepository
         _logger = logger;
     }
 
-    public async Task<IEnumerable<ChangeLog>?> GetAll() 
-    {
-        try
-        {
-            return await _db.ChangeLogs.ToListAsync(); // Try to get all change logs
-        }
-        catch (Exception e)
-        {
-            _logger.LogError("[ChangeLogRepository] change log ToListAsync() failed when GetAll(), error messager: {e}", e.Message);
-            return null; // Return null on failure
-        }
-    }
-
-    public async Task<ChangeLog?> GetById(int id)
-    {
-        try
-        {
-            return await _db.ChangeLogs.FindAsync(id); // Try to find change log by ID
-        }
-        catch (Exception e)
-        {
-            _logger.LogError("[ChangeLogRepository] change log FindAsync(id) failed when GetById() for ChangeLogId {ChangeLogId:0000}, error messager: {e}", id, e.Message);
-            return null; // Return null on failure
-        }
-    }
-
     public async Task<bool> Create(ChangeLog changeLog) 
     {
         try

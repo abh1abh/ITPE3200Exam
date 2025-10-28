@@ -11,6 +11,8 @@ public class ChangeLog
 
     public virtual Appointment Appointment { get; set; } = default!;
 
+    public int? AppointmentIdSnapshot { get; set; }
+
     [Required]
     [DataType(DataType.DateTime)]
     public DateTime ChangeDate { get; set; }

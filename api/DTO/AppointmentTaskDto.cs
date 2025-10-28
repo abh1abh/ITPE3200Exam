@@ -7,8 +7,7 @@ namespace HomecareAppointmentManagement.DTO
     public record AppointmentTaskDto
     {
         public int Id { get; init; }
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Appointment is required.")]
+        
         public int AppointmentId { get; set; }
 
         [Required]
