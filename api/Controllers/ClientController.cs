@@ -3,6 +3,7 @@ using HomecareAppointmentManagement.Models;
 using HomecareAppointmentManagement.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HomecareAppointmentManagement.Services;
 
 namespace HomecareAppointmentManagement.Controllers;
 
@@ -11,92 +12,55 @@ namespace HomecareAppointmentManagement.Controllers;
 [Route("api/[controller]")]
 public class ClientController : ControllerBase
 {
-    private readonly IClientRepository _clientRepository;
+    private readonly IClientService _service;
     private readonly ILogger<ClientController> _logger;
 
-    public ClientController(IClientRepository clientRepository, ILogger<ClientController> logger)
+    public ClientController(IClientService service, ILogger<ClientController> logger)
     {
-        _clientRepository = clientRepository;
+        _service = service;
         _logger = logger;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var clients = await _clientRepository.GetAll();
-        if (clients == null || !clients.Any())
+        var clients = await _service.GetAll();
+        if (!clients.Any())
         {
             _logger.LogWarning("[ClientController] No clients found.");
             return NotFound("No clients found.");
-        }
-
-        var clientDtos = clients.Select(c => new ClientDto
-        {
-            ClientId = c.ClientId,
-            Name = c.Name,
-            Address = c.Address,
-            Phone = c.Phone,
-            Email = c.Email,
-            AuthUserId = c.AuthUserId
-        });
-
-        return Ok(clientDtos);
+        }       
+        return Ok(clients);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var client = await _clientRepository.GetClientById(id);
+        var client = await _service.GetById(id);
         if (client == null)
         {
             _logger.LogError("[ClientController] Client not found for ClientId {ClientId:0000}", id);
             return NotFound("Client not found");
         }
-
-        var clientDto = new ClientDto
-        {
-            ClientId = client.ClientId,
-            Name = client.Name,
-            Address = client.Address,
-            Phone = client.Phone,
-            Email = client.Email,
-            AuthUserId = client.AuthUserId
-        };
-
-        return Ok(clientDto);
+        return Ok(client);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] ClientDto clientDto)
     {
-        var client = new Client
+        try
         {
-            Name = clientDto.Name,
-            Address = clientDto.Address,
-            Phone = clientDto.Phone,
-            Email = clientDto.Email,
-            AuthUserId = clientDto.AuthUserId
-        };
-
-        bool created = await _clientRepository.Create(client);
-        if (!created)
-        {
-            _logger.LogError("[ClientController] Client creation failed {@client}", client);
-            return StatusCode(500, "A problem happened while handling your request.");
+            var created = await _service.Create(clientDto);
+            return CreatedAtAction(nameof(GetById), new { id = created.ClientId }, created);
         }
-
-        // It's good practice to return the created object, with its new ID
-        var createdDto = new ClientDto
+        catch (InvalidOperationException)
         {
-            ClientId = client.ClientId,
-            Name = client.Name,
-            Address = client.Address,
-            Phone = client.Phone,
-            Email = client.Email,
-            AuthUserId = client.AuthUserId
-        };
-
-        return CreatedAtAction(nameof(GetById), new { id = client.ClientId }, createdDto);
+            return StatusCode(500, "API had a problem while handling your request.");
+        }
+        catch (ArgumentException e)
+        {
+            return BadRequest(e.Message);
+        } 
     }
 
     [HttpPut("{id}")]
@@ -107,45 +71,41 @@ public class ClientController : ControllerBase
             return BadRequest("ID mismatch");
         }
 
-        var existingClient = await _clientRepository.GetClientById(id);
-        if (existingClient == null)
+        try
         {
-            return NotFound("Client not found");
+            bool updated = await _service.Update(id, clientDto);
+            if (!updated)
+            {
+                return NotFound("Client not found");
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ClientController] Client update failed for ClientId {ClientId:0000}, {@client}", id, clientDto);
+            return StatusCode(500, "A problem happened while updating the client.");
         }
 
-        existingClient.Name = clientDto.Name;
-        existingClient.Address = clientDto.Address;
-        existingClient.Phone = clientDto.Phone;
-        existingClient.Email = clientDto.Email;
-        existingClient.AuthUserId = clientDto.AuthUserId;
-
-        bool updated = await _clientRepository.Update(existingClient);
-        if (!updated)
-        {
-            _logger.LogError("[ClientController] Client update failed for ClientId {ClientId:0000}, {@client}", id, existingClient);
-            return StatusCode(500, "A problem happened while handling your request.");
-        }
-
-        return NoContent();
-    }
+    }        
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var client = await _clientRepository.GetClientById(id);
-        if (client == null)
+        try
         {
-            return NotFound("Client not found");
+            bool deleted = await _service.Delete(id);
+            if (!deleted)
+            {
+                return NotFound("Client not found");
+            }
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[HealthcareWorkerController] Delete failed for client {Id:0000}", id);
+            return StatusCode(500, "A problem occurred while deleting the client.");
         }
 
-        bool deleted = await _clientRepository.Delete(id);
-        if (!deleted)
-        {
-            _logger.LogError("[ClientController] Client deletion failed for ClientId {ClientId:0000}", id);
-            return StatusCode(500, "A problem happened while handling your request.");
-        }
-
-        return NoContent();
     }
 }
 

@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using HomecareAppointmentManagement;
 using HomecareAppointmentManagement.DAL;
+using HomecareAppointmentManagement.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -65,6 +66,10 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+
+builder.Services.AddScoped<IHealthcareWorkerService, HealthcareWorkerService>();
+builder.Services.AddScoped<IClientService, ClientService>();
+
 
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IHealthcareWorkerRepository, HealthcareWorkerRepository>();

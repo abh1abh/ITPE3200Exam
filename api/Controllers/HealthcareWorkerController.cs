@@ -3,6 +3,7 @@ using HomecareAppointmentManagement.Models;
 using HomecareAppointmentManagement.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HomecareAppointmentManagement.Services;
 
 namespace HomecareAppointmentManagement.Controllers;
 
@@ -11,92 +12,53 @@ namespace HomecareAppointmentManagement.Controllers;
 [Route("api/[controller]")]
 public class HealthcareWorkerController : ControllerBase
 {
-    private readonly IHealthcareWorkerRepository _repository;
+    private readonly IHealthcareWorkerService _service;
     private readonly ILogger<HealthcareWorkerController> _logger;
 
-    public HealthcareWorkerController(IHealthcareWorkerRepository repository, ILogger<HealthcareWorkerController> logger)
+    public HealthcareWorkerController(IHealthcareWorkerService service, ILogger<HealthcareWorkerController> logger)
     {
-        _repository = repository;
+        _service = service;
         _logger = logger;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var healthcareWorkers = await _repository.GetAll();
-        if (healthcareWorkers == null || !healthcareWorkers.Any())
+        var healthcareWorkers = await _service.GetAll();
+        if (!healthcareWorkers.Any())
         {
             _logger.LogWarning("[HealthcareWorkerController] No healthcare workers found.");
             return NotFound("No healthcare workers found.");
         }
-
-        var workerDtos = healthcareWorkers.Select(w => new HealthcareWorkerDto
-        {
-            HealthcareWorkerId = w.HealthcareWorkerId,
-            Name = w.Name,
-            Address = w.Address,
-            Phone = w.Phone,
-            Email = w.Email,
-            AuthUserId = w.AuthUserId
-        });
-
-        return Ok(workerDtos);
+        return Ok(healthcareWorkers);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var worker = await _repository.GetById(id);
+        var worker = await _service.GetById(id);
         if (worker == null)
         {
             _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
             return NotFound("Healthcare worker not found");
         }
-
-        var workerDto = new HealthcareWorkerDto
-        {
-            HealthcareWorkerId = worker.HealthcareWorkerId,
-            Name = worker.Name,
-            Address = worker.Address,
-            Phone = worker.Phone,
-            Email = worker.Email,
-            AuthUserId = worker.AuthUserId
-        };
-
-        return Ok(workerDto);
+        return Ok(worker);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] HealthcareWorkerDto workerDto)
     {
-
-        var worker = new HealthcareWorker
+        try
         {
-            Name = workerDto.Name,
-            Address = workerDto.Address,
-            Phone = workerDto.Phone,
-            Email = workerDto.Email,
-            AuthUserId = workerDto.AuthUserId
-        };
-
-        bool created = await _repository.Create(worker);
-        if (!created)
+            var created = await _service.Create(workerDto);
+            return CreatedAtAction(nameof(GetById), new { id = created.HealthcareWorkerId }, created);
+        } catch (InvalidOperationException)
         {
-            _logger.LogError("[HealthcareWorkerController] Healthcare worker creation failed {@worker}", worker);
-            return StatusCode(500, "A problem happened while handling your request.");
+            return StatusCode(500, "API had a problem while handling your request.");
+        } catch (AggregateException ex)
+        {
+            return BadRequest(ex.Message);
         }
-
-        var createdDto = new HealthcareWorkerDto
-        {
-            HealthcareWorkerId = worker.HealthcareWorkerId,
-            Name = worker.Name,
-            Address = worker.Address,
-            Phone = worker.Phone,
-            Email = worker.Email,
-            AuthUserId = worker.AuthUserId
-        };
-
-        return CreatedAtAction(nameof(GetById), new { id = worker.HealthcareWorkerId }, createdDto);
     }
 
     [HttpPut("{id}")]
@@ -107,42 +69,23 @@ public class HealthcareWorkerController : ControllerBase
             return BadRequest("ID mismatch");
         }
 
-        var existingWorker = await _repository.GetById(id);
-        if (existingWorker == null)
+        var existingWorker = await _service.Update(id, workerDto);
+        if(!existingWorker)
         {
             return NotFound("Healthcare worker not found");
         }
-
-        existingWorker.Name = workerDto.Name;
-        existingWorker.Address = workerDto.Address;
-        existingWorker.Phone = workerDto.Phone;
-        existingWorker.Email = workerDto.Email;
-        existingWorker.AuthUserId = workerDto.AuthUserId;
-
-        bool updated = await _repository.Update(existingWorker);
-        if (!updated)
-        {
-            _logger.LogError("[HealthcareWorkerController] Healthcare worker update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, existingWorker);
-            return StatusCode(500, "A problem happened while handling your request.");
-        }
-
+      
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var worker = await _repository.GetById(id);
-        if (worker == null)
-        {
-            return NotFound("Healthcare worker not found");
-        }
-
-        bool deleted = await _repository.Delete(id);
+   
+        bool deleted = await _service.Delete(id);
         if (!deleted)
         {
-            _logger.LogError("[HealthcareWorkerController] Healthcare worker deletion failed for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
-            return StatusCode(500, "A problem happened while handling your request.");
+            return NotFound("Healthcare worker was not found or delete failed");
         }
 
         return NoContent();
