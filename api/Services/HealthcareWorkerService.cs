@@ -92,7 +92,6 @@ public class HealthcareWorkerService: IHealthcareWorkerService
     }
     public async Task<bool> Update(int id, HealthcareWorkerDto workerDto)
     {
-        
         var existingWorker = await _repository.GetById(id);
         if (existingWorker == null)
         {
@@ -109,6 +108,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         if (!updated)
         {
             _logger.LogError("[HealthcareWorkerService] Update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, existingWorker);
+            throw new InvalidOperationException($"Update operation failed for HealthcareWorkerId {id}");
         }
 
         return updated;
@@ -125,8 +125,8 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         if (!deleted)
         {
             _logger.LogError("[HealthcareWorkerService] Deletion failed for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
+            throw new InvalidOperationException($"Deletion operation failed for HealthcareWorkerId {id}");
         }
-
         return deleted;
     }
 }

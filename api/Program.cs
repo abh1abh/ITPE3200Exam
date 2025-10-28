@@ -69,6 +69,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<IHealthcareWorkerService, HealthcareWorkerService>();
 builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IAvailableSlotService, AvailableSlotService>();
+
 
 
 builder.Services.AddScoped<IClientRepository, ClientRepository>();

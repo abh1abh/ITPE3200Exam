@@ -80,6 +80,11 @@ public class ClientController : ControllerBase
             }
             return NoContent();
         }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "[ClientController] Client update failed for ClientId {ClientId:0000}, {@client}", id, clientDto);
+            return StatusCode(500, "Failed to update client.");
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[ClientController] Client update failed for ClientId {ClientId:0000}, {@client}", id, clientDto);
@@ -100,10 +105,15 @@ public class ClientController : ControllerBase
             }
             return NoContent();
         }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "[ClientController] Delete failed for client {Id:0000}", id);
+            return StatusCode(500, "Failed to delete client.");
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[HealthcareWorkerController] Delete failed for client {Id:0000}", id);
-            return StatusCode(500, "A problem occurred while deleting the client.");
+            _logger.LogError(ex, "[ClientController] Unexpected error deleting client {Id:0000}", id);
+            return StatusCode(500, "Unexpected error.");
         }
 
     }

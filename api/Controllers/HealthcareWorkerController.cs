@@ -69,25 +69,49 @@ public class HealthcareWorkerController : ControllerBase
             return BadRequest("ID mismatch");
         }
 
-        var existingWorker = await _service.Update(id, workerDto);
-        if(!existingWorker)
+        try
         {
-            return NotFound("Healthcare worker not found");
+            var existingWorker = await _service.Update(id, workerDto);
+            if (!existingWorker)
+            {
+                return NotFound("Healthcare worker not found");
+            }
+            return NoContent();
         }
-      
-        return NoContent();
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "[ClientController] Worker update failed for HealthcareWorkerId {id:0000}, {@worker}", id, workerDto);
+            return StatusCode(500, "Failed to update worker.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ClientController] Worker update failed for HealthcareWorkerId {id:0000}, {@worker}", id, workerDto);
+            return StatusCode(500, "A problem happened while updating the worker.");
+        }        
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-   
-        bool deleted = await _service.Delete(id);
-        if (!deleted)
+        try
         {
-            return NotFound("Healthcare worker was not found or delete failed");
-        }
+            bool deleted = await _service.Delete(id);
+            if (!deleted)
+            {
+                return NotFound("Healthcare worker was not found or delete failed");
+            }
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "[ClientController] Worker deletion failed for HealthcareWorkerId {id:0000}", id);
+            return StatusCode(500, "Failed to delete worker.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ClientController] Worker deletion failed for HealthcareWorkerId {id:0000}", id);
+            return StatusCode(500, "A problem happened while deleting the worker.");
+        }
     }
 }

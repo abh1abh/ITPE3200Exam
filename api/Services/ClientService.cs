@@ -92,57 +92,37 @@ public class ClientService : IClientService
         {
             return false;
         }
+         
+        existingClient.Name = dto.Name;
+        existingClient.Address = dto.Address;
+        existingClient.Phone = dto.Phone;
+        existingClient.Email = dto.Email;
+        existingClient.AuthUserId = dto.AuthUserId;
 
-        try
+        bool updated = await _repository.Update(existingClient);
+        if (!updated)
         {
-            existingClient.Name = dto.Name;
-            existingClient.Address = dto.Address;
-            existingClient.Phone = dto.Phone;
-            existingClient.Email = dto.Email;
-            existingClient.AuthUserId = dto.AuthUserId;
-
-            bool updated = await _repository.Update(existingClient);
-            if (!updated)
-            {
-                _logger.LogError("[ClientController] Client update failed for ClientId {ClientId:0000}, {@client}", id, existingClient);
-                throw new Exception($"Update operation failed for client ID {id}");
-            }
-
-            return updated;
+            _logger.LogError("[ClientController] Client update failed for ClientId {ClientId:0000}, {@client}", id, existingClient);
+            throw new InvalidOperationException($"Update operation failed for client ID {id}");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[CLientService] Error deleting client {Id:0000}", id);
-            throw; // Push the real problem up to the controller 
-        }
-
-        
+        return updated;      
     }
+    
     public async Task<bool> Delete(int id)
     {
         var client = await _repository.GetClientById(id);
-        if (client == null)
+        if (client is null) return false; // normal "not found"
+
+        var ok = await _repository.Delete(id);
+        if (!ok)
         {
-            return false;
+            _logger.LogError("[ClientController] Client deletion failed for ClientId {ClientId:0000}", id);
+            throw new InvalidOperationException($"Delete operation failed for client ID {id}");
+
         }
 
-        try
-        {
-            bool deleted = await _repository.Delete(id);
-            if (!deleted)
-            {
-                _logger.LogError("[ClientService] Deletion failed for ClientId {HealthcareWorkerId:0000}", id);
-                throw new Exception($"Delete operation failed for client ID {id}");
-                
-            }
-            return true;
-        } catch (Exception ex)
-        {
-            _logger.LogError(ex, "[CLientService] Error deleting client {Id:0000}", id);
-            throw; // Push the real problem up to the controller 
-        }
-
- 
+        return true;
     }
+
 
 }
