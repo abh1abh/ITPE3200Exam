@@ -7,6 +7,7 @@ public class Appointment : IValidatableObject
 {
     public int Id { get; set; }
 
+    [Required]
     [Range(1, int.MaxValue, ErrorMessage = "Client is required.")]
     public int ClientId { get; set; }
 
@@ -30,6 +31,7 @@ public class Appointment : IValidatableObject
     [StringLength(1000, ErrorMessage = "Notes must be at most {1} characters.")]
     public string Notes { get; set; } = string.Empty;
 
+    [Required]
     public int? AvailableSlotId { get; set; } // Foreign key to AvailableSlot
     public virtual AvailableSlot? AvailableSlot { get; set; }
 

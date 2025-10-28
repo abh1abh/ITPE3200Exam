@@ -35,6 +35,10 @@ public class AppointmentService: IAppointmentService
     }
 
 
+    // Private helper function to easily know if user is authorized or not. 
+    // Service uses the appointment, role and AuthUserId to check if the user is authorized.
+    // If the user is not admin, or the worker/client is not reference in the appointment the user will be unauthorized.
+    // Only admins and relevant users can view, edit or delete an appointment 
     private async Task<bool> IsAuthorized(Appointment appt, string? authUserId, string? role)
     {
         if (string.IsNullOrEmpty(authUserId)) return false;
@@ -58,9 +62,10 @@ public class AppointmentService: IAppointmentService
 
     public async Task<IEnumerable<AppointmentDto>> GetAll()
     {
-        var appointments = await _appointmentRepository.GetAll();
-        if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentDto>(); 
-        
+        var appointments = await _appointmentRepository.GetAll(); // Calls AppointmentRepository to get all appointments 
+        if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentDto>(); // If appointments are null Service returns a empty AppointmentDto List
+
+        // Service convert the appointment list to AppointmentDto List
         var appointmentDtos = appointments.Select(appointment => new AppointmentDto
         {
             Id = appointment.Id,
@@ -88,14 +93,17 @@ public class AppointmentService: IAppointmentService
         });
         return appointmentDtos;
     }
+    
     public async Task<AppointmentDto?> GetById(int id, string? role, string? authUserId)
     {
-        var appointment = await _appointmentRepository.GetById(id);
-        if (appointment is null) return null;
+        var appointment = await _appointmentRepository.GetById(id); // Gets the appointment from DB
+        if (appointment is null) return null; // If the appointment is null, Service returns null
 
+        // Service uses our helper function to check if the user is authorized.
         if (!await IsAuthorized(appointment, authUserId, role)) throw new UnauthorizedAccessException();
 
-        var appointmentDto = new AppointmentDto
+        // We convert the appointment to dto before returning the dto
+        var appointmentDto = new AppointmentDto 
         {
             Id = appointment.Id,
             ClientId = appointment.ClientId,
@@ -124,39 +132,39 @@ public class AppointmentService: IAppointmentService
     }
     public async Task<AppointmentDto> Create(AppointmentDto dto, string? role, string? authUserId)
     {
-
+        
         dto.AppointmentTasks = (dto.AppointmentTasks ?? new())
             .Where(t => !string.IsNullOrWhiteSpace(t.Description))
             .ToList();
 
-        if (dto.AvailableSlotId is null) throw new ArgumentException("AvailableSlotId is required.");
-
+        // Here we use role to get the clientId either the AuthUserId or the incoming appointment Dto
         int clientId;
         if (role == "Client")
         {
-            if (string.IsNullOrEmpty(authUserId)) throw new UnauthorizedAccessException();
-            var client = await _clientRepository.GetByAuthUserId(authUserId) ?? throw new UnauthorizedAccessException();
+            if (string.IsNullOrEmpty(authUserId)) throw new UnauthorizedAccessException(); // If the service to not receive a AuthUserId we throw an UnauthorizedAccessException 
+            var client = await _clientRepository.GetByAuthUserId(authUserId) ?? throw new UnauthorizedAccessException(); // And if the AuthUserId does not belong to a Client we do the same
             clientId = client.ClientId;
         }
         else if (role == "Admin")
         {
-            if (dto.ClientId == 0) throw new ArgumentException("ClientId is required for admin creation.");
-            var client = await _clientRepository.GetClientById(dto.ClientId) ?? throw new ArgumentException($"Client {dto.ClientId} not found.");
+            if (dto.ClientId == 0) throw new ArgumentException("ClientId is required for admin creation."); // If the incoming AppointmentDto does not have a clientId we throw an ArgumentException
+            var client = await _clientRepository.GetClientById(dto.ClientId) ?? throw new ArgumentException($"Client {dto.ClientId} not found."); // As well as if the clientId is not from a client in the DB
             clientId = client.ClientId;
         }
         else
         {
-            throw new UnauthorizedAccessException();
+            throw new UnauthorizedAccessException(); // We throw an UnauthorizedAccessException if the role is not Admin or Client
         }
 
-        var slot = await _availableSlotRepository.GetById(dto.AvailableSlotId.Value);
+        var slot = await _availableSlotRepository.GetById(dto.AvailableSlotId!.Value); // We find the Available Slot from the Id from the incoming Dto 
         if (slot is null || slot.IsBooked || slot.Start <= DateTime.UtcNow)
-            throw new ArgumentException("That slot is no longer available.");
+            throw new ArgumentException("That slot is no longer available."); // If the slot does not exist, is booked or the slot have expired we return an ArgumentException 
 
-        slot.IsBooked = true;
+        // Service books the slots and updates the slot
+        slot.IsBooked = true; 
         var booked = await _availableSlotRepository.Update(slot);
         if (!booked)
-            throw new InvalidOperationException("Could not book the selected slot.");
+            throw new InvalidOperationException("Could not book the selected slot."); // If the slot is not booked it throws an InvalidOperationException
 
         var appointment = new Appointment
         {
@@ -170,10 +178,10 @@ public class AppointmentService: IAppointmentService
 
         try
         {
-            var created = await _appointmentRepository.Create(appointment);
+            var created = await _appointmentRepository.Create(appointment); // Call the AppointmentRepository to create the appointment 
             if (!created) throw new InvalidOperationException("Could not create appointment.");
 
-            foreach (var t in dto.AppointmentTasks)
+            foreach (var t in dto.AppointmentTasks) // Service loops through the Appointment task and creates each one
             {
                 var ok = await _appointmentTaskRepository.Create(new AppointmentTask
                 {
@@ -181,9 +189,10 @@ public class AppointmentService: IAppointmentService
                     Description = t.Description!,
                     IsCompleted = t.IsCompleted
                 });
-                if (!ok) throw new InvalidOperationException("Could not create appointment task.");
+                if (!ok) throw new InvalidOperationException("Could not create appointment task."); // If one of the task fail, it throws an InvalidOperationException
             }
 
+            // To get the full appointment, we call the Db to get it. Then we convert it to a Dto and return it.
             var freshAppointment = await _appointmentRepository.GetById(appointment.Id) ?? appointment; // Fallback to appointment without task if not found
             var appointmentDto = new AppointmentDto
             {
@@ -212,7 +221,7 @@ public class AppointmentService: IAppointmentService
             };
             return appointmentDto;
         } 
-        catch 
+        catch // If the try fails, we unbook the slot, and propagate the exception to the controller.  
         {
             slot.IsBooked = false;
             await _availableSlotRepository.Update(slot);
@@ -223,13 +232,14 @@ public class AppointmentService: IAppointmentService
     
     public async Task<bool> Update(int id, AppointmentDto appointmentDto, string? role, string? authUserId)
     {
-        var existing = await _appointmentRepository.GetById(id);
+        var existing = await _appointmentRepository.GetById(id); // Checks if the appointment exists 
         if (existing is null) return false;
 
+        // Check the authorization 
         if (!await IsAuthorized(existing, authUserId, role))
             throw new UnauthorizedAccessException();
         
-        // Only notes + tasks in this flow (no slot changes here)
+        // Only notes + tasks can change
         var changes = new List<string>(); // To track changes for logging
         if (!string.Equals(existing.Notes ?? "", appointmentDto.Notes ?? "", StringComparison.Ordinal))
             changes.Add($"Notes: \"{existing.Notes}\" → \"{appointmentDto.Notes}\""); // If notes changed, log change by adding to changes list
@@ -271,7 +281,7 @@ public class AppointmentService: IAppointmentService
         if (changes.Count == 0) return true;
 
         var updatedOk = await _appointmentRepository.Update(existing); // Update appointment
-        if (!updatedOk) // If update fails, log warning and return view with model
+        if (!updatedOk) // If update fails, log warning and throw InvalidOperationException
         {
             _logger.LogWarning("[AppointmentWarning] appointment update failed for AppointmentId {AppointmentId:0000}", appointmentDto.Id);
             throw new InvalidOperationException("Internal error updating the appointment.");
@@ -302,7 +312,7 @@ public class AppointmentService: IAppointmentService
     public async Task<bool> Delete(int id, string? role, string? authUserId)
     {
         var appointment = await _appointmentRepository.GetById(id); // Get appointment by ID
-        if (appointment == null) // If not found, log error and return NotFound
+        if (appointment == null) // If not found, log error and return false
         {
             // _logger.LogError("[AppointmentController] appointment not found when deleting for AppointmentId {AppointmentId:0000}", id);
             return false;
@@ -311,7 +321,7 @@ public class AppointmentService: IAppointmentService
         if (!await IsAuthorized(appointment, authUserId, role))
             throw new UnauthorizedAccessException();
 
-        // Free slot first (best effort)
+        // Free slot first 
         if (appointment.AvailableSlotId.HasValue)
         {
             var slot = await _availableSlotRepository.GetById(appointment.AvailableSlotId.Value);
@@ -321,11 +331,14 @@ public class AppointmentService: IAppointmentService
                 var slotOk = await _availableSlotRepository.Update(slot); // Update slot to free it up
                 if (!slotOk)
                 {
+                    // TODO: Maybe should we throw an exception? 
+                    // Log warning.
                     _logger.LogWarning("[AppointmentService] failed to free up slot for AppointmentId {AppointmentId:0000}", id);
                 }
             }
         }
 
+        // Create changelog 
         bool logged = await _changeLogRepository.Create(new ChangeLog
         {
             AppointmentId = appointment.Id,
@@ -341,7 +354,7 @@ public class AppointmentService: IAppointmentService
         }
 
         bool returnOk = await _appointmentRepository.Delete(appointment.Id); // Delete appointment
-        if (!returnOk) // If deletion fails, log error and return BadRequest
+        if (!returnOk) // If deletion fails, log error and throw InvalidOperationException
         {
             _logger.LogError("[AppointmentService] appointment deletion failed for AppointmentId {AppointmentId:0000}", appointment.Id);
             throw new InvalidOperationException("Appointment deletion failed.");
@@ -350,15 +363,17 @@ public class AppointmentService: IAppointmentService
         return true;
     }
     
-    public async Task<IEnumerable<ChangeLogDto>> GetChangeLogAsync(int id, string? role, string? authUserId)
+    public async Task<IEnumerable<ChangeLogDto>> GetChangeLog(int id, string? role, string? authUserId)
     {
-        var appointment = await _appointmentRepository.GetById(id);
-        if (appointment is null) return Enumerable.Empty<ChangeLogDto>();
+        var appointment = await _appointmentRepository.GetById(id); // Get appointment by id
+        if (appointment is null) return Enumerable.Empty<ChangeLogDto>(); // if appointment is null return empty list of ChangeLogDtos
 
+        // Check authorization 
         if (!await IsAuthorized(appointment, authUserId, role))
             throw new UnauthorizedAccessException();
 
-        var logs = await _changeLogRepository.GetByAppointmentId(id) ?? Enumerable.Empty<ChangeLog>();
+        // Get ChangeLogs and convert them to dtos
+        var logs = await _changeLogRepository.GetByAppointmentId(id) ?? Enumerable.Empty<ChangeLog>(); // Fallback to empty list of ChangeLog
 
         var logDtos = logs.Select(l => new ChangeLogDto
         {

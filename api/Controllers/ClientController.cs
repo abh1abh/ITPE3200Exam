@@ -1,5 +1,3 @@
-using HomecareAppointmentManagement.DAL;
-using HomecareAppointmentManagement.Models;
 using HomecareAppointmentManagement.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

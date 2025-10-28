@@ -1,14 +1,12 @@
-using HomecareAppointmentManagement.DAL;
-using HomecareAppointmentManagement.Models;
 using HomecareAppointmentManagement.DTO;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using HomecareAppointmentManagement.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HomecareAppointmentManagement.Controllers;
 
-// [Authorize(Roles = "HealthcareWorker,Admin")]
+[Authorize(Roles = "HealthcareWorker,Admin")]
 [ApiController]
 [Route("api/[controller]")]
 public class AvailableSlotController : ControllerBase
