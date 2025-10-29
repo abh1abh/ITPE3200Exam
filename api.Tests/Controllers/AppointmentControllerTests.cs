@@ -1,9 +1,8 @@
 using api.DAL;
 
-namespace Name
+namespace api.Tests.Controllers;
+
+public class AppointmentControllerTests
 {
-    public class test
-    {
-        private readonly IAppointmentRepository appointmentRepository;
-    }
+    
 }
