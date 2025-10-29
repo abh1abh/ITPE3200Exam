@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using HomecareAppointmentManagement.Models;
+using api.Models;
 
-namespace HomecareAppointmentManagement.DAL
+namespace api.DAL
 {
     public class AuthDbContext : IdentityDbContext<AuthUser>
     {

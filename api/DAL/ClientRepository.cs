@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HomecareAppointmentManagement.Controllers;
-using HomecareAppointmentManagement.DAL;
-using HomecareAppointmentManagement.Models;
+using api.Controllers;
+using api.DAL;
+using api.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace HomecareAppointmentManagement.DAL;
+namespace api.DAL;
 
 public class ClientRepository : IClientRepository
 {

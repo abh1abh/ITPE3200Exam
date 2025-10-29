@@ -1,9 +1,9 @@
 
-using HomecareAppointmentManagement.DAL;
-using HomecareAppointmentManagement.DTO;
-using HomecareAppointmentManagement.Models;
+using api.DAL;
+using api.DTO;
+using api.Models;
 
-namespace HomecareAppointmentManagement.Services;
+namespace api.Services;
 public class AppointmentService: IAppointmentService
 {
     private readonly IAppointmentRepository _appointmentRepository;

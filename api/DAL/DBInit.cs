@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using HomecareAppointmentManagement.Models;
+using api.Models;
 // using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace HomecareAppointmentManagement.DAL;
+namespace api.DAL;
 
 public static class DBInit
 {

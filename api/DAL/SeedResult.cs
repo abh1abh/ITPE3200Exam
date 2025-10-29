@@ -1,4 +1,4 @@
-namespace HomecareAppointmentManagement.DAL
+namespace api.DAL
 {
     public class SeedResult
     {

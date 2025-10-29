@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace HomecareAppointmentManagement.Models;
+namespace api.Models;
 
 public class Appointment : IValidatableObject
 {

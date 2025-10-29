@@ -1,7 +1,7 @@
-using HomecareAppointmentManagement.Models;
+using api.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace HomecareAppointmentManagement.DAL;
+namespace api.DAL;
 
 public class ChangeLogRepository : IChangeLogRepository
 {

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
-namespace HomecareAppointmentManagement.Models;
+namespace api.Models;
 
 public class Client
 {

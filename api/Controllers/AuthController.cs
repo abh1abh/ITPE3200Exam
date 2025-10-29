@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using HomecareAppointmentManagement.DTO;
-using HomecareAppointmentManagement.Models;
+using api.DTO;
+using api.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace HomecareAppointmentManagement.Controllers
+namespace api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
