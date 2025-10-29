@@ -311,6 +311,8 @@ public class AppointmentServiceTests
         Assert.Contains("That slot is no longer available.", ex.Message, StringComparison.OrdinalIgnoreCase);
 
         // Nothing should proceed after validation fails
+        _clientRepository.Verify(r => r.GetByAuthUserId(authUserId), Times.Once);
+        _availableSlotRepository.Verify(r => r.GetById(slotId), Times.Once);
         _availableSlotRepository.Verify(r => r.Update(It.IsAny<AvailableSlot>()), Times.Never);
         _appointmentRepository.Verify(r => r.Create(It.IsAny<Appointment>()), Times.Never);
         _appointmentTaskRepository.Verify(r => r.Create(It.IsAny<AppointmentTask>()), Times.Never);
@@ -342,6 +344,12 @@ public class AppointmentServiceTests
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 service.Create(dto, role: "Client", authUserId: authUserId));
 
+        // Verify calls
+        _clientRepository.Verify(r => r.GetByAuthUserId(authUserId), Times.Once);
+        _availableSlotRepository.Verify(r => r.GetById(slotId), Times.Never);
+        _availableSlotRepository.Verify(r => r.Update(It.IsAny<AvailableSlot>()), Times.Never);
+        _appointmentRepository.Verify(r => r.Create(It.IsAny<Appointment>()), Times.Never);
+        _appointmentTaskRepository.Verify(r => r.Create(It.IsAny<AppointmentTask>()), Times.Never);
     }
 
     [Fact]
@@ -410,6 +418,11 @@ public class AppointmentServiceTests
         Assert.False(bookedStates[1]);  // unbooked after failure
 
         // Assert no tasks should be created
+        // Nothing should proceed after validation fails
+        _clientRepository.Verify(r => r.GetByAuthUserId(authUserId), Times.Once);
+        _availableSlotRepository.Verify(r => r.GetById(slotId), Times.Once);
+        _availableSlotRepository.Verify(r => r.Update(It.IsAny<AvailableSlot>()), Times.Exactly(2));
+        _appointmentRepository.Verify(r => r.Create(It.IsAny<Appointment>()), Times.Once);
         _appointmentTaskRepository.Verify(r => r.Create(It.IsAny<AppointmentTask>()), Times.Never);
     }
 
@@ -548,8 +561,11 @@ public class AppointmentServiceTests
         // Assert 
         Assert.False(ok);
 
-        // Assert GetById is called once
+        // Verify calls
         _appointmentRepository.Verify(r => r.GetById(It.IsAny<int>()), Times.Once);
+        _clientRepository.Verify(r => r.GetByAuthUserId(authUserId), Times.Never);
+        _appointmentRepository.Verify(r => r.Update(It.IsAny<Appointment>()), Times.Never);
+        _appointmentTaskRepository.Verify(r => r.Update(It.IsAny<AppointmentTask>()), Times.Never);
     }
 
     [Fact]
@@ -602,8 +618,11 @@ public class AppointmentServiceTests
                 service.Update(id: appointmentId, appointmentDto: dto, role: "HealthcareWorker", authUserId: authUserId));
 
         // Asserts if the healthcare worker repository method are called called once during the GetById execution
+        _appointmentRepository.Verify(r => r.GetById(It.IsAny<int>()), Times.Once);
         _healthcareWorkerRepository.Verify(r => r.GetByAuthUserId(authUserId), Times.Once);
         _clientRepository.Verify(r => r.GetByAuthUserId(It.IsAny<string>()), Times.Never);
+        _appointmentRepository.Verify(r => r.Update(It.IsAny<Appointment>()), Times.Never);
+        _appointmentTaskRepository.Verify(r => r.Update(It.IsAny<AppointmentTask>()), Times.Never);
     }
 
     [Fact]
