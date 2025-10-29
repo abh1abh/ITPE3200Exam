@@ -52,7 +52,7 @@ public class AppointmentService: IAppointmentService
             ok = client is not null && client.ClientId == appt.ClientId;
         }
 
-        if (role == "Worker" && appt.HealthcareWorkerId != 0)
+        if (role == "HealthcareWorker" && appt.HealthcareWorkerId != 0)
         {
             var worker = await _healthcareWorkerRepository.GetByAuthUserId(authUserId);
             ok = worker is not null && worker.HealthcareWorkerId == appt.HealthcareWorkerId;
@@ -60,13 +60,36 @@ public class AppointmentService: IAppointmentService
         return ok;
     }
 
-    public async Task<IEnumerable<AppointmentDto>> GetAll()
+    public async Task<IEnumerable<AppointmentDto>> GetAll(string? role, string? authUserId)
     {
         var appointments = await _appointmentRepository.GetAll(); // Calls AppointmentRepository to get all appointments 
         if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentDto>(); // If appointments are null Service returns a empty AppointmentDto List
 
+        IEnumerable<Appointment> filteredAppointments = appointments;
+
+        // TODO: Review this. Do we need it?
+        if (role == "Admin")
+        {
+
+        }
+        else if (role == "HealthcareWorker")
+        {
+            filteredAppointments = appointments
+                .Where(a => a.HealthcareWorker != null && a.HealthcareWorker.AuthUserId == authUserId);
+        }
+        else if (role == "Client")
+        {
+            filteredAppointments = appointments
+                .Where(a => a.Client != null && a.Client.AuthUserId == authUserId);
+        }
+        else
+        {
+            // Unknown role, return empty list
+            return Enumerable.Empty<AppointmentDto>();
+        }
+        
         // Service convert the appointment list to AppointmentDto List
-        var appointmentDtos = appointments.Select(appointment => new AppointmentDto
+        var appointmentDtos = filteredAppointments.Select(appointment => new AppointmentDto
         {
             Id = appointment.Id,
             ClientId = appointment.ClientId,
@@ -321,6 +344,13 @@ public class AppointmentService: IAppointmentService
         if (!await IsAuthorized(appointment, authUserId, role))
             throw new UnauthorizedAccessException();
 
+        bool returnOk = await _appointmentRepository.Delete(appointment.Id); // Delete appointment
+        if (!returnOk) // If deletion fails, log error and throw InvalidOperationException
+        {
+            _logger.LogError("[AppointmentService] appointment deletion failed for AppointmentId {AppointmentId:0000}", appointment.Id);
+            throw new InvalidOperationException("Appointment deletion failed.");
+        }
+
         // Free slot first 
         if (appointment.AvailableSlotId.HasValue)
         {
@@ -351,13 +381,6 @@ public class AppointmentService: IAppointmentService
         if (!logged) // If logging fails, log warning
         {
             _logger.LogWarning("[AppointmentService] failed to create change log for deleted AppointmentId {AppointmentId:0000}", appointment.Id);
-        }
-
-        bool returnOk = await _appointmentRepository.Delete(appointment.Id); // Delete appointment
-        if (!returnOk) // If deletion fails, log error and throw InvalidOperationException
-        {
-            _logger.LogError("[AppointmentService] appointment deletion failed for AppointmentId {AppointmentId:0000}", appointment.Id);
-            throw new InvalidOperationException("Appointment deletion failed.");
         }
 
         return true;

@@ -31,10 +31,19 @@ public class AppointmentController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> AppointmentList()
     {
+        var (role, authUserId) = UserContext(); // Get role and AuthUserId
         // TODO: Should we allow all users to get all appointments?
-        var appointments = await _service.GetAll();
-        if (!appointments.Any()) return NotFound("Appointments not found");
-        return Ok(appointments);
+        try
+        {
+            var appointments = await _service.GetAll( role: role, authUserId: authUserId);
+            if (!appointments.Any()) return NotFound("Appointments not found");
+            return Ok(appointments);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AppointmentController] Error AppointmentList");
+            return StatusCode(500, "A problem occurred while fetching the appointment list."); // Returns 500 at general exceptions 
+        }      
     }
 
     [HttpGet("{id:int}")]
