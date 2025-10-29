@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace HomecareAppointmentManagement.DTO
+namespace api.DTO
 {
     public class AvailableSlotDto
     {

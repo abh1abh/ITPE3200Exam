@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace HomecareAppointmentManagement
+namespace api
 {
     public class AuthUser : IdentityUser
     {

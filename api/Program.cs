@@ -2,9 +2,9 @@
 
 using System.Security.Claims;
 using System.Text;
-using HomecareAppointmentManagement;
-using HomecareAppointmentManagement.DAL;
-using HomecareAppointmentManagement.Services;
+using api;
+using api.DAL;
+using api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

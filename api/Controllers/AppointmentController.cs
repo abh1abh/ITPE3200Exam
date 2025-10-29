@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using HomecareAppointmentManagement.DTO;
-using HomecareAppointmentManagement.Services;
+using api.DTO;
+using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HomecareAppointmentManagement.Controllers;
+namespace api.Controllers;
 
 [Authorize(Roles = "Client,Admin,HealthcareWorker")] // Authorize all relevant roles
 [ApiController]

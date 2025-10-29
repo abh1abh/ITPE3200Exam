@@ -1,7 +1,7 @@
 
-using HomecareAppointmentManagement.DTO;
+using api.DTO;
 
-namespace HomecareAppointmentManagement.Services;
+namespace api.Services;
 public interface IClientService
 {
     Task<IEnumerable<ClientDto>> GetAll();

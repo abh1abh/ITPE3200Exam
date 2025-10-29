@@ -1,7 +1,7 @@
 
 using Microsoft.AspNetCore.Identity;
 
-namespace HomecareAppointmentManagement.DAL
+namespace api.DAL
 {
     public static class AuthDbInit
     {

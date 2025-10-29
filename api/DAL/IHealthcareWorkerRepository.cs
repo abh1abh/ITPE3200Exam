@@ -1,6 +1,6 @@
-using HomecareAppointmentManagement.Models;
+using api.Models;
 
-namespace HomecareAppointmentManagement.DAL;
+namespace api.DAL;
 public interface IHealthcareWorkerRepository
 {
     Task<IEnumerable<HealthcareWorker>?> GetAll();
