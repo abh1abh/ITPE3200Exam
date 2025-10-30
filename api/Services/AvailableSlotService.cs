@@ -34,22 +34,28 @@ public class AvailableSlotService: IAvailableSlotService
         return currentWorkerId.HasValue && slot.HealthcareWorkerId == currentWorkerId.Value;
     }
 
-    public async Task<IEnumerable<AvailableSlotDto>> GetAll(bool IsAdmin, string? authUserId)
+    public async Task<IEnumerable<AvailableSlotDto>> GetAll(bool isAdmin)
     {
-        if (IsAdmin)
+        if (!isAdmin)
         {
-            var allSlots = await _availableSlotRepository.GetAll();
-            if (allSlots is null || !allSlots.Any()) return Enumerable.Empty<AvailableSlotDto>();
-            var allSlotsDtos = allSlots.Select(s => new AvailableSlotDto
-            {
-                Id = s.Id,
-                HealthcareWorkerId = s.HealthcareWorkerId,
-                Start = s.Start,
-                End = s.End,
-                IsBooked = s.IsBooked
-            });
-            return allSlotsDtos;
+            return Enumerable.Empty<AvailableSlotDto>();
+
         }
+        var allSlots = await _availableSlotRepository.GetAll();
+        if (allSlots is null || !allSlots.Any()) return Enumerable.Empty<AvailableSlotDto>();
+        var allSlotsDtos = allSlots.Select(s => new AvailableSlotDto
+        {
+            Id = s.Id,
+            HealthcareWorkerId = s.HealthcareWorkerId,
+            Start = s.Start,
+            End = s.End,
+            IsBooked = s.IsBooked
+        });
+        return allSlotsDtos;
+    }
+
+    public async Task<IEnumerable<AvailableSlotDto>> GetAllByWorkerId(string? authUserId)
+    {
         var currentWorkerId = await ResolveWorkerIdAsync(authUserId);
         if (!currentWorkerId.HasValue) return Enumerable.Empty<AvailableSlotDto>();
         var slots = await _availableSlotRepository.GetByWorkerId(currentWorkerId.Value);
@@ -167,4 +173,21 @@ public class AvailableSlotService: IAvailableSlotService
         return deleted;
 
     }
+
+    public async Task<IEnumerable<AvailableSlotDto>> GetAllUnbooked()
+    {
+        var allSlots = await _availableSlotRepository.GetAll();
+        if (allSlots is null || !allSlots.Any()) return Enumerable.Empty<AvailableSlotDto>();
+        var allUnbooked = allSlots.Where(a => a.IsBooked == false);
+        var allSlotsDtos = allUnbooked.Select(s => new AvailableSlotDto
+        {
+            Id = s.Id,
+            HealthcareWorkerId = s.HealthcareWorkerId,
+            Start = s.Start,
+            End = s.End,
+            IsBooked = s.IsBooked
+        });
+        return allSlotsDtos; 
+    }
+
 }
