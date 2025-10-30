@@ -20,7 +20,7 @@ public class AppointmentController : ControllerBase
         _logger = logger;
     }
 
-    // Private helper method to get role and AuthUserId based on the token the request received. 
+    // Private helper method to get role and AuthUserId based on the JWT token the request received. 
     private (string? role, string? authUserId) UserContext()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
@@ -36,7 +36,6 @@ public class AppointmentController : ControllerBase
         try
         {
             var appointments = await _service.GetAll( role: role, authUserId: authUserId);
-            if (!appointments.Any()) return NotFound("Appointments not found");
             return Ok(appointments);
         }
         catch (Exception ex)

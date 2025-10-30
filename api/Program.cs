@@ -26,7 +26,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "MyShop API", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "Homecare Appointment Management API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new()
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: 'Authorization: Bearer {token}'",

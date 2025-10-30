@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers;
 
-[Authorize(Roles = "HealthcareWorker,Admin")]
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AvailableSlotController : ControllerBase
@@ -21,28 +21,50 @@ public class AvailableSlotController : ControllerBase
 
     }
 
-    // Private method for getting Admin and AuthUserId for Authorization
-    // It returns if the user is an Admin and the Id from the AuthUser
-    private (bool isAdmin, string? authUserId) UserContext()
+    // Private helper method to get role and AuthUserId based on the JWT token the request received. 
+    private (string? role, string? authUserId) UserContext()
     {
-        return (User.IsInRole("Admin"), User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var role = User.FindFirstValue(ClaimTypes.Role); // Specified Role when creating the JWT token
+        return (role, userId);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var (isAdmin, authUserId) = UserContext();
-        var slots = await _service.GetAll(isAdmin, authUserId);
-        if (!slots.Any()) return NotFound("No available slots found.");
+        var (role, _) = UserContext();
+        bool isAdmin = role == "Admin";
+        var slots = await _service.GetAll(isAdmin);
         return Ok(slots);
     }
 
+    [Authorize(Roles = "Admin,Client")]
+    [HttpGet("unbooked")]
+    public async Task<IActionResult> GetAllUnbooked()
+    {
+        var slots = await _service.GetAllUnbooked();
+        return Ok(slots);
+    }
+
+
+    [HttpGet("mine")]
+    [Authorize(Roles = "HealthcareWorker,Admin")]
+    public async Task<IActionResult> GetAllByWorkerId()
+    {
+        var (_, authUserId) = UserContext();
+        var slots = await _service.GetAllByWorkerId(authUserId);
+        return Ok(slots);
+    }
+
+    [Authorize(Roles = "HealthcareWorker,Admin")]
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
         try
         {
-            var (isAdmin, authUserId) = UserContext();
+            var (role, authUserId) = UserContext();
+            bool isAdmin = role == "Admin";
             var dto = await _service.GetById(id, isAdmin, authUserId);
             if (dto is null) return NotFound("Available slot not found");
             return Ok(dto);
@@ -51,14 +73,16 @@ public class AvailableSlotController : ControllerBase
         {
             _logger.LogError(ex, "[AvailableSlotController] Failed to get available slot ID {Id:0000}", id);
             return StatusCode(500, "A problem occurred while fetching available slot.");
-        }        
+        }
 
     }
-
+    
+    [Authorize(Roles = "HealthcareWorker,Admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AvailableSlotDto slotDto)
     {
-        var (isAdmin, authUserId) = UserContext();
+        var (role, authUserId) = UserContext();
+        bool isAdmin = role == "Admin";
         try
         {
             var created = await _service.Create(slotDto, isAdmin, authUserId);
@@ -72,12 +96,13 @@ public class AvailableSlotController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "HealthcareWorker,Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] AvailableSlotDto slotDto)
     {
         if (id != slotDto.Id) return BadRequest("ID mismatch");
-        var (isAdmin, authUserId) = UserContext();
-
+        var (role, authUserId) = UserContext();
+        bool isAdmin = role == "Admin";
         try
         {
             var ok = await _service.Update(id, slotDto, isAdmin, authUserId);
@@ -102,11 +127,12 @@ public class AvailableSlotController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "HealthcareWorker,Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var (isAdmin, authUserId) = UserContext();
-
+        var (role, authUserId) = UserContext();
+        bool isAdmin = role == "Admin";
         try
         {
             var ok = await _service.Delete(id, isAdmin, authUserId);

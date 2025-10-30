@@ -42,6 +42,7 @@ public class AppointmentService: IAppointmentService
     private async Task<bool> IsAuthorized(Appointment appt, string? authUserId, string? role)
     {
         if (string.IsNullOrEmpty(authUserId)) return false;
+        
         if (role == "Admin") return true;
 
         var ok = false;
