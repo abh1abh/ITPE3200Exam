@@ -2,6 +2,10 @@ import React from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import { FaHome, FaEnvelope, FaPhone } from "react-icons/fa";
 
+// Insperations:
+// https://getbootstrap.com/docs/5.3/examples/footers/#
+// https://mdbootstrap.com/docs/standard/navigation/footer/
+
 const Footer: React.FC = () => {
   return (
     <footer className="bg-light text-center text-lg-start mt-auto border-top">
