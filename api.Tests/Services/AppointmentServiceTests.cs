@@ -324,8 +324,6 @@ public class AppointmentServiceTests
         // Arrange 
         var authUserId = "unauthorized-id";
         var slotId = 10;
-        var start = DateTime.UtcNow.AddHours(2);
-        var end = start.AddHours(1);
 
         var dto = new AppointmentDto
         {
@@ -435,8 +433,6 @@ public class AppointmentServiceTests
         var clientId = 100;
         var slotId = 10;
         var workerId = 777;
-        var start = DateTime.UtcNow.AddHours(2);
-        var end = start.AddHours(1);
 
         // Create existing appointment
         var appointment = new Appointment
@@ -531,8 +527,6 @@ public class AppointmentServiceTests
         var clientId = 100;
         var slotId = 10;
         var workerId = 777;
-        var start = DateTime.UtcNow.AddHours(2);
-        var end = start.AddHours(1);
 
         // Return false when trying to fetch appointment
         _appointmentRepository.Setup(r => r.GetById(It.IsAny<int>())).ReturnsAsync((Appointment?)null);
@@ -577,8 +571,6 @@ public class AppointmentServiceTests
         var clientId = 100;
         var slotId = 10;
         var workerId = 777;
-        var start = DateTime.UtcNow.AddHours(2);
-        var end = start.AddHours(1);
 
         // Create existing appointment
         var appointment = new Appointment
@@ -719,8 +711,6 @@ public class AppointmentServiceTests
         var clientId = 100;
         var slotId = 10;
         var workerId = 777;
-        var start = DateTime.UtcNow.AddHours(2);
-        var end = start.AddHours(1);
 
         // Create existing appointment
         var appointment = new Appointment
