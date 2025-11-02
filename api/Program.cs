@@ -71,6 +71,8 @@ builder.Services.AddScoped<IHealthcareWorkerService, HealthcareWorkerService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IAvailableSlotService, AvailableSlotService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 
 
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
