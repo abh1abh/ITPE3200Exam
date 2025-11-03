@@ -15,19 +15,22 @@ public class AuthService: IAuthService{
         private readonly SignInManager<AuthUser> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthService> _logger;
+        private readonly AppDbContext _context;
 
         public AuthService(
-            UserManager<AuthUser> userManager,
-            SignInManager<AuthUser> signInManager,
-            IConfiguration configuration,
-            ILogger<AuthService> logger)
-        {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _configuration = configuration;
-            _logger = logger;
-        }
-    public async Task<IdentityResult> RegisterUserAsync(RegisterDto registerDto)
+        UserManager<AuthUser> userManager,
+        SignInManager<AuthUser> signInManager,
+        IConfiguration configuration,
+        AppDbContext context,
+        ILogger<AuthService> logger)
+    {
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _configuration = configuration;
+        _context = context;
+        _logger = logger;
+    }
+    public async Task<IdentityResult> RegisterUserAsync(RegisterDto registerDto) //self registration for clients users
     {
         var user = new AuthUser
         {
@@ -38,13 +41,16 @@ public class AuthService: IAuthService{
         var result = await _userManager.CreateAsync(user, registerDto.Password);
         if (result.Succeeded)
         {
-            var client = new Client  //Add checks
-                {
-                    AuthUserId = user.Id,
-                    Name = registerDto.Name,
-                    Phone = registerDto.Number,
-                    Address = registerDto.Address
+            var client = new Client  //Add client details
+            {
+                AuthUserId = user.Id,
+                Name = registerDto.Name,
+                Phone = registerDto.Number,
+                Address = registerDto.Address,
+                Email = registerDto.Email,
                 };
+            _context.Clients.Add(client);
+            await _context.SaveChangesAsync();
             var roleResult = await _userManager.AddToRoleAsync(user, "Client");
             _logger.LogInformation("[AuthService] user registered successfully for {Username}", registerDto.Username);
         }
@@ -73,8 +79,11 @@ public class AuthService: IAuthService{
                     AuthUserId = user.Id,
                     Name = registerDto.Name,
                     Phone = registerDto.Number,
-                    Address = registerDto.Address
+                    Address = registerDto.Address,
+                    Email = registerDto.Email,
                 };
+                _context.Clients.Add(client);
+                await _context.SaveChangesAsync();
                 var result = await _userManager.CreateAsync(user, registerDto.Password);
                 var roleResult = await _userManager.AddToRoleAsync(user, "Client");
                 return result;
@@ -94,8 +103,11 @@ public class AuthService: IAuthService{
                     AuthUserId = user.Id,
                     Name = registerDto.Name,
                     Phone = registerDto.Number,
-                    Address = registerDto.Address
+                    Address = registerDto.Address,
+                    Email = registerDto.Email,
                 };
+                _context.HealthcareWorkers.Add(worker);
+                await _context.SaveChangesAsync();
                 var result = await _userManager.CreateAsync(user, registerDto.Password);
                 var roleResult = await _userManager.AddToRoleAsync(user, "HealthcareWorker");
                 return result;

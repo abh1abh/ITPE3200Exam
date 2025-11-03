@@ -27,7 +27,7 @@ namespace api.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto) //self registration for clients users
         {
             var result = await _authService.RegisterUserAsync(registerDto);
             if (result.Succeeded)
@@ -40,7 +40,7 @@ namespace api.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpPost("register-admin")]
-        public async Task<IActionResult> RegisterFromAdmin([FromBody] RegisterFromAdminDto registerDto)
+        public async Task<IActionResult> RegisterFromAdmin([FromBody] RegisterFromAdminDto registerDto) //Registration from Admin for any role. This is to ensure only admin can create other users with elevated roles.
         {
             var result = await _authService.RegisterUserFromAdminAsync(registerDto);
             if (result.Succeeded)
