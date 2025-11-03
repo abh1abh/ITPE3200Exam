@@ -58,6 +58,15 @@ export const fetchAvailableSlot = async (id: number) => {
   return handleResponse(response);
 };
 
+export const createAvailableSlot = async (availableSlot: AvailableSlot) => {
+  const response = await fetch(`${API_URL}/api/availableslot/`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(availableSlot),
+  });
+  return handleResponse(response);
+};
+
 export const updateAvailableSlot = async (id: number, availableSlot: AvailableSlot) => {
   const response = await fetch(`${API_URL}/api/availableslot/${id}`, {
     method: "PUT",
@@ -69,7 +78,7 @@ export const updateAvailableSlot = async (id: number, availableSlot: AvailableSl
 
 export const deleteAvailableSlot = async (id: number) => {
   const response = await fetch(`${API_URL}/api/availableslot/${id}`, {
-    method: "PUT",
+    method: "DELETE",
     headers: getAuthHeaders(),
   });
   return handleResponse(response);

@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { AvailableSlot } from "../types/AvailableSlot";
 import { useAuth } from "../auth/AuthContext";
 import * as AvailableSlotService from "./AvailableSlotService";
-import { Alert, Badge, Spinner, Table } from "react-bootstrap";
+import { Alert, Badge, Button, Container, Spinner, Table } from "react-bootstrap";
+import AvailableSlotTable from "./AvailableSlotTable";
 
 const formatDate = (d: string | Date) =>
   new Date(d).toLocaleString(undefined, {
@@ -56,41 +57,13 @@ const AvailableSlotPage: React.FC = () => {
           <span>Loading…</span>
         </div>
       )}
+      <Container className="my-4">
+        <Button href="/availableslot/create">Create new available slot</Button>
+      </Container>
 
       {!loading && error && <Alert variant="danger">{error}</Alert>}
 
-      {!loading && !error && (
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Healthcare Worker</th>
-              <th>Start</th>
-              <th>End</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {availableSlots.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="text-center text-muted">
-                  No available slots found.
-                </td>
-              </tr>
-            ) : (
-              availableSlots.map((slot) => (
-                <tr key={slot.id}>
-                  <td>{slot.id}</td>
-                  <td>{slot.healthcareWorkerId}</td>
-                  <td>{formatDate(slot.start)}</td>
-                  <td>{formatDate(slot.end)}</td>
-                  <td>{slot.isBooked ? <Badge bg="danger">Booked</Badge> : <Badge bg="success">Open</Badge>}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </Table>
-      )}
+      {!loading && !error && <AvailableSlotTable availableSlots={availableSlots} isAdmin={hasRole("Admin")} />}
     </div>
   );
 };

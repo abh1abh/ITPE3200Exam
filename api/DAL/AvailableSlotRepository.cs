@@ -18,7 +18,7 @@ public class AvailableSlotRepository : IAvailableSlotRepository
     {
         try
         {
-            return await _db.AvailableSlots.ToListAsync(); // Try to get all available slots
+            return await _db.AvailableSlots.OrderBy(s => s.Start).ToListAsync(); // Try to get all available slots
         }
         catch (Exception e)
         {

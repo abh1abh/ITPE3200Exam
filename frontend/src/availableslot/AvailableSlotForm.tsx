@@ -1,0 +1,201 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { Button, Form, Row, Col, Container } from "react-bootstrap";
+import { AvailableSlot } from "../types/AvailableSlot";
+import { useNavigate } from "react-router-dom";
+import Loading from "../shared/Loading";
+import { HealthcareWorker } from "../types/HealthcareWorker";
+
+interface AvailableSlotFormProps {
+  onAvailableSlotChanged: (slot: AvailableSlot) => void;
+  isUpdating?: boolean;
+  initialData?: AvailableSlot; // Include id when updating
+  workers?: HealthcareWorker[];
+  isAdmin?: boolean;
+}
+
+// Helper function for date and time
+const pad = (n: number) => String(n).padStart(2, "0");
+
+const dateToInput = (d: Date) => d.toISOString().substring(0, 10);
+const toTimeStr = (d: Date) => `${pad(d.getHours())}:${pad(Math.floor(d.getMinutes() / 15) * 15)}`;
+
+const addMinutes = (d: Date, mins: number) => {
+  const copy = new Date(d);
+  copy.setMinutes(copy.getMinutes() + mins);
+  return copy;
+};
+
+const quarterOptions = Array.from({ length: 24 * 4 }, (_, i) => {
+  const h = Math.floor(i / 4);
+  const m = (i % 4) * 15;
+  return `${pad(h)}:${pad(m)}`;
+});
+
+const combineDateTime = (dateStr: string, timeStr: string) => {
+  const [y, mo, d] = dateStr.split("-").map(Number);
+  const [h, mi] = timeStr.split(":").map(Number);
+  return new Date(y, mo - 1, d, h, mi, 0, 0);
+};
+
+const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
+  onAvailableSlotChanged,
+  isUpdating = false,
+  initialData,
+  workers,
+  isAdmin = false,
+}) => {
+  // Compute initial date and time
+  const computeInitialStart = () => {
+    if (isUpdating && initialData) return new Date(initialData.start);
+    const now = new Date();
+    const remainder = now.getMinutes() % 15;
+    if (remainder) now.setMinutes(now.getMinutes() + (15 - remainder), 0, 0);
+    else now.setSeconds(0, 0);
+    return now;
+  };
+  // Use Lazy-Import to only render the date and time once with () =>
+  const [dateStr, setDateStr] = useState<string>(() => dateToInput(computeInitialStart()));
+  const [timeStr, setTimeStr] = useState<string>(() => toTimeStr(computeInitialStart()));
+
+  // For admin to select worker
+  const [selectedWorkerId, setSelectedWorkerId] = useState<number | "">(
+    isUpdating && initialData?.healthcareWorkerId ? initialData.healthcareWorkerId : ""
+  );
+
+  // Handling error and loading
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const navigate = useNavigate();
+
+  // derived end (1h after start)
+  const startDate = combineDateTime(dateStr, timeStr);
+  const endDate = addMinutes(startDate, 60);
+  const endTimeStr = `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+
+  const handleStartTimeChange = (value: string) => {
+    setTimeStr(value);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!startDate || !endDate) {
+      setError("Start and end are required.");
+      return;
+    }
+    if (endDate <= startDate) {
+      setError("End must be after start.");
+      return;
+    }
+
+    // enforce worker id: if admin → must select one
+    const effectiveWorkerId =
+      workers != null
+        ? typeof selectedWorkerId === "number"
+          ? selectedWorkerId
+          : undefined
+        : initialData?.healthcareWorkerId ?? "";
+
+    if (!effectiveWorkerId) {
+      setError("Please choose a healthcare worker.");
+      return;
+    }
+    setIsLoading(true);
+
+    try {
+      const availableSlot: AvailableSlot = {
+        healthcareWorkerId: effectiveWorkerId,
+        start: startDate,
+        end: endDate,
+        isBooked: false,
+      };
+      onAvailableSlotChanged(availableSlot);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Something went wrong while saving.";
+      setError(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onCancel = () => navigate(-1);
+
+  return isLoading ? (
+    <Loading />
+  ) : (
+    <Form onSubmit={handleSubmit}>
+      <Row className="mb-3 justify-content-center">
+        <Col md={4}>
+          {/* Admin-only: pick worker */}
+          {isAdmin && (
+            <Form.Group controlId="slotWorker" className="mb-3">
+              <Form.Label>Healthcare worker</Form.Label>
+              <Form.Select
+                value={selectedWorkerId === "" ? "" : String(selectedWorkerId)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setSelectedWorkerId(v === "" ? "" : Number(v));
+                }}
+                required>
+                {(!workers || workers?.length === 0) && <option value="">Loading…</option>}
+                {workers?.map((w) => (
+                  <option key={w.healthcareWorkerId} value={w.healthcareWorkerId}>
+                    {`${w.name} - #${w.healthcareWorkerId}`}
+                  </option>
+                ))}
+              </Form.Select>
+              <Form.Text muted>Select who this slot belongs to.</Form.Text>
+            </Form.Group>
+          )}
+
+          {/* Admin + UPDATE → read-only ID */}
+          {isAdmin && isUpdating && (
+            <Form.Group controlId="slotWorkerReadonly" className="mb-3">
+              <Form.Label>Healthcare worker</Form.Label>
+              <Form.Control readOnly plaintext value={initialData?.healthcareWorkerId ?? ""} />
+              {/* If you prefer the disabled input look instead of plaintext:
+                <Form.Control value={initialData?.healthcareWorkerId ?? ""} disabled />
+            */}
+            </Form.Group>
+          )}
+          <Form.Group controlId="slotDate" className="mb-3">
+            <Form.Label>Date</Form.Label>
+            <Form.Control type="date" value={dateStr} onChange={(e) => setDateStr(e.target.value)} required />
+          </Form.Group>
+
+          <Form.Group controlId="slotStartTime" className="mb-3">
+            <Form.Label>Start (15-min)</Form.Label>
+            <Form.Select value={timeStr} onChange={(e) => handleStartTimeChange(e.target.value)} required>
+              {quarterOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </Form.Select>
+            <Form.Text muted>Only quarter-hour times shown.</Form.Text>
+          </Form.Group>
+
+          <Form.Group controlId="slotEndTime" className="mb-3">
+            <Form.Label>End</Form.Label>
+            <Form.Control value={endTimeStr} readOnly disabled />
+            <Form.Text muted>Automatically 1 hour after start.</Form.Text>
+          </Form.Group>
+        </Col>
+      </Row>
+
+      {error && <div className="text-danger mb-3">{error}</div>}
+
+      <Container className="my-4">
+        <Button variant="primary" type="submit" className="me-2">
+          {isUpdating ? "Update Available Slot" : "Create Available Slot"}
+        </Button>
+        <Button variant="secondary" type="button" onClick={onCancel}>
+          Cancel
+        </Button>
+      </Container>
+    </Form>
+  );
+};
+
+export default AvailableSlotForm;
