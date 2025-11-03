@@ -8,6 +8,7 @@ import RegisterPage from "./auth/RegisterPage";
 import { AuthProvider } from "./auth/AuthContext";
 import RegisterAdmin from "./auth/RegisterAdmin";
 import AvailableslotPage from "./availableSlot/AvailableSlotPage";
+import AvailableSlotCreatePage from "./availableSlot/AvailableSlotCreatePage";
 
 function App() {
   return (
@@ -21,7 +22,8 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/admin/register" element={<RegisterAdmin />} />
-            <Route path="/availableslots" element={<AvailableslotPage />} />
+            <Route path="/availableslot" element={<AvailableslotPage />} />
+            <Route path="/availableslot/create" element={<AvailableSlotCreatePage />} />
           </Routes>
           <Footer />
         </Router>
