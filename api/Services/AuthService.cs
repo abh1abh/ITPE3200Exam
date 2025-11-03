@@ -15,98 +15,120 @@ public class AuthService: IAuthService{
         private readonly SignInManager<AuthUser> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthService> _logger;
+        private readonly AppDbContext _context;
 
         public AuthService(
-            UserManager<AuthUser> userManager,
-            SignInManager<AuthUser> signInManager,
-            IConfiguration configuration,
-            ILogger<AuthService> logger)
-        {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _configuration = configuration;
-            _logger = logger;
-        }
-    public async Task<IdentityResult> RegisterUserAsync(RegisterDto registerDto)
+        UserManager<AuthUser> userManager,
+        SignInManager<AuthUser> signInManager,
+        IConfiguration configuration,
+        AppDbContext context,
+        ILogger<AuthService> logger)
     {
-        var user = new AuthUser
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _configuration = configuration;
+        _context = context;
+        _logger = logger;
+    }
+    public async Task<IdentityResult> RegisterUserAsync(RegisterDto registerDto) //self registration for clients users
+    {
+        var user = new AuthUser //create new user object with AuthUser properties
         {
             UserName = registerDto.Username,
             Email = registerDto.Email,
         };
         
-        var result = await _userManager.CreateAsync(user, registerDto.Password);
+        var result = await _userManager.CreateAsync(user, registerDto.Password); //create user in AspNetUsers table
         if (result.Succeeded)
         {
-            var client = new Client  //Add checks
-                {
-                    AuthUserId = user.Id,
-                    Name = registerDto.Name,
-                    Phone = registerDto.Number,
-                    Address = registerDto.Address
+            var client = new Client  //Add client details
+            {
+                AuthUserId = user.Id,
+                Name = registerDto.Name,
+                Phone = registerDto.Number,
+                Address = registerDto.Address,
+                Email = registerDto.Email,
                 };
-            var roleResult = await _userManager.AddToRoleAsync(user, "Client");
+            _context.Clients.Add(client); //add client to Clients table
+            await _context.SaveChangesAsync(); //save changes to database
+            var roleResult = await _userManager.AddToRoleAsync(user, "Client"); //assign Client role to user
             _logger.LogInformation("[AuthService] user registered successfully for {Username}", registerDto.Username);
         }
-        else
+        else //log registration failure
         {
             _logger.LogWarning("[AuthService] user registration failed for {Username}: {Errors}", registerDto.Username, result.Errors);
         }
-        return result; 
+        return result; //return result of registration attempt
         }
 
-    public async Task<IdentityResult> RegisterUserFromAdminAsync(RegisterFromAdminDto registerDto)
+    public async Task<IdentityResult> RegisterUserFromAdminAsync(RegisterFromAdminDto registerDto) //registration by admin for both clients and healthcare workers
     {
-        var user = new AuthUser
+        var user = new AuthUser //create new user object with AuthUser properties
         {
             UserName = registerDto.Username,
             Email = registerDto.Email
         };
-        var userRole = registerDto.Role;
+        var userRole = registerDto.Role; //determine role from DTO
 
-        if (userRole == "Client")
+        if (userRole == "Client") //Check role and create client entity
         {
             try
             {
-                var client = new Client
+                var client = new Client //Add client details from DTO
                 {
                     AuthUserId = user.Id,
                     Name = registerDto.Name,
                     Phone = registerDto.Number,
-                    Address = registerDto.Address
+                    Address = registerDto.Address,
+                    Email = registerDto.Email,
                 };
-                var result = await _userManager.CreateAsync(user, registerDto.Password);
-                var roleResult = await _userManager.AddToRoleAsync(user, "Client");
+                _context.Clients.Add(client); //add client to Clients table
+                await _context.SaveChangesAsync(); //save changes to database
+                var result = await _userManager.CreateAsync(user, registerDto.Password); //create user in AspNetUsers table
+                var roleResult = await _userManager.AddToRoleAsync(user, "Client"); //assign Client role to user
+                _logger.LogInformation("[AuthService] Client user registered successfully for {Username}", registerDto.Username);
                 return result;
             }
-            catch (Exception ex)
+            catch (Exception ex) //log any errors during client creation
             {
                 _logger.LogError(ex, "[AuthService] Error creating Client for {Username}", registerDto.Username);
                 return IdentityResult.Failed(new IdentityError { Description = "Error creating Client." });
             }
         }
-        else if (userRole == "HealthcareWorker")
+        else if (userRole == "HealthcareWorker") //Check role and create Healthcare worker entity
         {
             try
             {
-                var worker = new HealthcareWorker
+                var worker = new HealthcareWorker //Add healthcare worker details from DTO
                 {
                     AuthUserId = user.Id,
                     Name = registerDto.Name,
                     Phone = registerDto.Number,
-                    Address = registerDto.Address
+                    Address = registerDto.Address,
+                    Email = registerDto.Email,
                 };
-                var result = await _userManager.CreateAsync(user, registerDto.Password);
-                var roleResult = await _userManager.AddToRoleAsync(user, "HealthcareWorker");
+                _context.HealthcareWorkers.Add(worker); //add healthcare worker to HealthcareWorkers table
+                await _context.SaveChangesAsync(); //save changes to database
+                var result = await _userManager.CreateAsync(user, registerDto.Password); //create user in AspNetUsers table
+                var roleResult = await _userManager.AddToRoleAsync(user, "HealthcareWorker"); //assign HealthcareWorker role to user
+                _logger.LogInformation("[AuthService] Worker user registered successfully for {Username}", registerDto.Username);
                 return result;
             }
-            catch (Exception ex)
+            catch (Exception ex) //log any errors during healthcare worker creation
             {
                 _logger.LogError(ex, "[AuthService] Error creating HealthcareWorker for {Username}", registerDto.Username);
                 return IdentityResult.Failed(new IdentityError { Description = "Error creating HealthcareWorker." });
             }
         }
-        else
+        else if(userRole == "Admin") //Check role and create Admin user
+        {
+            var result = await _userManager.CreateAsync(user, registerDto.Password); //create user in AspNetUsers table
+            var roleResult = await _userManager.AddToRoleAsync(user, "Admin"); //assign Admin role to user
+            _logger.LogInformation("[AuthService] admin user registered successfully for {Username}", registerDto.Username);
+            return result;
+        }
+
+        else //log invalid role error
         {
             _logger.LogWarning("[AuthService] user registration failed for {Username}: invalid role {Role}", registerDto.Username, userRole);
             return IdentityResult.Failed(new IdentityError { Description = "Invalid role specified." });
@@ -114,28 +136,28 @@ public class AuthService: IAuthService{
     }
 
 
-        public async Task<(bool Result, string Token)> LoginAsync(LoginDto loginDto)
+        public async Task<(bool Result, string Token)> LoginAsync(LoginDto loginDto) //login method returning success status and JWT token
         {
-            var user = await _userManager.FindByNameAsync(loginDto.Username);
-            if (user == null)
+            var user = await _userManager.FindByNameAsync(loginDto.Username); //find user by username
+            if (user == null) //log user not found
             {
                 _logger.LogWarning("[AuthAPIController] login failed for {Username}: user not found", loginDto.Username);
                 return (false, string.Empty);
             }
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-            if (result.Succeeded)
+            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false); //check password
+            if (result.Succeeded) //log successful login and generate JWT token
             {
                 _logger.LogInformation("[AuthAPIController] user logged in successfully for {Username}", loginDto.Username);
-                var token = GenerateJwtTokenAsync(user);
+                var token = GenerateJwtTokenAsync(user); 
                 return (true, await token);
             }
 
-            _logger.LogWarning("[AuthAPIController] login failed for {Username}: invalid password", loginDto.Username);
+            _logger.LogWarning("[AuthAPIController] login failed for {Username}: invalid password", loginDto.Username); //log invalid password
             return (false, string.Empty);
         }
 
-        public async Task<bool> Logout()
+        public async Task<bool> Logout() //logout method
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation("[AuthAPIController] user logged out successfully");
@@ -143,7 +165,7 @@ public class AuthService: IAuthService{
         }
 
 
-        public async Task<string> GenerateJwtTokenAsync(AuthUser user)
+        public async Task<string> GenerateJwtTokenAsync(AuthUser user) //method to generate JWT token for authenticated user
         {
             var jwtKey = _configuration["Jwt:Key"]; // The secret key used for the signature
             if (string.IsNullOrEmpty(jwtKey)) // Ensure the key is not null or empty
