@@ -4,9 +4,9 @@ import { Button, Card, Col, Row } from "react-bootstrap";
 interface AppointmentGridProps {
 appointments: any[];
 apiUrl: string;
-onAppointmentDeleted: (id: number) => void;
+onAppointmentDeleted: (id: number) =>void;
 }
-const AppointmentGrid: React.FC<AppointmentGridProps> = ({appointments,apiUrl,onAppointmentDeleted,}) => {
+const AppointmentGrid: React.FC<AppointmentGridProps>=({appointments,apiUrl,onAppointmentDeleted,}) => {
 return (
     <Row xs={1} sm={2} md={3} lg={4} className="g-4">
     {appointments.map(appointment => (
@@ -14,11 +14,10 @@ return (
         <Card className="h-100">
             <Card.Body className="d-flex flex-column">
             <Card.Title>
-                Appointment {appointment.appointmentId} — Client {appointment.name}
+                Appointment{appointment.appointmentId} — Client {appointment.name}
             </Card.Title>
             <Card.Text>
-                <strong>Worker:</strong> {appointment.healthcareWorkerId}
-                <br />
+                <strong>Worker:</strong>{appointment.healthcareWorkerId}<br/>
                 <strong>Start:</strong>{appointment.start}
                 <br />
                 <strong>End:</strong> {appointment.end}
