@@ -3,34 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
 import * as authService from './AuthService';
 
-const RegisterAdmin: React.FC = () => {
+const RegisterAdmin: React.FC = () => {  /*Saving variables for data transfer to RegisterFromAdminDto*/
     const [formData, setFormData] = useState({
         username: '',
         email: '',
         password: '',
         name: '',
-        number: '',
-        address: '',
+        Number: '',
+        Address: '',
         role: ''
     });
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> ) => {   /*Saving input in formData from input on onChange*/
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {   /*Submitting data form input to authService*/
         e.preventDefault();
         setError(null);
         setSuccess(null);
         try {
             await authService.registerAdmin({
-                ...formData,
-                Number: formData.number,
-                Address: formData.address,
-                role: formData.role.toString()
+                ...formData
             });
             setSuccess('Registration successful! You can now log in.');
             setTimeout(() => navigate('/login'), 2000); // Redirect after 2 seconds
@@ -72,12 +69,12 @@ const RegisterAdmin: React.FC = () => {
 
                 <Form.Group className="mb-3">
                     <Form.Label>Number</Form.Label>
-                    <Form.Control type="text" name="number" value={formData.number} onChange={handleChange} required />
+                    <Form.Control type="text" name="number" value={formData.Number} onChange={handleChange} required />
                 </Form.Group>
 
                 <Form.Group className="mb-3">
                     <Form.Label>Address</Form.Label>
-                    <Form.Control type="text" name="address" value={formData.address} onChange={handleChange} required />
+                    <Form.Control type="text" name="address" value={formData.Address} onChange={handleChange} required />
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Label>Role</Form.Label>
@@ -87,13 +84,12 @@ const RegisterAdmin: React.FC = () => {
                         onChange={handleChange}
                         required
                     >
-                        <option value="">Select a role</option>
+                        <option value="">Select a role</option>*
                         <option value="Admin">Admin</option>
                         <option value="HealthcareWorker">HealthcareWorker</option>
                         <option value="Client">Client</option>
                     </Form.Select>
                 </Form.Group>
-
                 <Button variant="primary" type="submit">Register</Button>
             </Form>
         </Container>
