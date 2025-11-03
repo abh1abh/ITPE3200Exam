@@ -12,7 +12,7 @@ const AvailableSlotCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
   const [workers, setWorkers] = useState<HealthcareWorker[]>([]);
-  const [loadingWorkers, setLoadingWorkers] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const isAdmin: boolean = hasRole("Admin");
 
@@ -31,11 +31,14 @@ const AvailableSlotCreatePage: React.FC = () => {
   useEffect(() => {
     const fetchWorkers = async () => {
       if (!isAdmin) return;
+      setLoading(true);
       try {
         const list = await HealthcareWorkerService.fetchAllHealthcareWorkers(); // ← implement in your service
         setWorkers(list);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchWorkers();
@@ -44,8 +47,15 @@ const AvailableSlotCreatePage: React.FC = () => {
   return (
     <div>
       <h2>Create Available Slot</h2>
-      <AvailableSlotForm onAvailableSlotChanged={handleAvailableSlotCreated} isAdmin={isAdmin} workers={workers} />
-      {isAdmin && loadingWorkers && <Loading />}
+      {loading ? (
+        <Loading />
+      ) : (
+        <AvailableSlotForm
+          onAvailableSlotChanged={handleAvailableSlotCreated}
+          isAdmin={isAdmin}
+          workers={workers}
+        />
+      )}
     </div>
   );
 };

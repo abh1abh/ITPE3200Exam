@@ -11,6 +11,7 @@ interface AvailableSlotFormProps {
   initialData?: AvailableSlot; // Include id when updating
   workers?: HealthcareWorker[];
   isAdmin?: boolean;
+  availableSlotId?: number;
 }
 
 // Helper function for date and time
@@ -43,20 +44,10 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
   initialData,
   workers,
   isAdmin = false,
+  availableSlotId,
 }) => {
-  // Compute initial date and time
-  const computeInitialStart = () => {
-    if (isUpdating && initialData) return new Date(initialData.start);
-    const now = new Date();
-    const remainder = now.getMinutes() % 15;
-    if (remainder) now.setMinutes(now.getMinutes() + (15 - remainder), 0, 0);
-    else now.setSeconds(0, 0);
-    return now;
-  };
-  // Use Lazy-Import to only render the date and time once with () =>
-  const [dateStr, setDateStr] = useState<string>(() => dateToInput(computeInitialStart()));
-  const [timeStr, setTimeStr] = useState<string>(() => toTimeStr(computeInitialStart()));
-
+  const [dateStr, setDateStr] = useState<string>("");
+  const [timeStr, setTimeStr] = useState<string>("");
   // For admin to select worker
   const [selectedWorkerId, setSelectedWorkerId] = useState<number | "">(
     isUpdating && initialData?.healthcareWorkerId ? initialData.healthcareWorkerId : ""
@@ -66,6 +57,21 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const nowRounded = () => {
+      const now = new Date();
+      const remainder = now.getMinutes() % 15;
+      if (remainder) now.setMinutes(now.getMinutes() + (15 - remainder), 0, 0);
+      else now.setSeconds(0, 0);
+      return now;
+    };
+
+    const base = isUpdating && initialData ? new Date(initialData.start) : nowRounded();
+
+    setDateStr(dateToInput(base));
+    setTimeStr(toTimeStr(base));
+  }, [isUpdating, initialData]);
 
   // derived end (1h after start)
   const startDate = combineDateTime(dateStr, timeStr);
@@ -105,6 +111,7 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
 
     try {
       const availableSlot: AvailableSlot = {
+        id: availableSlotId,
         healthcareWorkerId: effectiveWorkerId,
         start: startDate,
         end: endDate,

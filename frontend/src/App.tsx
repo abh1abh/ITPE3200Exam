@@ -9,6 +9,8 @@ import { AuthProvider } from "./auth/AuthContext";
 import RegisterAdmin from "./auth/RegisterAdmin";
 import AvailableslotPage from "./availableSlot/AvailableSlotPage";
 import AvailableSlotCreatePage from "./availableSlot/AvailableSlotCreatePage";
+import AvailableSlotUpdatePage from "./availableSlot/AvailableSlotUpdatePage";
+import AvailableSlotDeletePage from "./availableSlot/AvailableSlotDeletePage";
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
             <Route path="/admin/register" element={<RegisterAdmin />} />
             <Route path="/availableslot" element={<AvailableslotPage />} />
             <Route path="/availableslot/create" element={<AvailableSlotCreatePage />} />
+            <Route path="/availableslot/:slotId" element={<AvailableSlotUpdatePage />} />
+            <Route path="/availableslot/:slotId/delete" element={<AvailableSlotDeletePage />} />
           </Routes>
           <Footer />
         </Router>

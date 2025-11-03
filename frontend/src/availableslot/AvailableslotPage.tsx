@@ -4,6 +4,8 @@ import { useAuth } from "../auth/AuthContext";
 import * as AvailableSlotService from "./AvailableSlotService";
 import { Alert, Badge, Button, Container, Spinner, Table } from "react-bootstrap";
 import AvailableSlotTable from "./AvailableSlotTable";
+import Loading from "../shared/Loading";
+import DeleteAvailableSlotModal from "./AvailableSlotDeleteModal";
 
 const formatDate = (d: string | Date) =>
   new Date(d).toLocaleString(undefined, {
@@ -18,6 +20,7 @@ const AvailableSlotPage: React.FC = () => {
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<AvailableSlot | null>(null);
   const { hasRole } = useAuth();
 
   const fetchAvailableSlots = async () => {
@@ -51,19 +54,33 @@ const AvailableSlotPage: React.FC = () => {
   return (
     <div>
       <h2>Available Slots</h2>
-      {loading && (
-        <div className="d-flex align-items-center gap-2">
-          <Spinner animation="border" role="status" />
-          <span>Loading…</span>
-        </div>
-      )}
+      {loading && <Loading />}
       <Container className="my-4">
         <Button href="/availableslot/create">Create new available slot</Button>
       </Container>
 
       {!loading && error && <Alert variant="danger">{error}</Alert>}
 
-      {!loading && !error && <AvailableSlotTable availableSlots={availableSlots} isAdmin={hasRole("Admin")} />}
+      {!loading && !error && (
+        <>
+          <AvailableSlotTable
+            availableSlots={availableSlots}
+            isAdmin={hasRole("Admin")}
+            onDeleteClick={(slot: AvailableSlot) => setToDelete(slot)} // <--- NEW
+          />
+          {toDelete && (
+            <DeleteAvailableSlotModal
+              availableSlot={toDelete}
+              onCancel={() => setToDelete(null)}
+              onConfirm={async () => {
+                await AvailableSlotService.deleteAvailableSlot(toDelete.id!);
+                setToDelete(null);
+                fetchAvailableSlots(); // refresh list
+              }}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };
