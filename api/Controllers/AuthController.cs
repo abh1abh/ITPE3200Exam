@@ -6,6 +6,8 @@ using api.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using api.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers
 {
@@ -13,112 +15,72 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<AuthUser> _userManager;
-        private readonly SignInManager<AuthUser> _signInManager;
-        private readonly IConfiguration _configuration;
+        private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
-            UserManager<AuthUser> userManager,
-            SignInManager<AuthUser> signInManager,
-            IConfiguration configuration,
+            IAuthService authService,
             ILogger<AuthController> logger)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _configuration = configuration;
+            _authService = authService;
             _logger = logger;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto) //self registration for clients users
         {
-            var user = new AuthUser
-            {
-                UserName = registerDto.Username,
-                Email = registerDto.Email
-            };
-
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
-            if (result.Succeeded)
+            var result = await _authService.RegisterUserAsync(registerDto); //Call the auth service to register user
+            if (result.Succeeded) //Log successful registration
             {
                 _logger.LogInformation("[AuthAPIController] user registered successfully for {Username}", registerDto.Username);
                 return Ok(new { Message = "User registered successfully" });
             }
-            _logger.LogWarning("[AuthAPIController] user registration failed for {Username}: {Errors}", registerDto.Username, result.Errors);
+            _logger.LogError("[AuthAPIController] user registration failed for {Username}: {Errors}", registerDto.Username, result.Errors); //Log failed registration
+            return BadRequest(result.Errors);
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPost("register-admin")]
+        public async Task<IActionResult> RegisterFromAdmin([FromBody] RegisterFromAdminDto registerDto) 
+        //Registration from Admin for any role. This is to ensure only admin can create other users with elevated roles.
+        {
+            var result = await _authService.RegisterUserFromAdminAsync(registerDto); //Call the auth service to register user
+            if (result.Succeeded) //Log successful registration
+            {
+                _logger.LogInformation("[AuthAPIController] admin registered user successfully for {Username}", registerDto.Username);
+                return Ok(new { Message = "User registered successfully by admin" });
+            }
+            //Log failed registration
+            _logger.LogError("[AuthAPIController] admin user registration failed for {Username}: {Errors}", registerDto.Username, result.Errors);
             return BadRequest(result.Errors);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto) //User login
         {
-            var user = await _userManager.FindByNameAsync(loginDto.Username);
-            if (user == null)
-            {
-                _logger.LogWarning("[AuthAPIController] login failed for {Username}: user not found", loginDto.Username);
-                return Unauthorized(new { Message = "Invalid username or password" });
-            }
-
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-            if (result.Succeeded)
+            var (result, token) = await _authService.LoginAsync(loginDto); //Call the auth service to login user
+            if (result) //Log successful login
             {
                 _logger.LogInformation("[AuthAPIController] user logged in successfully for {Username}", loginDto.Username);
-                var token = GenerateJwtToken(user);
-                return Ok(new { Token = token });
+                return Ok(new { Token = token, Message = "User logged in successfully" });
             }
-
             _logger.LogWarning("[AuthAPIController] login failed for {Username}: invalid password", loginDto.Username);
+            //Log failed login
             return Unauthorized(new { Message = "Invalid username or password" });
         }
 
         [HttpPost("logout")]
-
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout() //User logout
         {
-            await _signInManager.SignOutAsync();
+            await _authService.Logout(); //Call the auth service to logout user
             _logger.LogInformation("[AuthAPIController] user logged out successfully");
             return Ok(new { Message = "User logged out successfully" });
         }
 
 
-        private async Task<string> GenerateJwtToken(AuthUser user)
+        private async Task<string> GenerateJwtToken(AuthUser user) //Generate JWT token for authenticated user
         {
-            var jwtKey = _configuration["Jwt:Key"]; // The secret key used for the signature
-            if (string.IsNullOrEmpty(jwtKey)) // Ensure the key is not null or empty
-            {   
-                _logger.LogError("[AuthAPIController] JWT key is missing from configuration.");
-                throw new InvalidOperationException("JWT key is missing from configuration.");
-            }
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)); // Reading the key from the configuration
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256); // Using HMAC SHA256 algorithm for signing the token
-
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName!), // optional
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName!), // optional
-                new Claim(JwtRegisteredClaimNames.Email, user.Email!), // Unique identifier for the user
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique identifier for the token
-                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()) // Issued at timestamp
-            };
-            
-            var roles = await _userManager.GetRolesAsync(user);
-            foreach (var r in roles)
-            {
-                // you configured RoleClaimType = ClaimTypes.Role in JwtBearer options
-                claims.Add(new Claim(ClaimTypes.Role, r));
-                // If you ever switch to using "role" in tokens, set RoleClaimType = "role" in JwtBearer options instead.
-            }
-            
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(120), // Token expiration time set to 120 minutes
-                signingCredentials: credentials); // Signing the token with the specified credentials
-
-            _logger.LogInformation("[AuthAPIController] JWT token created for {@username}", user.UserName);
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var token = await _authService.GenerateJwtTokenAsync(user);
+            return token;
         }
     }
 }
