@@ -1,6 +1,6 @@
 export interface AvailableSlot {
   id: number;
-  healthCareWorkerId: number;
+  healthcareWorkerId: number;
   start: Date;
   end: Date;
   isBooked: boolean;
