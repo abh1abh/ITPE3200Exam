@@ -27,27 +27,39 @@ const handleResponse = async (response: Response) => {
 };
 
 export const fetchAllAvailableSlots = async () => {
-  const response = await fetch(`${API_URL}/api/availableslots/`);
+  const response = await fetch(`${API_URL}/api/availableslot/`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 };
 
 export const fetchAllAvailableSlotsMine = async () => {
-  const response = await fetch(`${API_URL}/api/availableslots/mine`);
+  const response = await fetch(`${API_URL}/api/availableslot/mine`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 };
 
 export const fetchAllUnbookedAvailableSlots = async () => {
-  const response = await fetch(`${API_URL}/api/availableslots/unbooked`);
+  const response = await fetch(`${API_URL}/api/availableslot/unbooked`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 };
 
 export const fetchAvailableSlot = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/availableslots/${id}`);
+  const response = await fetch(`${API_URL}/api/availableslot/${id}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
   return handleResponse(response);
 };
 
 export const updateAvailableSlot = async (id: number, availableSlot: AvailableSlot) => {
-  const response = await fetch(`${API_URL}/api/availableslots/${id}`, {
+  const response = await fetch(`${API_URL}/api/availableslot/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(availableSlot),
@@ -56,7 +68,7 @@ export const updateAvailableSlot = async (id: number, availableSlot: AvailableSl
 };
 
 export const deleteAvailableSlot = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/availableslots/${id}`, {
+  const response = await fetch(`${API_URL}/api/availableslot/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),
   });
