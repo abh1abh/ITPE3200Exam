@@ -3,7 +3,6 @@ import { jwtDecode } from "jwt-decode";
 import { User } from "../types/user";
 import { LoginDto } from "../types/auth";
 import * as authService from "./AuthService";
-import { dir } from "console";
 
 interface AuthContextType {
   // Define the shape of the auth context
@@ -19,12 +18,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function extractRole(decoded: any): string {
   const uriRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-  //   const directRole = decoded.role;
-  //   const rolesArray = decoded.roles;
-  console.log(decoded);
-  //   console.log("directRole", directRole);
-  console.log("uriRole", uriRole);
-
   if (typeof uriRole === "string") return uriRole;
   return "";
 }
