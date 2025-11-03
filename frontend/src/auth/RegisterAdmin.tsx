@@ -9,8 +9,8 @@ const RegisterAdmin: React.FC = () => {  /*Saving variables for data transfer to
         email: '',
         password: '',
         name: '',
-        Number: '',
-        Address: '',
+        number: '',
+        address: '',
         role: ''
     });
     const [error, setError] = useState<string | null>(null);
@@ -27,7 +27,9 @@ const RegisterAdmin: React.FC = () => {  /*Saving variables for data transfer to
         setSuccess(null);
         try {
             await authService.registerAdmin({
-                ...formData
+                ...formData, 
+                Number: formData.number,  /*Mapping number to Number for RegisterFromAdminDto*/
+                Address: formData.address /*Mapping address to Address for RegisterFromAdminDto*/
             });
             setSuccess('Registration successful! You can now log in.');
             setTimeout(() => navigate('/login'), 2000); // Redirect after 2 seconds
@@ -69,12 +71,12 @@ const RegisterAdmin: React.FC = () => {  /*Saving variables for data transfer to
 
                 <Form.Group className="mb-3">
                     <Form.Label>Number</Form.Label>
-                    <Form.Control type="text" name="number" value={formData.Number} onChange={handleChange} required />
+                    <Form.Control type="text" name="number" value={formData.number} onChange={handleChange} required />
                 </Form.Group>
 
                 <Form.Group className="mb-3">
                     <Form.Label>Address</Form.Label>
-                    <Form.Control type="text" name="address" value={formData.Address} onChange={handleChange} required />
+                    <Form.Control type="text" name="address" value={formData.address} onChange={handleChange} required />
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Label>Role</Form.Label>
