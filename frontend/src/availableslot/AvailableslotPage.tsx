@@ -3,9 +3,9 @@ import { AvailableSlot } from "../types/AvailableSlot";
 import { useAuth } from "../auth/AuthContext";
 import * as AvailableSlotService from "./AvailableSlotService";
 import { Alert, Badge, Button, Container, Spinner, Table } from "react-bootstrap";
-import AvailableSlotTable from "./AvailableSlotTable";
 import Loading from "../shared/Loading";
 import DeleteAvailableSlotModal from "./AvailableSlotDeleteModal";
+import AvailableSlotTable from "./AvailableSlotTable";
 
 const formatDate = (d: string | Date) =>
   new Date(d).toLocaleString(undefined, {
