@@ -2,4 +2,6 @@
 */obj/
 */node_modules/
 APILogs/
-.vscode/
+.vscode/*.db
+*.db-shm
+*.db-wal
