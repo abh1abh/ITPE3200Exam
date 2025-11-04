@@ -61,36 +61,13 @@ public class AppointmentService: IAppointmentService
         return ok;
     }
 
-    public async Task<IEnumerable<AppointmentDto>> GetAll(string? role, string? authUserId)
+    public async Task<IEnumerable<AppointmentDto>> GetAll()
     {
         var appointments = await _appointmentRepository.GetAll(); // Calls AppointmentRepository to get all appointments 
         if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentDto>(); // If appointments are null Service returns a empty AppointmentDto List
 
-        IEnumerable<Appointment> filteredAppointments = appointments;
-
-        // TODO: Review this. Do we need it?
-        if (role == "Admin")
-        {
-
-        }
-        else if (role == "HealthcareWorker")
-        {
-            filteredAppointments = appointments
-                .Where(a => a.HealthcareWorker != null && a.HealthcareWorker.AuthUserId == authUserId);
-        }
-        else if (role == "Client")
-        {
-            filteredAppointments = appointments
-                .Where(a => a.Client != null && a.Client.AuthUserId == authUserId);
-        }
-        else
-        {
-            // Unknown role, return empty list
-            return Enumerable.Empty<AppointmentDto>();
-        }
-        
         // Service convert the appointment list to AppointmentDto List
-        var appointmentDtos = filteredAppointments.Select(appointment => new AppointmentDto
+        var appointmentDtos = appointments.Select(appointment => new AppointmentDto
         {
             Id = appointment.Id,
             ClientId = appointment.ClientId,
@@ -117,6 +94,89 @@ public class AppointmentService: IAppointmentService
         });
         return appointmentDtos;
     }
+
+    public async Task<IEnumerable<AppointmentDto>> GetAppointmentsByClientId(string? authUserId)
+    {
+
+        var client = await _clientRepository.GetByAuthUserId(authUserId!);
+        if(client == null )
+        {
+            throw new UnauthorizedAccessException();
+        }
+        var appointments = await _appointmentRepository.GetByClientId(client.ClientId); // Calls AppointmentRepository to get all appointments for client
+        if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentDto>(); // If appointments are null Service returns a empty AppointmentDto List
+
+        
+        // Service convert the appointment list to AppointmentDto List
+        var appointmentDtos = appointments.Select(appointment => new AppointmentDto
+        {
+            Id = appointment.Id,
+            ClientId = appointment.ClientId,
+            HealthcareWorkerId = appointment.HealthcareWorkerId,
+            Start = appointment.Start,
+            End = appointment.End,
+            Notes = appointment.Notes,
+            AvailableSlotId = appointment.AvailableSlotId,
+            AppointmentTasks = appointment.AppointmentTasks?.Select(t => new AppointmentTaskDto
+            {
+                Id = t.Id,
+                AppointmentId = t.AppointmentId,
+                Description = t.Description,
+                IsCompleted = t.IsCompleted
+            }).ToList(),
+            ChangeLogs = appointment.ChangeLogs?.Select(cl => new ChangeLogDto
+            {
+                Id = cl.Id,
+                AppointmentId = cl.AppointmentId,
+                ChangeDate = cl.ChangeDate,
+                ChangedByUserId = cl.ChangedByUserId,
+                ChangeDescription = cl.ChangeDescription
+            }).ToList()
+        });
+        return appointmentDtos;
+    }
+
+
+    public async Task<IEnumerable<AppointmentDto>> GetAppointmentsByHealthcareWorkerId(string? authUserId)
+    {
+
+        var worker = await _healthcareWorkerRepository.GetByAuthUserId(authUserId!);
+        if(worker == null )
+        {
+            throw new UnauthorizedAccessException();
+        }
+
+        var appointments = await _appointmentRepository.GetByHealthcareWorkerId(worker.HealthcareWorkerId); // Calls AppointmentRepository to get all appointments for worker
+        if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentDto>(); // If appointments are null Service returns a empty AppointmentDto List
+
+        // Service convert the appointment list to AppointmentDto List
+        var appointmentDtos = appointments.Select(appointment => new AppointmentDto
+        {
+            Id = appointment.Id,
+            ClientId = appointment.ClientId,
+            HealthcareWorkerId = appointment.HealthcareWorkerId,
+            Start = appointment.Start,
+            End = appointment.End,
+            Notes = appointment.Notes,
+            AvailableSlotId = appointment.AvailableSlotId,
+            AppointmentTasks = appointment.AppointmentTasks?.Select(t => new AppointmentTaskDto
+            {
+                Id = t.Id,
+                AppointmentId = t.AppointmentId,
+                Description = t.Description,
+                IsCompleted = t.IsCompleted
+            }).ToList(),
+            ChangeLogs = appointment.ChangeLogs?.Select(cl => new ChangeLogDto
+            {
+                Id = cl.Id,
+                AppointmentId = cl.AppointmentId,
+                ChangeDate = cl.ChangeDate,
+                ChangedByUserId = cl.ChangedByUserId,
+                ChangeDescription = cl.ChangeDescription
+            }).ToList()
+        });
+        return appointmentDtos;
+    }  
     
     public async Task<AppointmentDto?> GetById(int id, string? role, string? authUserId)
     {
