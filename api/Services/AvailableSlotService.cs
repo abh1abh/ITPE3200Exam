@@ -176,10 +176,9 @@ public class AvailableSlotService: IAvailableSlotService
 
     public async Task<IEnumerable<AvailableSlotDto>> GetAllUnbooked()
     {
-        var allSlots = await _availableSlotRepository.GetAll();
+        var allSlots = await _availableSlotRepository.GetAllUnbooked();
         if (allSlots is null || !allSlots.Any()) return Enumerable.Empty<AvailableSlotDto>();
-        var allUnbooked = allSlots.Where(a => a.IsBooked == false);
-        var allSlotsDtos = allUnbooked.Select(s => new AvailableSlotDto
+        var allSlotsDtos = allSlots.Select(s => new AvailableSlotDto
         {
             Id = s.Id,
             HealthcareWorkerId = s.HealthcareWorkerId,

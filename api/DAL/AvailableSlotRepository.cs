@@ -14,15 +14,30 @@ public class AvailableSlotRepository : IAvailableSlotRepository
         _logger = logger;
     }
 
-    public async Task<IEnumerable<AvailableSlot>?> GetAll()   
+    public async Task<IEnumerable<AvailableSlot>?> GetAll()
     {
         try
         {
-            return await _db.AvailableSlots.OrderBy(s => s.Start).ToListAsync(); // Try to get all available slots
+            return await _db.AvailableSlots.OrderBy(s => s.Start).ToListAsync(); // Try to get all available slots ordered
         }
         catch (Exception e)
         {
             _logger.LogError("[AvailableSlotRepository] available slot ToListAsync() failed when GetAll(), error messager: {e}", e.Message);
+            return null; // Return null on failure
+        }
+    }
+    
+
+    public async Task<IEnumerable<AvailableSlot>?> GetAllUnbooked()   
+    {
+        try
+        {
+            var q = _db.AvailableSlots.Where(s => s.IsBooked == false); // Try to get all available slots that are unbooked
+            return await _db.AvailableSlots.OrderBy(s => s.Start).ToListAsync(); // Order list
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("[AvailableSlotRepository] available slot ToListAsync() failed when GetAllUnbooked(), error messager: {e}", e.Message);
             return null; // Return null on failure
         }
     }
