@@ -5,8 +5,6 @@ namespace api.DTO
     public class RegisterDto
     {
         [Required]
-        public string Username { get; set; } = string.Empty;
-        [Required]
         [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be between {2} and {1} characters.")]
         public string Password { get; set; } = string.Empty;
         [Required]
@@ -21,6 +19,5 @@ namespace api.DTO
         [Required]
         [StringLength(200, ErrorMessage = "Address must be at most {1} characters.")]
         public string Address { get; set; } = string.Empty;
-
     }
 }

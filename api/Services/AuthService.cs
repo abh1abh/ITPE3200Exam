@@ -15,33 +15,37 @@ public class AuthService: IAuthService{
         private readonly SignInManager<AuthUser> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthService> _logger;
-        private readonly AppDbContext _context;
+        //private readonly AppDbContext _context;
+        private readonly IClientService _clientService;
+        private readonly IHealthcareWorkerService _healthcareWorkerService;
 
-        public AuthService(
+    public AuthService(
         UserManager<AuthUser> userManager,
         SignInManager<AuthUser> signInManager,
         IConfiguration configuration,
-        AppDbContext context,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        IClientService clientService,
+        IHealthcareWorkerService healthcareWorkerService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
-        _context = context;
         _logger = logger;
+        _clientService = clientService;
+        _healthcareWorkerService = healthcareWorkerService;
     }
     public async Task<IdentityResult> RegisterUserAsync(RegisterDto registerDto) //self registration for clients users
     {
         var user = new AuthUser //create new user object with AuthUser properties
         {
-            UserName = registerDto.Username,
+            UserName = registerDto.Email,
             Email = registerDto.Email,
         };
         
         var result = await _userManager.CreateAsync(user, registerDto.Password); //create user in AspNetUsers table
         if (result.Succeeded)
         {
-            var client = new Client  //Add client details
+            var client = new ClientDto  //Add client details
             {
                 AuthUserId = user.Id,
                 Name = registerDto.Name,
@@ -49,14 +53,13 @@ public class AuthService: IAuthService{
                 Address = registerDto.Address,
                 Email = registerDto.Email,
                 };
-            _context.Clients.Add(client); //add client to Clients table
-            await _context.SaveChangesAsync(); //save changes to database
+            var createClient =  await _clientService.Create(client); //use ClientService to create client
             var roleResult = await _userManager.AddToRoleAsync(user, "Client"); //assign Client role to user
-            _logger.LogInformation("[AuthService] user registered successfully for {Username}", registerDto.Username);
+            _logger.LogInformation("[AuthService] user registered successfully for {Username}", registerDto.Email);
         }
         else //log registration failure
         {
-            _logger.LogWarning("[AuthService] user registration failed for {Username}: {Errors}", registerDto.Username, result.Errors);
+            _logger.LogWarning("[AuthService] user registration failed for {Username}: {Errors}", registerDto.Email, result.Errors);
         }
         return result; //return result of registration attempt
         }
@@ -65,7 +68,7 @@ public class AuthService: IAuthService{
     {
         var user = new AuthUser //create new user object with AuthUser properties
         {
-            UserName = registerDto.Username,
+            UserName = registerDto.Email,
             Email = registerDto.Email
         };
         var userRole = registerDto.Role; //determine role from DTO
@@ -74,7 +77,7 @@ public class AuthService: IAuthService{
         {
             try
             {
-                var client = new Client //Add client details from DTO
+                var client = new ClientDto //Add client details from DTO
                 {
                     AuthUserId = user.Id,
                     Name = registerDto.Name,
@@ -82,16 +85,15 @@ public class AuthService: IAuthService{
                     Address = registerDto.Address,
                     Email = registerDto.Email,
                 };
-                _context.Clients.Add(client); //add client to Clients table
-                await _context.SaveChangesAsync(); //save changes to database
+                var createClient =  await _clientService.Create(client); //use ClientService to create client
                 var result = await _userManager.CreateAsync(user, registerDto.Password); //create user in AspNetUsers table
                 var roleResult = await _userManager.AddToRoleAsync(user, "Client"); //assign Client role to user
-                _logger.LogInformation("[AuthService] Client user registered successfully for {Username}", registerDto.Username);
+                _logger.LogInformation("[AuthService] Client user registered successfully for {Username}", registerDto.Email);
                 return result;
             }
             catch (Exception ex) //log any errors during client creation
             {
-                _logger.LogError(ex, "[AuthService] Error creating Client for {Username}", registerDto.Username);
+                _logger.LogError(ex, "[AuthService] Error creating Client for {Username}", registerDto.Email);
                 return IdentityResult.Failed(new IdentityError { Description = "Error creating Client." });
             }
         }
@@ -99,7 +101,7 @@ public class AuthService: IAuthService{
         {
             try
             {
-                var worker = new HealthcareWorker //Add healthcare worker details from DTO
+                var worker = new HealthcareWorkerDto //Add healthcare worker details from DTO
                 {
                     AuthUserId = user.Id,
                     Name = registerDto.Name,
@@ -107,16 +109,15 @@ public class AuthService: IAuthService{
                     Address = registerDto.Address,
                     Email = registerDto.Email,
                 };
-                _context.HealthcareWorkers.Add(worker); //add healthcare worker to HealthcareWorkers table
-                await _context.SaveChangesAsync(); //save changes to database
+                var createWorker =  await _healthcareWorkerService.Create(worker); //use HealthcareWorkerService to create healthcare worker
                 var result = await _userManager.CreateAsync(user, registerDto.Password); //create user in AspNetUsers table
                 var roleResult = await _userManager.AddToRoleAsync(user, "HealthcareWorker"); //assign HealthcareWorker role to user
-                _logger.LogInformation("[AuthService] Worker user registered successfully for {Username}", registerDto.Username);
+                _logger.LogInformation("[AuthService] Worker user registered successfully for {Username}", registerDto.Email);
                 return result;
             }
             catch (Exception ex) //log any errors during healthcare worker creation
             {
-                _logger.LogError(ex, "[AuthService] Error creating HealthcareWorker for {Username}", registerDto.Username);
+                _logger.LogError(ex, "[AuthService] Error creating HealthcareWorker for {Username}", registerDto.Email);
                 return IdentityResult.Failed(new IdentityError { Description = "Error creating HealthcareWorker." });
             }
         }
@@ -124,13 +125,13 @@ public class AuthService: IAuthService{
         {
             var result = await _userManager.CreateAsync(user, registerDto.Password); //create user in AspNetUsers table
             var roleResult = await _userManager.AddToRoleAsync(user, "Admin"); //assign Admin role to user
-            _logger.LogInformation("[AuthService] admin user registered successfully for {Username}", registerDto.Username);
+            _logger.LogInformation("[AuthService] admin user registered successfully for {Username}", registerDto.Email);
             return result;
         }
 
         else //log invalid role error
         {
-            _logger.LogWarning("[AuthService] user registration failed for {Username}: invalid role {Role}", registerDto.Username, userRole);
+            _logger.LogWarning("[AuthService] user registration failed for {Username}: invalid role {Role}", registerDto.Email, userRole);
             return IdentityResult.Failed(new IdentityError { Description = "Invalid role specified." });
         }
     }
@@ -164,19 +165,59 @@ public class AuthService: IAuthService{
             return true;
         }
 
-
-        public async Task<string> GenerateJwtTokenAsync(AuthUser user) //method to generate JWT token for authenticated user
+        public async Task<bool> DeleteUserAsync(string username) //method to delete user by username
         {
-            var jwtKey = _configuration["Jwt:Key"]; // The secret key used for the signature
-            if (string.IsNullOrEmpty(jwtKey)) // Ensure the key is not null or empty
-            {   
-                _logger.LogError("[AuthAPIController] JWT key is missing from configuration.");
-                throw new InvalidOperationException("JWT key is missing from configuration.");
+            var user = await _userManager.FindByNameAsync(username); //find user by username
+            if (user == null) //log user not found
+            {
+                _logger.LogWarning("[AuthService] delete user failed for {Username}: user not found", username);
+                return false;
             }
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)); // Reading the key from the configuration
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256); // Using HMAC SHA256 algorithm for signing the token
 
-            var claims = new List<Claim>
+            var result = await _userManager.DeleteAsync(user); //delete user
+            if (result.Succeeded) //log successful deletion
+            {
+                _logger.LogInformation("[AuthService] user deleted successfully for {Username}", username);
+                return true;
+            }
+
+            _logger.LogWarning("[AuthService] delete user failed for {Username}: {Errors}", username, result.Errors); //log deletion failure
+            return false;
+        }
+
+        public async Task<bool> DeleteUserAdminAsync(string username) //method to delete user by admin
+        {
+            var user = await _userManager.FindByNameAsync(username); //find user by username
+            if (user == null) //log user not found
+            {
+                _logger.LogWarning("[AuthService] admin delete user failed for {Username}: user not found", username);
+                return false;
+            }
+
+            var result = await _userManager.DeleteAsync(user); //delete user
+            if (result.Succeeded) //log successful deletion
+            {
+                _logger.LogInformation("[AuthService] admin deleted user successfully for {Username}", username);
+                return true;
+            }
+
+            _logger.LogWarning("[AuthService] admin delete user failed for {Username}: {Errors}", username, result.Errors); //log deletion failure
+            return false;
+        }
+
+
+    public async Task<string> GenerateJwtTokenAsync(AuthUser user) //method to generate JWT token for authenticated user
+    {
+        var jwtKey = _configuration["Jwt:Key"]; // The secret key used for the signature
+        if (string.IsNullOrEmpty(jwtKey)) // Ensure the key is not null or empty
+        {
+            _logger.LogError("[AuthAPIController] JWT key is missing from configuration.");
+            throw new InvalidOperationException("JWT key is missing from configuration.");
+        }
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)); // Reading the key from the configuration
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256); // Using HMAC SHA256 algorithm for signing the token
+
+        var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.UserName!), // optional
@@ -185,23 +226,23 @@ public class AuthService: IAuthService{
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique identifier for the token
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()) // Issued at timestamp
             };
-            
-            var roles = await _userManager.GetRolesAsync(user);
-            foreach (var r in roles)
-            {
-                // you configured RoleClaimType = ClaimTypes.Role in JwtBearer options
-                claims.Add(new Claim(ClaimTypes.Role, r));
-                // If you ever switch to using "role" in tokens, set RoleClaimType = "role" in JwtBearer options instead.
-            }
-            
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(120), // Token expiration time set to 120 minutes
-                signingCredentials: credentials); // Signing the token with the specified credentials
 
-            _logger.LogInformation("[AuthAPIController] JWT token created for {@username}", user.UserName);
-            return new JwtSecurityTokenHandler().WriteToken(token);
+        var roles = await _userManager.GetRolesAsync(user);
+        foreach (var r in roles)
+        {
+            // you configured RoleClaimType = ClaimTypes.Role in JwtBearer options
+            claims.Add(new Claim(ClaimTypes.Role, r));
+            // If you ever switch to using "role" in tokens, set RoleClaimType = "role" in JwtBearer options instead.
         }
+
+        var token = new JwtSecurityToken(
+            issuer: _configuration["Jwt:Issuer"],
+            audience: _configuration["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.Now.AddMinutes(120), // Token expiration time set to 120 minutes
+            signingCredentials: credentials); // Signing the token with the specified credentials
+
+        _logger.LogInformation("[AuthAPIController] JWT token created for {@username}", user.UserName);
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
 }
