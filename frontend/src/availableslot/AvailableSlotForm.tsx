@@ -135,7 +135,7 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
       <Row className="mb-3 justify-content-center">
         <Col md={4}>
           {/* Admin-only: pick worker */}
-          {isAdmin && (
+          {isAdmin && !isUpdating && (
             <Form.Group controlId="slotWorker" className="mb-3">
               <Form.Label>Healthcare worker</Form.Label>
               <Form.Select
@@ -156,11 +156,15 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
             </Form.Group>
           )}
 
-          {/* Admin + UPDATE → read-only ID */}
+          {/* Admin + UPDATE read read-only ID */}
           {isAdmin && isUpdating && (
             <Form.Group controlId="slotWorkerReadonly" className="mb-3">
               <Form.Label>Healthcare worker</Form.Label>
-              <Form.Control readOnly plaintext value={initialData?.healthcareWorkerId ?? ""} />
+              <Form.Control
+                readOnly
+                className="bg-light border-primary fw-semibold text-center"
+                value={initialData?.healthcareWorkerId ?? ""}
+              />
               {/* If you prefer the disabled input look instead of plaintext:
                 <Form.Control value={initialData?.healthcareWorkerId ?? ""} disabled />
             */}
