@@ -6,6 +6,7 @@ public interface IAvailableSlotRepository
 {
     Task<IEnumerable<AvailableSlot>?> GetAll();
     Task<IEnumerable<AvailableSlot>> GetByWorkerId(int healthcareWorkerId);
+    Task<IEnumerable<AvailableSlot>?> GetAllUnbooked();
     Task<AvailableSlot?> GetById(int id);
     Task<bool> Create(AvailableSlot availableSlot);
     Task<bool> Update(AvailableSlot availableSlot);

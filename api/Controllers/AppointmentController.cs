@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
-[Authorize(Roles = "Client,Admin,HealthcareWorker")] // Authorize all relevant roles
+[Authorize] // Authorize all relevant roles
 [ApiController]
 [Route("api/[controller]")]
 public class AppointmentController : ControllerBase
@@ -28,23 +28,66 @@ public class AppointmentController : ControllerBase
         return (role, userId);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet]
-    public async Task<IActionResult> AppointmentList()
+    public async Task<IActionResult> GetAll()
     {
         var (role, authUserId) = UserContext(); // Get role and AuthUserId
-        // TODO: Should we allow all users to get all appointments?
         try
         {
-            var appointments = await _service.GetAll( role: role, authUserId: authUserId);
+            var appointments = await _service.GetAll();
             return Ok(appointments);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[AppointmentController] Error AppointmentList");
             return StatusCode(500, "A problem occurred while fetching the appointment list."); // Returns 500 at general exceptions 
+        }
+    }
+
+    [Authorize(Roles = "Client")]
+    [HttpGet("client")]
+    public async Task<IActionResult> GetAppointmentsByClient()
+    {
+        var (_, authUserId) = UserContext(); // Get role and AuthUserId
+        try
+        {
+            var appointments = await _service.GetAppointmentsByClientId(authUserId: authUserId);
+            return Ok(appointments);
+        }
+        catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
+        {
+            return Forbid();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AppointmentController] Error GetAppointmentsByClientAuthUserId");
+            return StatusCode(500, "A problem occurred while fetching the appointment list."); // Returns 500 at general exceptions 
+        }
+    }
+
+    [Authorize(Roles = "HealthcareWorker")]     
+    [HttpGet("worker")]
+    public async Task<IActionResult> GetAppointmentsByHealthcareWorker()
+    {
+        var (_, authUserId) = UserContext(); // Get role and AuthUserId
+        try
+        {
+            var appointments = await _service.GetAppointmentsByHealthcareWorkerId(authUserId: authUserId);
+            return Ok(appointments);
+        }
+        catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
+        {
+            return Forbid();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AppointmentController] Error GetAppointmentsByHealthcareWorkerAuthUserId");
+            return StatusCode(500, "A problem occurred while fetching the appointment list."); // Returns 500 at general exceptions 
         }      
     }
 
+    [Authorize(Roles = "Client,Admin,HealthcareWorker")] 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -108,6 +151,7 @@ public class AppointmentController : ControllerBase
 
     }
 
+    [Authorize(Roles = "Client,Admin,HealthcareWorker")] 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, AppointmentDto appointmentDto)
     {        
@@ -141,7 +185,7 @@ public class AppointmentController : ControllerBase
     }
 
 
-
+    [Authorize(Roles = "Client,Admin,HealthcareWorker")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -153,11 +197,11 @@ public class AppointmentController : ControllerBase
             if (!ok) return NotFound("Appointment not found"); // If service return null Controller returns Not Found 
             return NoContent(); // Controller returns NoContent() if deletion went fine 
         }
-        catch (UnauthorizedAccessException) 
+        catch (UnauthorizedAccessException)
         {
-            return Forbid(); 
+            return Forbid();
         }
-        
+
         catch (InvalidOperationException e)
         {
             _logger.LogWarning(e, "[AppointmentController] Delete failed {Id:0000}", id);
@@ -168,9 +212,10 @@ public class AppointmentController : ControllerBase
             _logger.LogError(ex, "[AppointmentController] Unexpected error deleting {Id:0000}", id);
             return StatusCode(500, "Unexpected error.");
         }
-        
+
     }
 
+    [Authorize(Roles = "Client,Admin,HealthcareWorker")] 
     [HttpGet("{id:int}/changelog")]
     public async Task<IActionResult> ChangeLog(int id)
     {
