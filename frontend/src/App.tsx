@@ -22,21 +22,23 @@ function App() {
       <div>
         <Router>
           <NavMenu />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/footer" element={<Footer />} />
-            <Route path="/team" element={<TeamPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/admin/register" element={<RegisterAdmin />} />
-            <Route path="/availableslot" element={<AvailableSlotPage />} />
-            <Route path="/availableslot/create" element={<AvailableSlotCreatePage />} />
-            <Route path="/availableslot/:slotId" element={<AvailableSlotUpdatePage />} />
-            <Route path="/availableslot/:slotId/delete" element={<AvailableSlotDeletePage />} />
-            <Route path="/appointment/create" element={<AppointmentCreatePage />} />
-            <Route path="/appointment/:id" element={<AppointmentUpdatePage />} />
-            <Route path="/appointment" element={<AppointmentPage />} />
-          </Routes>
+          <div className="page-container">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/footer" element={<Footer />} />
+              <Route path="/team" element={<TeamPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/admin/register" element={<RegisterAdmin />} />
+              <Route path="/availableslot" element={<AvailableSlotPage />} />
+              <Route path="/availableslot/create" element={<AvailableSlotCreatePage />} />
+              <Route path="/availableslot/:slotId" element={<AvailableSlotUpdatePage />} />
+              <Route path="/availableslot/:slotId/delete" element={<AvailableSlotDeletePage />} />
+              <Route path="/appointment/create" element={<AppointmentCreatePage />} />
+              <Route path="/appointment/:id" element={<AppointmentUpdatePage />} />
+              <Route path="/appointment" element={<AppointmentPage />} />
+            </Routes>
+          </div>
           <Footer />
         </Router>
       </div>

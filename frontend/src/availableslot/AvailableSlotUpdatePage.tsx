@@ -3,8 +3,8 @@ import { AvailableSlot } from "../types/AvailableSlot";
 import * as AvailableSlotService from "./AvailableSlotService";
 import { useNavigate, useParams } from "react-router-dom";
 import Loading from "../shared/Loading";
-import AvailableSlotForm from "./AvailableSlotForm";
 import { useAuth } from "../auth/AuthContext";
+import AvailableSlotForm from "./AvailableSlotForm";
 
 const AvailableSlotUpdatePage: React.FC = () => {
   const { slotId } = useParams<{ slotId: string }>();
@@ -45,7 +45,7 @@ const AvailableSlotUpdatePage: React.FC = () => {
 
   return (
     <div>
-      <h2>AvailableSlotUpdatePage</h2>
+      <h2 className="mb-4">Update available slot</h2>
 
       {loading ? (
         <Loading />
