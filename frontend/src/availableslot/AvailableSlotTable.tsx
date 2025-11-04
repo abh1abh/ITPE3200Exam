@@ -46,9 +46,15 @@ const AvailableSlotTable: React.FC<Props> = ({ availableSlots, isAdmin, onDelete
               <td>{formatDate(slot.end)}</td>
               <td>{slot.isBooked ? <Badge bg="danger">Booked</Badge> : <Badge bg="success">Open</Badge>}</td>
               <td>
-                <Link to={`/availableslot/${slot.id}`} className="btn btn-sm btn-primary me-2">
-                  Update
-                </Link>
+                {slot.isBooked ? (
+                  <span className="btn btn-sm btn-primary me-2 disabled" aria-disabled="true">
+                    Update
+                  </span>
+                ) : (
+                  <Link to={`/availableslot/${slot.id}`} className="btn btn-sm btn-primary me-2">
+                    Update
+                  </Link>
+                )}
                 {/* <Link to={`/availableslot/${slot.id}/delete`} className="btn btn-sm btn-danger">
                   Delete
                 </Link> */}
