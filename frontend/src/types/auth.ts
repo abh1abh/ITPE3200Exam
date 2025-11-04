@@ -3,7 +3,6 @@ export interface LoginDto{
     password: string;
 }
 export interface RegisterDto{
-    username: string;
     password: string;
     email: string;
     name: string;

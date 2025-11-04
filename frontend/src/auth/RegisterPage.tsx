@@ -5,7 +5,6 @@ import * as authService from './AuthService';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState({
-        username: '',
         email: '',
         password: '',
         name: '',
@@ -48,11 +47,6 @@ const RegisterPage: React.FC = () => {
             {error && <Alert variant="danger">{error}</Alert>}
             {success && <Alert variant="success">{success}</Alert>}
             <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
-                    <Form.Label>Username</Form.Label>
-                    <Form.Control type="text" name="username" value={formData.username} onChange={handleChange} required />
-                </Form.Group>
-
                 <Form.Group className="mb-3">
                     <Form.Label>Email</Form.Label>
                     <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} required />

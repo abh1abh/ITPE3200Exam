@@ -5,10 +5,6 @@ namespace api.DTO
     public class RegisterFromAdminDto
     {
         [Required]
-        [MinLength(3)]
-        public string Username { get; set; } = string.Empty;
-
-        [Required]
         [EmailAddress(ErrorMessage = "Invalid email address format.")]
         public string Email { get; set; } = string.Empty;
 
