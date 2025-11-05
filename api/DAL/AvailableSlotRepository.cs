@@ -33,7 +33,7 @@ public class AvailableSlotRepository : IAvailableSlotRepository
         try
         {
             var q = _db.AvailableSlots.Where(s => s.IsBooked == false); // Try to get all available slots that are unbooked
-            return await _db.AvailableSlots.OrderBy(s => s.Start).ToListAsync(); // Order list
+            return await q.OrderBy(s => s.Start).ToListAsync(); // Order list
         }
         catch (Exception e)
         {

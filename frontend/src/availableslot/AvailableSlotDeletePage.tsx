@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import DeleteAvailableSlotModel from "./AvailableSlotDeleteModal";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { AvailableSlot } from "../types/AvailableSlot";
-import * as AvailableSlotService from "./AvailableSlotService";
+import { AvailableSlot } from "../types/availableSlot";
+import * as AvailableSlotService from "./availableSlotService";
 
 const AvailableSlotDeletePage: React.FC = () => {
   const { slotId } = useParams<{ slotId: string }>();

@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { jwtDecode } from "jwt-decode";
 import { User } from "../types/user";
 import { LoginDto } from "../types/auth";
-import * as authService from "./AuthService";
+import * as authService from "./authService";
 
 interface AuthContextType {
   // Define the shape of the auth context

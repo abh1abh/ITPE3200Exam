@@ -1,29 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AvailableSlot } from "../types/AvailableSlot";
-import * as AvailableSlotService from "./AvailableSlotService";
+import { AvailableSlot } from "../types/availableSlot";
+import * as AvailableSlotService from "./availableSlotService";
 import AvailableSlotForm from "./AvailableSlotForm";
 import { useAuth } from "../auth/AuthContext";
-import { HealthcareWorker } from "../types/HealthcareWorker";
-import * as HealthcareWorkerService from "../shared/HealthcareWorkerService";
+import { HealthcareWorker } from "../types/healthcareWorker";
 import Loading from "../shared/Loading";
+import * as HealthcareWorkerService from "../healtcareWorker/HealthcareWorkerService";
 
 const AvailableSlotCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
   const [workers, setWorkers] = useState<HealthcareWorker[]>([]);
   const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const isAdmin: boolean = hasRole("Admin");
 
   const handleAvailableSlotCreated = async (availableSlot: AvailableSlot) => {
+    setServerError(null);
+    setLoading(true);
     try {
       const data = await AvailableSlotService.createAvailableSlot(availableSlot);
       console.log("Available slot created:", data);
       navigate("/availableslot"); // Navigate back to the item list page after creation
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating available slot:", error);
-      // Handle error (e.g., show error message to user)
+      setServerError("Failed to create available slot. Try again later");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -33,7 +38,7 @@ const AvailableSlotCreatePage: React.FC = () => {
       if (!isAdmin) return;
       setLoading(true);
       try {
-        const list = await HealthcareWorkerService.fetchAllHealthcareWorkers(); // ← implement in your service
+        const list = await HealthcareWorkerService.fetchAllWorkers();
         setWorkers(list);
       } catch (error) {
         console.error(error);
@@ -43,6 +48,8 @@ const AvailableSlotCreatePage: React.FC = () => {
     };
     fetchWorkers();
   }, [isAdmin]);
+
+  console.log(workers);
 
   return (
     <div>
@@ -54,6 +61,7 @@ const AvailableSlotCreatePage: React.FC = () => {
           onAvailableSlotChanged={handleAvailableSlotCreated}
           isAdmin={isAdmin}
           workers={workers}
+          serverError={serverError}
         />
       )}
     </div>
