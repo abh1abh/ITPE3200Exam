@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { AvailableSlot } from "../types/AvailableSlot";
+import { AvailableSlot } from "../types/availableSlot";
 import { useAuth } from "../auth/AuthContext";
-import * as AvailableSlotService from "./AvailableSlotService";
+import * as AvailableSlotService from "./availableSlotService";
 import { Alert, Badge, Button, Container, Spinner, Table } from "react-bootstrap";
 import Loading from "../shared/Loading";
 import DeleteAvailableSlotModal from "./AvailableSlotDeleteModal";

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import * as AppointmentService from "./AppointmentService";
+import * as AppointmentService from "./appointmentService";
 
 import AppointmentForm from "./AppointmentForm";
 import { Appointment } from "../types/appointment";

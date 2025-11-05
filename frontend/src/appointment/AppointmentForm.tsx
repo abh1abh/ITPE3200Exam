@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { Appointment } from "../types/appointment";
-import * as HealthcareWorkerService from "../healtcareWorker/HealthcareWorkerService";
-import * as ClientService from "../client/ClientService";
-import * as AvailableSlotService from "../availableslot/AvailableSlotService";
-import { HealthcareWorker } from "../types/HealthcareWorker";
-import { Client } from "../types/Client";
-import { AvailableSlot } from "../types/AvailableSlot";
+import * as HealthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
+import * as ClientService from "../client/clientService";
+import * as AvailableSlotService from "../availableslot/availableSlotService";
+import { HealthcareWorker } from "../types/healthcareWorker";
+import { Client } from "../types/client";
+import { AvailableSlot } from "../types/availableSlot";
 
 interface AppointmentFormProps {
   onAppointmentChanged: (newAppointment: Appointment) => void;

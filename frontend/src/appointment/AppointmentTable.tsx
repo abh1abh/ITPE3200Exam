@@ -17,6 +17,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onApp
           <th>Start</th>
           <th>End</th>
           <th>Notes</th>
+          <th>Slot Id</th>
           <th>Actions</th>
           <th>Tasks</th>
         </tr>

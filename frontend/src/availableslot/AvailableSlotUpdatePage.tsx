@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { AvailableSlot } from "../types/AvailableSlot";
-import * as AvailableSlotService from "./AvailableSlotService";
+import { AvailableSlot } from "../types/availableSlot";
+import * as AvailableSlotService from "./availableSlotService";
 import { useNavigate, useParams } from "react-router-dom";
 import Loading from "../shared/Loading";
 import { useAuth } from "../auth/AuthContext";

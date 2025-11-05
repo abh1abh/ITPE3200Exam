@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AvailableSlot } from "../types/AvailableSlot";
-import * as AvailableSlotService from "./AvailableSlotService";
+import { AvailableSlot } from "../types/availableSlot";
+import * as AvailableSlotService from "./availableSlotService";
 import AvailableSlotForm from "./AvailableSlotForm";
 import { useAuth } from "../auth/AuthContext";
-import { HealthcareWorker } from "../types/HealthcareWorker";
-import * as HealthcareWorkerService from "../healtcareWorker/HealthcareWorkerService";
+import { HealthcareWorker } from "../types/healthcareWorker";
 import Loading from "../shared/Loading";
+import * as HealthcareWorkerService from "../healtcareWorker/HealthcareWorkerService";
 
 const AvailableSlotCreatePage: React.FC = () => {
   const navigate = useNavigate();
