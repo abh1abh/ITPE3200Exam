@@ -17,6 +17,7 @@ const AvailableSlotUpdatePage: React.FC = () => {
 
   useEffect(() => {
     const fetchAvailableSlot = async () => {
+      setError(null);
       setLoading(true);
 
       try {
@@ -33,11 +34,16 @@ const AvailableSlotUpdatePage: React.FC = () => {
   }, [slotId]);
 
   const handleSlotUpdate = async (updatedSlot: AvailableSlot) => {
+    setError(null);
+    setLoading(true);
     try {
       const data = await AvailableSlotService.updateAvailableSlot(Number(slotId), updatedSlot);
       navigate("/availableslot"); // Navigate back to the slot page after update
     } catch (error) {
       console.error("Error updating available slot:", error);
+      setError("Failed to update available slot. Try again later");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,7 +52,6 @@ const AvailableSlotUpdatePage: React.FC = () => {
   return (
     <div>
       <h2 className="mb-4">Update available slot</h2>
-
       {loading ? (
         <Loading />
       ) : (
@@ -56,6 +61,7 @@ const AvailableSlotUpdatePage: React.FC = () => {
           isUpdating={true}
           onAvailableSlotChanged={handleSlotUpdate}
           isAdmin={isAdmin}
+          serverError={error}
         />
       )}
     </div>

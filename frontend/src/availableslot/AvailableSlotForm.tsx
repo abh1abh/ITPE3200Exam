@@ -12,13 +12,13 @@ interface AvailableSlotFormProps {
   workers?: HealthcareWorker[];
   isAdmin?: boolean;
   availableSlotId?: number;
+  serverError?: string | null;
 }
 
 // Helper function for date and time
 const pad = (n: number) => String(n).padStart(2, "0");
 
-const dateToInput = (d: Date) => d.toISOString().substring(0, 10);
-const toTimeStr = (d: Date) => `${pad(d.getHours())}:${pad(Math.floor(d.getMinutes() / 15) * 15)}`;
+const toDateInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 const addMinutes = (d: Date, mins: number) => {
   const copy = new Date(d);
@@ -42,24 +42,32 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
   onAvailableSlotChanged,
   isUpdating = false,
   initialData,
-  workers,
+  workers = [],
   isAdmin = false,
   availableSlotId,
+  serverError = null,
 }) => {
   const [dateStr, setDateStr] = useState<string>("");
   const [timeStr, setTimeStr] = useState<string>("");
   // For admin to select worker
-  const [selectedWorkerId, setSelectedWorkerId] = useState<number | "">(
-    isUpdating && initialData?.healthcareWorkerId ? initialData.healthcareWorkerId : ""
-  );
+  const [selectedWorkerId, setSelectedWorkerId] = useState<string>("");
 
   // Handling error and loading
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
+  // Init selectedWorker
+  useEffect(() => {
+    if (isAdmin && !isUpdating && workers.length > 0 && selectedWorkerId === "") {
+      setSelectedWorkerId(String(workers[0].healthcareWorkerId));
+    }
+  }, [workers, isAdmin, isUpdating, selectedWorkerId]);
+
+  // Init date
   useEffect(() => {
     const nowRounded = () => {
+      // Round "now" to the next 15-min mark
       const now = new Date();
       const remainder = now.getMinutes() % 15;
       if (remainder) now.setMinutes(now.getMinutes() + (15 - remainder), 0, 0);
@@ -67,13 +75,18 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
       return now;
     };
 
-    const base = isUpdating && initialData ? new Date(initialData.start) : nowRounded();
+    const base =
+      isUpdating && initialData
+        ? new Date(initialData.start) // ISO string from object to Date object
+        : nowRounded();
 
-    setDateStr(dateToInput(base));
-    setTimeStr(toTimeStr(base));
+    setDateStr(toDateInput(base));
+    setTimeStr(`${pad(base.getHours())}:${pad(Math.floor(base.getMinutes() / 15) * 15)}`); // Set to nearest quarter
   }, [isUpdating, initialData]);
 
-  // derived end (1h after start)
+  console.log(selectedWorkerId);
+
+  // Compute end
   const startDate = combineDateTime(dateStr, timeStr);
   const endDate = addMinutes(startDate, 60);
   const endTimeStr = `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
@@ -86,6 +99,19 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
     e.preventDefault();
     setError(null);
 
+    // Admin must select a worker when creating
+    const effectiveWorkerId =
+      !isUpdating && isAdmin
+        ? selectedWorkerId !== ""
+          ? parseInt(selectedWorkerId, 10)
+          : undefined
+        : initialData?.healthcareWorkerId;
+
+    if (!effectiveWorkerId) {
+      setError("Please choose a healthcare worker.");
+      return;
+    }
+
     if (!startDate || !endDate) {
       setError("Start and end are required.");
       return;
@@ -95,42 +121,19 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
       return;
     }
 
-    // enforce worker id: if admin → must select one
-    const effectiveWorkerId =
-      workers != null
-        ? typeof selectedWorkerId === "number"
-          ? selectedWorkerId
-          : undefined
-        : initialData?.healthcareWorkerId ?? "";
-
-    if (!effectiveWorkerId) {
-      setError("Please choose a healthcare worker.");
-      return;
-    }
-    setIsLoading(true);
-
-    try {
-      const availableSlot: AvailableSlot = {
-        id: availableSlotId,
-        healthcareWorkerId: effectiveWorkerId,
-        start: startDate,
-        end: endDate,
-        isBooked: false,
-      };
-      onAvailableSlotChanged(availableSlot);
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Something went wrong while saving.";
-      setError(msg);
-    } finally {
-      setIsLoading(false);
-    }
+    const availableSlot: AvailableSlot = {
+      id: availableSlotId,
+      healthcareWorkerId: effectiveWorkerId,
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      isBooked: false,
+    };
+    onAvailableSlotChanged(availableSlot);
   };
 
   const onCancel = () => navigate(-1);
 
-  return isLoading ? (
-    <Loading />
-  ) : (
+  return (
     <Form onSubmit={handleSubmit}>
       <Row className="mb-3 justify-content-center">
         <Col md={4}>
@@ -139,11 +142,8 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
             <Form.Group controlId="slotWorker" className="mb-3">
               <Form.Label>Healthcare worker</Form.Label>
               <Form.Select
-                value={selectedWorkerId === "" ? "" : String(selectedWorkerId)}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setSelectedWorkerId(v === "" ? "" : Number(v));
-                }}
+                value={selectedWorkerId} // always a string
+                onChange={(e) => setSelectedWorkerId(e.target.value)}
                 required>
                 {(!workers || workers?.length === 0) && <option value="">Loading…</option>}
                 {workers?.map((w) => (
@@ -165,9 +165,6 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
                 className="bg-light border-primary fw-semibold text-center"
                 value={initialData?.healthcareWorkerId ?? ""}
               />
-              {/* If you prefer the disabled input look instead of plaintext:
-                <Form.Control value={initialData?.healthcareWorkerId ?? ""} disabled />
-            */}
             </Form.Group>
           )}
           <Form.Group controlId="slotDate" className="mb-3">
@@ -196,6 +193,7 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
       </Row>
 
       {error && <div className="text-danger mb-3">{error}</div>}
+      {serverError && <div className="text-danger mb-3">{serverError}</div>}
 
       <Container className="my-4">
         <Button variant="primary" type="submit" className="me-2">

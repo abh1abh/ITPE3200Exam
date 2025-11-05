@@ -7,10 +7,10 @@ export interface ChangeLog {
 }
 
 export interface AppointmentTask {
-  id: number;
-  appointmentId: number;
+  id?: number;
+  appointmentId?: number;
   description: string;
-  isCompleted: boolean;
+  isCompleted?: boolean;
 }
 
 export interface Appointment {
@@ -22,5 +22,5 @@ export interface Appointment {
   end: string;
   notes: string;
   appointmentTasks: AppointmentTask[];
-  changeLogs: ChangeLog[];
+  changeLogs?: ChangeLog[];
 }
