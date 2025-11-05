@@ -1,5 +1,5 @@
 import { Alert, Button, Modal } from "react-bootstrap";
-import { AvailableSlot } from "../types/AvailableSlot";
+import { AvailableSlot } from "../types/availableSlot";
 
 type DeleteDialogProps = {
   availableSlot: AvailableSlot;

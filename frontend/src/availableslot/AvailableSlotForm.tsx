@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Button, Form, Row, Col, Container } from "react-bootstrap";
-import { AvailableSlot } from "../types/AvailableSlot";
+import { AvailableSlot } from "../types/availableSlot";
 import { useNavigate } from "react-router-dom";
 import Loading from "../shared/Loading";
-import { HealthcareWorker } from "../types/HealthcareWorker";
+import { HealthcareWorker } from "../types/healthcareWorker";
 
 interface AvailableSlotFormProps {
   onAvailableSlotChanged: (slot: AvailableSlot) => void;

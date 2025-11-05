@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Container, Alert } from "react-bootstrap";
-import * as authService from "./AuthService";
+import * as authService from "./authService";
 
 // TODO: Missing useState type and naming convention
 

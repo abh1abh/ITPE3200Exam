@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import * as AppointmentService from "./AppointmentService";
+import * as AppointmentService from "./appointmentService";
 import { Appointment } from "../types/appointment";
 import AppointmentForm from "./AppointmentForm";
-import * as ClientService from "../client/ClientService";
-import * as AvailableSlotService from "../availableslot/AvailableSlotService";
-import { Client } from "../types/Client";
-import { AvailableSlot } from "../types/AvailableSlot";
+import * as ClientService from "../client/clientService";
+import * as AvailableSlotService from "../availableslot/availableSlotService";
+import { Client } from "../types/client";
+import { AvailableSlot } from "../types/availableSlot";
 import { useAuth } from "../auth/AuthContext";
 import Loading from "../shared/Loading";
 
