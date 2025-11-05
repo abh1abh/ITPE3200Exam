@@ -28,10 +28,10 @@ const LoginPage: React.FC = () => {
             {error && <Alert variant="danger">{error}</Alert>}
             <Form onSubmit={handleSubmit}>
                 <Form.Group className="mb-3" controlId="formBasicUsername">
-                    <Form.Label>Username</Form.Label>
+                    <Form.Label>E-mail</Form.Label>
                     <Form.Control
                         type="text"
-                        placeholder="Enter username"
+                        placeholder="Enter email"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required/>
