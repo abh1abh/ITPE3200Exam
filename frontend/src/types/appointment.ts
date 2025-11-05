@@ -24,3 +24,8 @@ export interface Appointment {
   appointmentTasks: AppointmentTask[];
   changeLogs?: ChangeLog[];
 }
+
+export interface AppointmentView extends Appointment {
+  clientName?: string;
+  healthcareWorkerName?: string;
+}

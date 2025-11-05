@@ -9,15 +9,23 @@ const AppointmentPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("Admin");
+  const isClient = hasRole("Client");
+  const isWorker = hasRole("HealthcareWorker");
 
   const fetchAppointments = async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token,please try again.");
-      const data = await AppointmentService.fetchAppointments();
+      let data;
+      if (isAdmin) {
+        data = await AppointmentService.fetchAppointments();
+      } else if (isClient) {
+        data = await AppointmentService.fetchAppointmentsByClientId();
+      } else if (isWorker) {
+        data = await AppointmentService.fetchAppointmentsByWorkerId();
+      }
       setAppointments(data);
       console.log("Appointments fetched:", data);
     } catch (error: any) {

@@ -2,37 +2,28 @@ import React, { useEffect, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { Appointment } from "../types/appointment";
-import * as HealthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
-import * as ClientService from "../client/clientService";
-import * as AvailableSlotService from "../availableslot/availableSlotService";
-import { HealthcareWorker } from "../types/healthcareWorker";
 import { Client } from "../types/client";
 import { AvailableSlot } from "../types/availableSlot";
 
-interface AppointmentFormProps {
+interface CreateAppointmentFormProps {
   onAppointmentChanged: (newAppointment: Appointment) => void;
-  initialData?: Appointment;
-  isUpdate?: boolean;
   clients?: Client[];
   unbookedSlots: AvailableSlot[];
   isAdmin: boolean;
   serverError?: string | null;
 }
-const AppointmentForm: React.FC<AppointmentFormProps> = ({
+const CreateAppointmentForm: React.FC<CreateAppointmentFormProps> = ({
   onAppointmentChanged,
-  initialData,
-  isUpdate = false,
   clients = [],
   unbookedSlots,
   isAdmin,
   serverError = null,
 }) => {
-  const [clientId, setClientId] = useState(initialData?.clientId || 0);
-  const [notes, setNotes] = useState(initialData?.notes || "");
-  const [healthcareWorkerId, setHealthcareWorkerId] = useState(initialData?.healthcareWorkerId || 0);
-  const [appointmentTasks, setAppointmentTasks] = useState(initialData?.appointmentTasks?.[0]?.description || "");
-  const [availableSlotId, setAvailableSlotId] = useState(initialData?.availableSlotId || 0);
-  const [isCompleted, setIsCompleted] = useState(initialData?.appointmentTasks?.[0]?.isCompleted || false);
+  const [clientId, setClientId] = useState<number>(0);
+  const [notes, setNotes] = useState<string>("");
+  const [healthcareWorkerId, setHealthcareWorkerId] = useState<number>(0);
+  const [appointmentTasks, setAppointmentTasks] = useState<string>("");
+  const [availableSlotId, setAvailableSlotId] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const onCancel = () => navigate(-1);
@@ -78,7 +69,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       appointmentTasks: [
         {
           description: appointmentTasks || "Initial consultation",
-          isCompleted: isCompleted,
+          isCompleted: false,
         },
       ],
     };
@@ -87,7 +78,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
   return (
     <Form onSubmit={handleSubmit} style={{ maxWidth: "600px", margin: "0 auto" }}>
-      <h3 className="mb-4">{isUpdate ? "Update Appointment" : "Create Appointment"}</h3>
+      <h3 className="mb-4">{"Create Appointment"}</h3>
       {isAdmin && clients && (
         <Form.Group controlId="formClientId" className="mb-3">
           <Form.Label>Client</Form.Label>
@@ -133,14 +124,14 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         />
       </Form.Group>
 
-      <Form.Group controlId="formTaskCompleted" className="mb-3">
+      {/* <Form.Group controlId="formTaskCompleted" className="mb-3">
         <Form.Check
           type="checkbox"
           label="Task completed?"
           checked={isCompleted}
           onChange={(e) => setIsCompleted(e.target.checked)}
         />
-      </Form.Group>
+      </Form.Group> */}
 
       {error && <p style={{ color: "red" }}>{error}</p>}
       {serverError && <p style={{ color: "red" }}>{serverError}</p>}
@@ -150,11 +141,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
           Cancel
         </Button>
         <Button variant="dark" type="submit">
-          {isUpdate ? "Update" : "Create"}
+          Create
         </Button>
       </div>
     </Form>
   );
 };
 
-export default AppointmentForm;
+export default CreateAppointmentForm;
