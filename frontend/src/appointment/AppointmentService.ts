@@ -1,86 +1,88 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
-const headers = {
-  "Content-Type": "application/json",
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
 };
-//feilhåndtering
+
 const handleResponse = async (response: Response) => {
   if (response.ok) {
-    if (response.status === 204) return null; // sletting
+    if (response.status === 204) {
+      return null; // No content to return
+    }
     return response.json();
   } else {
-    const errorText = await response.text();
-    throw new Error(errorText || "Network response was not ok");
+    const errorData = await response.json();
+    const errorMessage = errorData?.message || "An error occurred";
+    throw new Error(errorMessage);
   }
 };
-//get alle
-export const fetchAppointments = async (token: string) => {
+
+// Get all appointments
+export const fetchAppointments = async () => {
   const response = await fetch(`${API_URL}/api/Appointment`, {
-    headers: { ...headers, Authorization: `Bearer ${token}` },
+    headers: getAuthHeaders(),
   });
   return handleResponse(response);
 };
-//get by id
-export const fetchAppointmentById = async (id: number, token: string) => {
+// Get by id
+export const fetchAppointmentById = async (id: number) => {
   const response = await fetch(`${API_URL}/api/Appointment/${id}`, {
-    headers: {
-      ...headers,
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeaders(),
   });
   return handleResponse(response);
 };
 
-//create appointment
-export const createAppointment = async (appointment: any, token: string) => {
+// Create appointment
+export const createAppointment = async (appointment: any) => {
   const response = await fetch(`${API_URL}/api/Appointment`, {
     method: "POST",
-    headers: { ...headers, Authorization: `Bearer ${token}` },
+    headers: getAuthHeaders(),
     body: JSON.stringify(appointment),
   });
   return handleResponse(response);
 };
-//update
-export const updateAppointment = async (id: number, appointment: any, token: string) => {
+// Update
+export const updateAppointment = async (id: number, appointment: any) => {
   const response = await fetch(`${API_URL}/api/Appointment/${id}`, {
     method: "PUT",
-    headers: {
-      ...headers,
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(appointment),
   });
   return handleResponse(response);
 };
-//delete
+// Delete
 export const deleteAppointment = async (id: number, token: string) => {
   const response = await fetch(`${API_URL}/api/Appointment/${id}`, {
     method: "DELETE",
-    headers: { ...headers, Authorization: `Bearer ${token}` },
+    headers: getAuthHeaders(),
   });
   return handleResponse(response);
 };
-export const updateTaskStatus = async (
-  appointmentId: number,
-  taskId: number,
-  isCompleted: boolean,
-  token: string
-) => {
-  const response = await fetch(`${API_URL}/api/Appointment/${appointmentId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      appointmentTasks: [
-        {
-          id: taskId,
-          isCompleted,
-        },
-      ],
-    }),
-  });
-  if (!response.ok) throw new Error("Failed to update");
-  return response.json();
-};
+// export const updateTaskStatus = async (
+//   appointmentId: number,
+//   taskId: number,
+//   isCompleted: boolean,
+//   token: string
+// ) => {
+//   const response = await fetch(`${API_URL}/api/Appointment/${appointmentId}`, {
+//     method: "PUT",
+//     headers: getAuthHeaders(),
+//     body: JSON.stringify({
+//       appointmentTasks: [
+//         {
+//           id: taskId,
+//           isCompleted,
+//         },
+//       ],
+//     }),
+//   });
+//   if (!response.ok) throw new Error("Failed to update");
+//   return response.json();
+// };

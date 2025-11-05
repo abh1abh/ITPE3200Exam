@@ -20,7 +20,7 @@ const AppointmentPage: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No token,please try again.");
-      const data = await AppointmentService.fetchAppointments(token);
+      const data = await AppointmentService.fetchAppointments();
       setAppointments(data);
       console.log("Appointments fetched:", data);
     } catch (error: any) {
@@ -31,8 +31,8 @@ const AppointmentPage: React.FC = () => {
     }
   };
   useEffect(() => {
-    const savedViewMode = localStorage.getItem("appointmentViewMode");
-    if (savedViewMode === "grid") setShowTable(false);
+    // const savedViewMode = localStorage.getItem("appointmentViewMode");
+    // if (savedViewMode === "grid") setShowTable(false);
     fetchAppointments();
   }, []);
 
