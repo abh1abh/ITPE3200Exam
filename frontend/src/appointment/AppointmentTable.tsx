@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { AppointmentView } from "../types/appointment";
-import { formatDate } from "../shared/timeUtils";
+import { formatDateOnly, formatDateTime, formatTimeOnly } from "../shared/timeUtils";
 
 interface AppointmentTableProps {
   appointments: AppointmentView[];
@@ -31,10 +31,11 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
 
           {isWorker && <th>Client</th>}
           {isClient && <th>Worker</th>}
+          <th>Date</th>
           <th>Start</th>
           <th>End</th>
-          <th>Notes</th>
-          <th>Actions</th>
+          {/* <th>Notes</th> */}
+          <th>Options</th>
         </tr>
       </thead>
       <tbody>
@@ -49,11 +50,15 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
 
             {isWorker && <td>{a.clientName}</td>}
             {isClient && <td>{a.healthcareWorkerName}</td>}
-            <td>{formatDate(a.start)}</td>
-            <td>{formatDate(a.end)}</td>
-            <td>{a.notes}</td>
+            <td>{formatDateOnly(a.start)}</td>
+            <td>{formatTimeOnly(a.start)}</td>
+            <td>{formatTimeOnly(a.end)}</td>
+            {/* <td>{a.notes}</td> */}
             <td>
               <Link to={`/appointment/${a.id}`} className="btn btn-primary btn-sm me-2">
+                Details
+              </Link>
+              <Link to={`/appointment/${a.id}/update`} className="btn btn-primary btn-sm me-2">
                 Update
               </Link>
               {onAppointmentDeleted && a.id && (

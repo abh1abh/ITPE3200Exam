@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as appointmentService from "./appointmentService";
-import * as clientService from "../client/clientService";
-
-import AppointmentForm from "./CreateAppointmentForm";
 import { Appointment, AppointmentView } from "../types/appointment";
-import { Client } from "../types/client";
-import { HealthcareWorker } from "../types/healthcareWorker";
 import UpdateAppointmentForm from "./UpdateAppointmentForm";
+import { useAuth } from "../auth/AuthContext";
+import Loading from "../shared/Loading";
 
 const AppointmentUpdatePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [appointment, setAppointment] = useState<AppointmentView | null>(null);
+  const { hasRole } = useAuth();
+
+  const isAdmin = hasRole("Admin");
+  const isClient = hasRole("Client");
+  const isWorker = hasRole("HealthcareWorker");
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +33,6 @@ const AppointmentUpdatePage: React.FC = () => {
     if (id) fetchAppointment();
   }, [id]);
 
-  console.log(appointment);
-
   const handleAppointmentUpdated = async (updated: Appointment) => {
     try {
       await appointmentService.updateAppointment(Number(id), updated);
@@ -44,13 +44,19 @@ const AppointmentUpdatePage: React.FC = () => {
     }
   };
 
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
-  if (loading) return <p>Loading....</p>;
+  if (loading) return <Loading />;
   if (!appointment) return <p>No appointment found.</p>;
   return (
     <div>
       <h2>Update Appointment</h2>
-      <UpdateAppointmentForm initialData={appointment} onAppointmentChanged={handleAppointmentUpdated} />
+      <UpdateAppointmentForm
+        initialData={appointment}
+        onAppointmentChanged={handleAppointmentUpdated}
+        serverError={error}
+        isAdmin={isAdmin}
+        isClient={isClient}
+        isWorker={isWorker}
+      />
     </div>
   );
 };

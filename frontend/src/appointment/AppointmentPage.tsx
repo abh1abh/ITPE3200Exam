@@ -64,9 +64,16 @@ const AppointmentPage: React.FC = () => {
     <div>
       <h1>Appointments</h1>
 
-      <Button onClick={fetchAppointments} className="btn btn-primary mb-3 me-2" disabled={loading}>
+      {/* <Button onClick={fetchAppointments} className="btn btn-primary mb-3 me-2" disabled={loading}>
         {loading ? "Loading..." : "Refresh Appointments"}
-      </Button>
+      </Button> */}
+
+      {/* Dont href with buttons */}
+      {user && (isAdmin || isClient) && (
+        <Button className="btn btn-primary mb-3" onClick={() => navigate("/appointment/create")}>
+          Add New Appointment
+        </Button>
+      )}
 
       {error && <p style={{ color: "red" }}>{error}</p>}
       <AppointmentTable
@@ -76,13 +83,6 @@ const AppointmentPage: React.FC = () => {
         isWorker={isWorker}
         isClient={isClient}
       />
-
-      {/* Dont href with buttons */}
-      {user && (
-        <Button className="btn btn-secondary mt-3" onClick={() => navigate("/appointment/create")}>
-          Add New Appointment
-        </Button>
-      )}
     </div>
   );
 };

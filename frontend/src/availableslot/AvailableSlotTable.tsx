@@ -2,7 +2,8 @@ import React from "react";
 import { Badge, Button, Table } from "react-bootstrap";
 import { AvailableSlot } from "../types/availableSlot";
 import { Link } from "react-router-dom";
-import { formatDate } from "../shared/timeUtils";
+import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
+// import { formatDate } from "../shared/timeUtils";
 
 interface Props {
   availableSlots: AvailableSlot[];
@@ -25,6 +26,7 @@ const AvailableSlotTable: React.FC<Props> = ({ availableSlots, isAdmin, onDelete
         <tr>
           <th>#</th>
           {isAdmin ? <th>Healthcare Worker Id</th> : null}
+          <th>Date</th>
           <th>Start</th>
           <th>End</th>
           <th>Status</th>
@@ -43,8 +45,9 @@ const AvailableSlotTable: React.FC<Props> = ({ availableSlots, isAdmin, onDelete
             <tr key={slot.id}>
               <td>{slot.id}</td>
               {isAdmin ? <td>{slot.healthcareWorkerId}</td> : null}
-              <td>{formatDate(slot.start)}</td>
-              <td>{formatDate(slot.end)}</td>
+              <td>{formatDateOnly(slot.start)}</td>
+              <td>{formatTimeOnly(slot.start)}</td>
+              <td>{formatTimeOnly(slot.end)}</td>
               <td>{slot.isBooked ? <Badge bg="danger">Booked</Badge> : <Badge bg="success">Open</Badge>}</td>
               <td>
                 {slot.isBooked ? (

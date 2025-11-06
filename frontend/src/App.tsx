@@ -15,6 +15,7 @@ import AppointmentPage from "./appointment/AppointmentPage";
 import AppointmentCreatePage from "./appointment/AppointmentCreatePage";
 import AppointmentUpdatePage from "./appointment/AppointmentUpdatePage";
 import NavMenu from "./shared/NavMenu";
+import AppointmentDetailsPage from "./appointment/AppointmentDetailsPage";
 
 function App() {
   return (
@@ -35,8 +36,9 @@ function App() {
               <Route path="/availableslot/:slotId" element={<AvailableSlotUpdatePage />} />
               <Route path="/availableslot/:slotId/delete" element={<AvailableSlotDeletePage />} />
               <Route path="/appointment/create" element={<AppointmentCreatePage />} />
-              <Route path="/appointment/:id" element={<AppointmentUpdatePage />} />
+              <Route path="/appointment/:id/update" element={<AppointmentUpdatePage />} />
               <Route path="/appointment" element={<AppointmentPage />} />
+              <Route path="/appointment/:id" element={<AppointmentDetailsPage />} />
             </Routes>
           </div>
           <Footer />

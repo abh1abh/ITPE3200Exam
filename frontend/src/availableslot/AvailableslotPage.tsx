@@ -66,7 +66,7 @@ const AvailableSlotPage: React.FC = () => {
           <AvailableSlotTable
             availableSlots={availableSlots}
             isAdmin={hasRole("Admin")}
-            onDeleteClick={(slot: AvailableSlot) => setToDelete(slot)} // <--- NEW
+            onDeleteClick={(slot: AvailableSlot) => setToDelete(slot)} // Find the specific slot to delete
           />
           {toDelete && (
             <DeleteAvailableSlotModal
