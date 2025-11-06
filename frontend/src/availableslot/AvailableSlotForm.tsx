@@ -50,19 +50,12 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
   const [dateStr, setDateStr] = useState<string>("");
   const [timeStr, setTimeStr] = useState<string>("");
   // For admin to select worker
-  const [selectedWorkerId, setSelectedWorkerId] = useState<string>("");
+  const [selectedWorkerId, setSelectedWorkerId] = useState<number | null>(null);
 
   // Handling error and loading
   const [error, setError] = useState<string | null>(null);
   // const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
-
-  // Init selectedWorker
-  useEffect(() => {
-    if (isAdmin && !isUpdating && workers.length > 0 && selectedWorkerId === "") {
-      setSelectedWorkerId(String(workers[0].healthcareWorkerId));
-    }
-  }, [workers, isAdmin, isUpdating, selectedWorkerId]);
 
   // Init date
   useEffect(() => {
@@ -100,14 +93,16 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
     setError(null);
 
     // Admin must select a worker when creating
-    const effectiveWorkerId =
-      !isUpdating && isAdmin
-        ? selectedWorkerId !== ""
-          ? parseInt(selectedWorkerId, 10)
-          : undefined
-        : initialData?.healthcareWorkerId;
+    const effectiveWorkerId: number | null = isAdmin
+      ? isUpdating
+        ? initialData?.healthcareWorkerId ?? null // admin updating: keep existing id
+        : selectedWorkerId // admin creating: must pick
+      : isUpdating
+      ? initialData?.healthcareWorkerId ?? null // worker updating: keep existing id
+      : null;
 
-    if (!effectiveWorkerId) {
+    // Admin must select a worker only when creating a new slot
+    if (isAdmin && !isUpdating && !selectedWorkerId) {
       setError("Please choose a healthcare worker.");
       return;
     }
@@ -123,7 +118,7 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
 
     const availableSlot: AvailableSlot = {
       id: availableSlotId,
-      healthcareWorkerId: effectiveWorkerId,
+      healthcareWorkerId: effectiveWorkerId ?? 0, // TODO:
       start: startDate.toISOString(),
       end: endDate.toISOString(),
       isBooked: false,
@@ -142,8 +137,8 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
             <Form.Group controlId="slotWorker" className="mb-3">
               <Form.Label>Healthcare worker</Form.Label>
               <Form.Select
-                value={selectedWorkerId} // always a string
-                onChange={(e) => setSelectedWorkerId(e.target.value)}
+                value={selectedWorkerId!} // always a string
+                onChange={(e) => setSelectedWorkerId(Number(e.target.value))}
                 required>
                 {(!workers || workers?.length === 0) && <option value="">Loading…</option>}
                 {workers?.map((w) => (
