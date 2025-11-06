@@ -17,15 +17,6 @@ export const fetchWorker = async (id: number) => {
   return handleResponse(response);
 };
 
-export const createWorker = async (worker: HealthcareWorker) => {
-  const response = await fetch(`${API_URL}/api/healthcareworker/`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(worker),
-  });
-  return handleResponse(response);
-};
-
 export const updateWorker = async (id: number, worker: HealthcareWorker) => {
   const response = await fetch(`${API_URL}/api/healthcareworker/${id}`, {
     method: "PUT",
