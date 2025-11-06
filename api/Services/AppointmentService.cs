@@ -61,17 +61,19 @@ public class AppointmentService: IAppointmentService
         return ok;
     }
 
-    public async Task<IEnumerable<AppointmentDto>> GetAll()
+    public async Task<IEnumerable<AppointmentViewDto>> GetAll()
     {
         var appointments = await _appointmentRepository.GetAll(); // Calls AppointmentRepository to get all appointments 
-        if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentDto>(); // If appointments are null Service returns a empty AppointmentDto List
+        if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentViewDto>(); // If appointments are null Service returns a empty AppointmentDto List
 
         // Service convert the appointment list to AppointmentDto List
-        var appointmentDtos = appointments.Select(appointment => new AppointmentDto
+        var appointmentDtos = appointments.Select(appointment => new AppointmentViewDto
         {
             Id = appointment.Id,
             ClientId = appointment.ClientId,
+            ClientName = appointment.Client.Name ?? $"Client Id: {appointment.ClientId}",
             HealthcareWorkerId = appointment.HealthcareWorkerId,
+            HealthcareWorkerName = appointment.HealthcareWorker.Name ?? $"HealthcareWorker{appointment.HealthcareWorkerId}",
             Start = appointment.Start,
             End = appointment.End,
             Notes = appointment.Notes,
@@ -95,7 +97,7 @@ public class AppointmentService: IAppointmentService
         return appointmentDtos;
     }
 
-    public async Task<IEnumerable<AppointmentDto>> GetAppointmentsByClientId(string? authUserId)
+    public async Task<IEnumerable<AppointmentViewDto>> GetAppointmentsByClientId(string? authUserId)
     {
 
         var client = await _clientRepository.GetByAuthUserId(authUserId!);
@@ -104,15 +106,17 @@ public class AppointmentService: IAppointmentService
             throw new UnauthorizedAccessException();
         }
         var appointments = await _appointmentRepository.GetByClientId(client.ClientId); // Calls AppointmentRepository to get all appointments for client
-        if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentDto>(); // If appointments are null Service returns a empty AppointmentDto List
+        if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentViewDto>(); // If appointments are null Service returns a empty AppointmentDto List
 
         
         // Service convert the appointment list to AppointmentDto List
-        var appointmentDtos = appointments.Select(appointment => new AppointmentDto
+        var appointmentDtos = appointments.Select(appointment => new AppointmentViewDto
         {
             Id = appointment.Id,
             ClientId = appointment.ClientId,
+            ClientName = appointment.Client.Name ?? $"Client Id: {appointment.ClientId}",
             HealthcareWorkerId = appointment.HealthcareWorkerId,
+            HealthcareWorkerName = appointment.HealthcareWorker.Name ?? $"HealthcareWorker{appointment.HealthcareWorkerId}",
             Start = appointment.Start,
             End = appointment.End,
             Notes = appointment.Notes,
@@ -137,7 +141,7 @@ public class AppointmentService: IAppointmentService
     }
 
 
-    public async Task<IEnumerable<AppointmentDto>> GetAppointmentsByHealthcareWorkerId(string? authUserId)
+    public async Task<IEnumerable<AppointmentViewDto>> GetAppointmentsByHealthcareWorkerId(string? authUserId)
     {
 
         var worker = await _healthcareWorkerRepository.GetByAuthUserId(authUserId!);
@@ -147,14 +151,16 @@ public class AppointmentService: IAppointmentService
         }
 
         var appointments = await _appointmentRepository.GetByHealthcareWorkerId(worker.HealthcareWorkerId); // Calls AppointmentRepository to get all appointments for worker
-        if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentDto>(); // If appointments are null Service returns a empty AppointmentDto List
+        if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentViewDto>(); // If appointments are null Service returns a empty AppointmentDto List
 
         // Service convert the appointment list to AppointmentDto List
-        var appointmentDtos = appointments.Select(appointment => new AppointmentDto
+        var appointmentDtos = appointments.Select(appointment => new AppointmentViewDto
         {
             Id = appointment.Id,
             ClientId = appointment.ClientId,
+            ClientName = appointment.Client.Name ?? $"Client Id: {appointment.ClientId}",
             HealthcareWorkerId = appointment.HealthcareWorkerId,
+            HealthcareWorkerName = appointment.HealthcareWorker.Name ?? $"HealthcareWorker{appointment.HealthcareWorkerId}",
             Start = appointment.Start,
             End = appointment.End,
             Notes = appointment.Notes,
@@ -178,7 +184,7 @@ public class AppointmentService: IAppointmentService
         return appointmentDtos;
     }  
     
-    public async Task<AppointmentDto?> GetById(int id, string? role, string? authUserId)
+    public async Task<AppointmentViewDto?> GetById(int id, string? role, string? authUserId)
     {
         var appointment = await _appointmentRepository.GetById(id); // Gets the appointment from DB
         if (appointment is null) return null; // If the appointment is null, Service returns null
@@ -187,11 +193,13 @@ public class AppointmentService: IAppointmentService
         if (!await IsAuthorized(appointment, authUserId, role)) throw new UnauthorizedAccessException();
 
         // We convert the appointment to dto before returning the dto
-        var appointmentDto = new AppointmentDto 
+        var appointmentDto = new AppointmentViewDto
         {
             Id = appointment.Id,
             ClientId = appointment.ClientId,
+            ClientName = appointment.Client.Name ?? $"Client Id: {appointment.ClientId}",
             HealthcareWorkerId = appointment.HealthcareWorkerId,
+            HealthcareWorkerName = appointment.HealthcareWorker.Name ?? $"HealthcareWorker{appointment.HealthcareWorkerId}",
             Start = appointment.Start,
             End = appointment.End,
             Notes = appointment.Notes,
@@ -312,17 +320,17 @@ public class AppointmentService: IAppointmentService
             throw;
         }
     }
-            
-    
+
     public async Task<bool> Update(int id, AppointmentDto appointmentDto, string? role, string? authUserId)
     {
+        if (appointmentDto == null) return false;
         var existing = await _appointmentRepository.GetById(id); // Checks if the appointment exists 
         if (existing is null) return false;
 
         // Check the authorization 
         if (!await IsAuthorized(existing, authUserId, role))
             throw new UnauthorizedAccessException();
-        
+
         // Only notes + tasks can change
         var changes = new List<string>(); // To track changes for logging
         if (!string.Equals(existing.Notes ?? "", appointmentDto.Notes ?? "", StringComparison.Ordinal))
@@ -361,6 +369,25 @@ public class AppointmentService: IAppointmentService
                 changes.Add($"Task + \"{appointmentTask.Description}\" (new)");
             }
         }
+
+        if (existingById != null)
+        {
+            // Only keep ids > 0 (existing rows). New client-side tasks have Id = 0.
+            var incomingIds = appointmentDto.AppointmentTasks!
+                .Where(x => x.Id > 0)
+                .Select(x => x.Id)
+                .ToHashSet(); // HashSet<int>, not nullable
+
+            // Remove tasks that are NOT present in the incoming payload
+            var toRemove = existingById
+                .Where(x => !incomingIds.Contains(x.Key))   // <-- NOTE the "!"
+                .Select(x => x.Value)
+                .ToList();
+
+            foreach (var removeTask in toRemove)
+                await _appointmentTaskRepository.Delete(removeTask.Id);
+        }
+
         // If nothing actually changed
         if (changes.Count == 0) return true;
 
@@ -383,7 +410,7 @@ public class AppointmentService: IAppointmentService
             ChangedByUserId = authUserId!,
             ChangeDescription = description
         };
-        
+
         var logged = await _changeLogRepository.Create(log); // Log the change
         if (!logged)
         {
@@ -391,8 +418,8 @@ public class AppointmentService: IAppointmentService
             _logger.LogWarning("[AppointmentService] failed to create change log for AppointmentId {AppointmentId:0000}. Description: {Description}", appointmentDto.Id, description);
         }
         return true;
-        
     }
+    
     public async Task<bool> Delete(int id, string? role, string? authUserId)
     {
         var appointment = await _appointmentRepository.GetById(id); // Get appointment by ID

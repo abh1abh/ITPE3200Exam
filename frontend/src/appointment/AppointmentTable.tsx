@@ -1,43 +1,64 @@
 import React from "react";
-import { Button } from "react-bootstrap";
+import { Button, Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { Appointment } from "../types/appointment";
+import { AppointmentView } from "../types/appointment";
+import { formatDateOnly, formatDateTime, formatTimeOnly } from "../shared/timeUtils";
 
 interface AppointmentTableProps {
-  appointments: Appointment[];
+  appointments: AppointmentView[];
   onAppointmentDeleted?: (id: number) => void;
+  isAdmin?: boolean;
+  isWorker?: boolean;
+  isClient?: boolean;
 }
-const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onAppointmentDeleted }) => {
+const AppointmentTable: React.FC<AppointmentTableProps> = ({
+  appointments,
+  onAppointmentDeleted,
+  isAdmin = false,
+  isWorker = false,
+  isClient = false,
+}) => {
   return (
-    <table className="table table-striped">
+    <Table striped bordered hover responsive>
       <thead>
         <tr>
-          <th>Client ID</th>
-          <th>Worker ID</th>
+          {isAdmin && (
+            <>
+              <th>Client</th>
+              <th>Worker</th>
+            </>
+          )}
+
+          {isWorker && <th>Client</th>}
+          {isClient && <th>Worker</th>}
+          <th>Date</th>
           <th>Start</th>
           <th>End</th>
-          <th>Notes</th>
-          <th>Slot Id</th>
-          <th>Actions</th>
-          <th>Tasks</th>
+          {/* <th>Notes</th> */}
+          <th>Options</th>
         </tr>
       </thead>
       <tbody>
         {appointments.map((a) => (
           <tr key={a.id}>
-            <td>{a.clientId}</td>
-            <td>{a.healthcareWorkerId}</td>
-            <td>{a.start}</td>
-            <td>{a.end}</td>
-            <td>{a.notes}</td>
-            <td>{a.availableSlotId}</td>
-            <td>
-              {a.appointmentTasks && a.appointmentTasks.length > 0
-                ? a.appointmentTasks.map((t: any, i: number) => <div key={i}>{t.description}</div>)
-                : "No tasks"}
-            </td>
+            {isAdmin && (
+              <>
+                <td>{a.clientName}</td>
+                <td>{a.healthcareWorkerName}</td>
+              </>
+            )}
+
+            {isWorker && <td>{a.clientName}</td>}
+            {isClient && <td>{a.healthcareWorkerName}</td>}
+            <td>{formatDateOnly(a.start)}</td>
+            <td>{formatTimeOnly(a.start)}</td>
+            <td>{formatTimeOnly(a.end)}</td>
+            {/* <td>{a.notes}</td> */}
             <td>
               <Link to={`/appointment/${a.id}`} className="btn btn-primary btn-sm me-2">
+                Details
+              </Link>
+              <Link to={`/appointment/${a.id}/update`} className="btn btn-primary btn-sm me-2">
                 Update
               </Link>
               {onAppointmentDeleted && a.id && (
@@ -51,7 +72,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onApp
           </tr>
         ))}
       </tbody>
-    </table>
+    </Table>
   );
 };
 export default AppointmentTable;

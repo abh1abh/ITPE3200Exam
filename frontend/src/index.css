@@ -67,3 +67,15 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Custom class for smaller bootstrap button */
+.btn-xs {
+  padding: 0.15rem 0.3rem;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.btn.btn-xs,
+.btn-sm.btn-xs {
+  padding: 0.15rem 0.3rem;
+}

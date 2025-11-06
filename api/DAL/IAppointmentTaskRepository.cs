@@ -6,4 +6,5 @@ public interface IAppointmentTaskRepository
 {
     Task<bool> Create(AppointmentTask appointmentTask);
     Task<bool> Update(AppointmentTask appointmentTask);
+    Task<bool> Delete(int id);
 }

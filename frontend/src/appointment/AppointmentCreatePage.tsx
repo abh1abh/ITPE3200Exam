@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as AppointmentService from "./appointmentService";
 import { Appointment } from "../types/appointment";
-import AppointmentForm from "./AppointmentForm";
 import * as ClientService from "../client/clientService";
 import * as AvailableSlotService from "../availableslot/availableSlotService";
 import { Client } from "../types/client";
 import { AvailableSlot } from "../types/availableSlot";
 import { useAuth } from "../auth/AuthContext";
 import Loading from "../shared/Loading";
+import CreateAppointmentForm from "./CreateAppointmentForm";
 
 const AppointmentCreatePage: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
@@ -66,7 +66,7 @@ const AppointmentCreatePage: React.FC = () => {
       {loading ? (
         <Loading />
       ) : (
-        <AppointmentForm
+        <CreateAppointmentForm
           onAppointmentChanged={handleAppointmentCreated}
           clients={clients}
           unbookedSlots={availableSlots}

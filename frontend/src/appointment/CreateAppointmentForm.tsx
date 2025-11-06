@@ -1,38 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { Button, Form } from "react-bootstrap";
+import { Button, Form, InputGroup } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { Appointment } from "../types/appointment";
-import * as HealthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
-import * as ClientService from "../client/clientService";
-import * as AvailableSlotService from "../availableslot/availableSlotService";
-import { HealthcareWorker } from "../types/healthcareWorker";
+import { Appointment, AppointmentTask } from "../types/appointment";
 import { Client } from "../types/client";
 import { AvailableSlot } from "../types/availableSlot";
 
-interface AppointmentFormProps {
+interface CreateAppointmentFormProps {
   onAppointmentChanged: (newAppointment: Appointment) => void;
-  initialData?: Appointment;
-  isUpdate?: boolean;
   clients?: Client[];
   unbookedSlots: AvailableSlot[];
   isAdmin: boolean;
   serverError?: string | null;
 }
-const AppointmentForm: React.FC<AppointmentFormProps> = ({
+const CreateAppointmentForm: React.FC<CreateAppointmentFormProps> = ({
   onAppointmentChanged,
-  initialData,
-  isUpdate = false,
   clients = [],
   unbookedSlots,
   isAdmin,
   serverError = null,
 }) => {
-  const [clientId, setClientId] = useState(initialData?.clientId || 0);
-  const [notes, setNotes] = useState(initialData?.notes || "");
-  const [healthcareWorkerId, setHealthcareWorkerId] = useState(initialData?.healthcareWorkerId || 0);
-  const [appointmentTasks, setAppointmentTasks] = useState(initialData?.appointmentTasks?.[0]?.description || "");
-  const [availableSlotId, setAvailableSlotId] = useState(initialData?.availableSlotId || 0);
-  const [isCompleted, setIsCompleted] = useState(initialData?.appointmentTasks?.[0]?.isCompleted || false);
+  const [clientId, setClientId] = useState<number>(0);
+  const [notes, setNotes] = useState<string>("");
+  const [healthcareWorkerId, setHealthcareWorkerId] = useState<number>(0);
+
+  const [appointmentTasks, setAppointmentTasks] = useState<AppointmentTask[]>([]);
+  const [taskInput, setTaskInput] = useState<string>("");
+
+  const [availableSlotId, setAvailableSlotId] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const onCancel = () => navigate(-1);
@@ -49,6 +43,18 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     if (slot.healthcareWorkerId) setHealthcareWorkerId(slot.healthcareWorkerId);
   };
 
+  const addTask = () => {
+    const trimmed = taskInput.trim();
+    if (!trimmed) return;
+    setAppointmentTasks((prev) => [...prev, { description: trimmed, isCompleted: false }]);
+    setTaskInput("");
+  };
+
+  const removeTask = (index: number) => {
+    if (appointmentTasks.length < 1) return;
+    setAppointmentTasks((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -58,7 +64,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     }
 
     if (!availableSlotId) {
-      setError("select time!!!");
+      setError("Select Available Slot");
       return;
     }
 
@@ -68,6 +74,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     }
     if (!healthcareWorkerId) return setError("Selected slot has no healthcare worker");
 
+    if (appointmentTasks.length < 1) {
+      setError("Add task to appointment");
+      return;
+    }
+    const tasksToSave = appointmentTasks.map((t) => ({ description: t.description.trim(), isCompleted: false }));
+
     const appointment: Appointment = {
       clientId,
       healthcareWorkerId,
@@ -75,19 +87,14 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       end: end,
       notes,
       availableSlotId,
-      appointmentTasks: [
-        {
-          description: appointmentTasks || "Initial consultation",
-          isCompleted: isCompleted,
-        },
-      ],
+      appointmentTasks: tasksToSave,
     };
     onAppointmentChanged(appointment);
   };
 
   return (
     <Form onSubmit={handleSubmit} style={{ maxWidth: "600px", margin: "0 auto" }}>
-      <h3 className="mb-4">{isUpdate ? "Update Appointment" : "Create Appointment"}</h3>
+      <h3 className="mb-4">{"Create Appointment"}</h3>
       {isAdmin && clients && (
         <Form.Group controlId="formClientId" className="mb-3">
           <Form.Label>Client</Form.Label>
@@ -119,27 +126,45 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
       <Form.Group controlId="formNotes" className="mb-3">
         <Form.Label>Notes</Form.Label>
-        <Form.Control as="textarea" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <Form.Control as="textarea" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} required />
       </Form.Group>
 
-      <Form.Group controlId="formTask" className="mb-3">
-        <Form.Label>Task</Form.Label>
-        <Form.Control
-          type="text"
-          placeholder="e.g., Initial consultation"
-          value={appointmentTasks}
-          onChange={(e) => setAppointmentTasks(e.target.value)}
-          required
-        />
-      </Form.Group>
+      {appointmentTasks.length > 0 && (
+        <div className="d-flex flex-column gap-2">
+          <Form.Label>Tasks</Form.Label>
+          {appointmentTasks.map((t, idx) => (
+            <InputGroup key={idx}>
+              <Form.Control value={t.description} disabled />
+              <Button
+                variant="outline-danger"
+                onClick={() => removeTask(idx)}
+                aria-label={`Remove task ${idx + 1}`}>
+                Remove
+              </Button>
+            </InputGroup>
+          ))}
+        </div>
+      )}
 
-      <Form.Group controlId="formTaskCompleted" className="mb-3">
-        <Form.Check
-          type="checkbox"
-          label="Task completed?"
-          checked={isCompleted}
-          onChange={(e) => setIsCompleted(e.target.checked)}
-        />
+      <Form.Group controlId="formTasks" className="mb-3 mt-2">
+        <Form.Label>Add Task</Form.Label>
+        <InputGroup className="mb-2">
+          <Form.Control
+            type="text"
+            placeholder="e.g., Take vitals, Initial consultation"
+            value={taskInput}
+            onChange={(e) => setTaskInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addTask();
+              }
+            }}
+          />
+          <Button variant="outline-primary" onClick={addTask}>
+            Add task
+          </Button>
+        </InputGroup>
       </Form.Group>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
@@ -149,12 +174,12 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
-        <Button variant="dark" type="submit">
-          {isUpdate ? "Update" : "Create"}
+        <Button variant="primary" type="submit">
+          Create
         </Button>
       </div>
     </Form>
   );
 };
 
-export default AppointmentForm;
+export default CreateAppointmentForm;

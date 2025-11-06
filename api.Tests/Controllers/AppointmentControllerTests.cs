@@ -1,8 +1,6 @@
 using System.Security.Claims;
 using api.Controllers;
 using api.DTO;
-using api.Migrations;
-using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -47,7 +45,7 @@ public class AppointmentControllerTests
         const string role = "Admin";
         const string authUserId = "auth-abc";
 
-        var expectedDto = new List<AppointmentDto>
+        var expectedDto = new List<AppointmentViewDto>
         {
             new() { Id = 1, ClientId = 10, HealthcareWorkerId = 20, AvailableSlotId = 30, Notes = "A" }
         };
@@ -61,7 +59,7 @@ public class AppointmentControllerTests
 
         // Assert
         var ok = Assert.IsType<OkObjectResult>(result);
-        var body = Assert.IsAssignableFrom<IEnumerable<AppointmentDto>>(ok.Value);
+        var body = Assert.IsAssignableFrom<IEnumerable<AppointmentViewDto>>(ok.Value);
         Assert.Single(body);
         _appointmentService.Verify(s => s.GetAll(), Times.Once);
 
@@ -74,7 +72,7 @@ public class AppointmentControllerTests
         const string role = "Client";
         const string authUserId = "client-abc";
 
-        var expectedDto = new List<AppointmentDto>
+        var expectedDto = new List<AppointmentViewDto>
         {
             new() { Id = 1, ClientId = 10, HealthcareWorkerId = 20, AvailableSlotId = 30, Notes = "A" }
         };
@@ -88,7 +86,7 @@ public class AppointmentControllerTests
 
         // Assert
         var ok = Assert.IsType<OkObjectResult>(result);
-        var body = Assert.IsAssignableFrom<IEnumerable<AppointmentDto>>(ok.Value);
+        var body = Assert.IsAssignableFrom<IEnumerable<AppointmentViewDto>>(ok.Value);
         Assert.Single(body);
         _appointmentService.Verify(s => s.GetAppointmentsByClientId(authUserId), Times.Once);
     }
@@ -122,7 +120,7 @@ public class AppointmentControllerTests
         const int appointmentId = 123;
         const string role = "Client";
         const string authUserId = "auth-abc";
-        var expectedDto = new AppointmentDto
+        var expectedDto = new AppointmentViewDto
         {
             Id = appointmentId,
             ClientId = 10,
@@ -145,7 +143,7 @@ public class AppointmentControllerTests
 
         // Assert 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var dto = Assert.IsType<AppointmentDto>(ok.Value);
+        var dto = Assert.IsType<AppointmentViewDto>(ok.Value);
         Assert.Equal(expectedDto.Id, dto.Id);
         Assert.Equal(expectedDto.ClientId, dto.ClientId);
         Assert.Equal(expectedDto.HealthcareWorkerId, dto.HealthcareWorkerId);
@@ -166,7 +164,7 @@ public class AppointmentControllerTests
 
         _appointmentService
             .Setup(s => s.GetById(appointmentId, role, authUserId))
-            .ReturnsAsync((AppointmentDto?)null);   // Returns null 
+            .ReturnsAsync((AppointmentViewDto?)null);   // Returns null 
 
         var controller = CreateController(BuildUser(role, authUserId));
 

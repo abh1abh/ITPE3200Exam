@@ -2,22 +2,32 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "react-bootstrap";
 import { useAuth } from "../auth/AuthContext";
 import AppointmentTable from "./AppointmentTable";
-import { Appointment } from "../types/appointment";
+import { Appointment, AppointmentView } from "../types/appointment";
 import * as AppointmentService from "./appointmentService";
+import { useNavigate } from "react-router-dom";
 
 const AppointmentPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("Admin");
+  const isClient = hasRole("Client");
+  const isWorker = hasRole("HealthcareWorker");
+  const navigate = useNavigate();
 
   const fetchAppointments = async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token,please try again.");
-      const data = await AppointmentService.fetchAppointments();
+      let data: AppointmentView[] = [];
+      if (isAdmin) data = await AppointmentService.fetchAppointments();
+      else if (isClient) data = await AppointmentService.fetchAppointmentsByClientId();
+      else if (isWorker) data = await AppointmentService.fetchAppointmentsByWorkerId();
+      else {
+        setError("No role matched");
+        return;
+      }
       setAppointments(data);
       console.log("Appointments fetched:", data);
     } catch (error: any) {
@@ -54,21 +64,25 @@ const AppointmentPage: React.FC = () => {
     <div>
       <h1>Appointments</h1>
 
-      <Button onClick={fetchAppointments} className="btn btn-primary mb-3 me-2" disabled={loading}>
+      {/* <Button onClick={fetchAppointments} className="btn btn-primary mb-3 me-2" disabled={loading}>
         {loading ? "Loading..." : "Refresh Appointments"}
-      </Button>
+      </Button> */}
+
+      {/* Dont href with buttons */}
+      {user && (isAdmin || isClient) && (
+        <Button className="btn btn-primary mb-3" onClick={() => navigate("/appointment/create")}>
+          Add New Appointment
+        </Button>
+      )}
 
       {error && <p style={{ color: "red" }}>{error}</p>}
       <AppointmentTable
         appointments={sortedAppointments}
         onAppointmentDeleted={user ? handleAppointmentDeleted : undefined}
+        isAdmin={isAdmin}
+        isWorker={isWorker}
+        isClient={isClient}
       />
-
-      {user && (
-        <Button href="/appointment/create" className="btn btn-secondary mt-3">
-          Add New Appointment
-        </Button>
-      )}
     </div>
   );
 };
