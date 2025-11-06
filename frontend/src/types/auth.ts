@@ -10,7 +10,6 @@ export interface RegisterDto{
     Address: string;
 }
 export interface RegisterFromAdminDto{
-    username: string;
     password: string;
     email: string;
     name: string;
