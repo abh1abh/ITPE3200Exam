@@ -321,7 +321,6 @@ public class AppointmentService: IAppointmentService
         }
     }
 
-
     public async Task<bool> Update(int id, AppointmentDto appointmentDto, string? role, string? authUserId)
     {
         if (appointmentDto == null) return false;
