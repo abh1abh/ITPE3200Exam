@@ -1,4 +1,4 @@
-import { Client } from "../types/client";
+import { Client } from "../types/Client";
 import { API_URL, getAuthHeaders, handleResponse } from "../shared/http";
 
 export const fetchAllClients = async () => {
@@ -13,15 +13,6 @@ export const fetchClient = async (id: number) => {
   const response = await fetch(`${API_URL}/api/client/${id}`, {
     method: "GET",
     headers: getAuthHeaders(),
-  });
-  return handleResponse(response);
-};
-
-export const createClient = async (client: Client) => {
-  const response = await fetch(`${API_URL}/api/client/`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(client),
   });
   return handleResponse(response);
 };
