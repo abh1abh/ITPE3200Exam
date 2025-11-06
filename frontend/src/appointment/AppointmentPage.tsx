@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "react-bootstrap";
 import { useAuth } from "../auth/AuthContext";
 import AppointmentTable from "./AppointmentTable";
-import { Appointment } from "../types/appointment";
+import { Appointment, AppointmentView } from "../types/appointment";
 import * as AppointmentService from "./appointmentService";
+import { useNavigate } from "react-router-dom";
 
 const AppointmentPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -13,18 +14,19 @@ const AppointmentPage: React.FC = () => {
   const isAdmin = hasRole("Admin");
   const isClient = hasRole("Client");
   const isWorker = hasRole("HealthcareWorker");
+  const navigate = useNavigate();
 
   const fetchAppointments = async () => {
     setLoading(true);
     setError(null);
     try {
-      let data;
-      if (isAdmin) {
-        data = await AppointmentService.fetchAppointments();
-      } else if (isClient) {
-        data = await AppointmentService.fetchAppointmentsByClientId();
-      } else if (isWorker) {
-        data = await AppointmentService.fetchAppointmentsByWorkerId();
+      let data: AppointmentView[] = [];
+      if (isAdmin) data = await AppointmentService.fetchAppointments();
+      else if (isClient) data = await AppointmentService.fetchAppointmentsByClientId();
+      else if (isWorker) data = await AppointmentService.fetchAppointmentsByWorkerId();
+      else {
+        setError("No role matched");
+        return;
       }
       setAppointments(data);
       console.log("Appointments fetched:", data);
@@ -70,10 +72,14 @@ const AppointmentPage: React.FC = () => {
       <AppointmentTable
         appointments={sortedAppointments}
         onAppointmentDeleted={user ? handleAppointmentDeleted : undefined}
+        isAdmin={isAdmin}
+        isWorker={isWorker}
+        isClient={isClient}
       />
 
+      {/* Dont href with buttons */}
       {user && (
-        <Button href="/appointment/create" className="btn btn-secondary mt-3">
+        <Button className="btn btn-secondary mt-3" onClick={() => navigate("/appointment/create")}>
           Add New Appointment
         </Button>
       )}

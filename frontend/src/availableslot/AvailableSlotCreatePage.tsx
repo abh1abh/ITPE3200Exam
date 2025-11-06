@@ -6,7 +6,7 @@ import AvailableSlotForm from "./AvailableSlotForm";
 import { useAuth } from "../auth/AuthContext";
 import { HealthcareWorker } from "../types/healthcareWorker";
 import Loading from "../shared/Loading";
-import * as HealthcareWorkerService from "../healtcareWorker/HealthcareWorkerService";
+import * as healthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
 
 const AvailableSlotCreatePage: React.FC = () => {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ const AvailableSlotCreatePage: React.FC = () => {
       if (!isAdmin) return;
       setLoading(true);
       try {
-        const list = await HealthcareWorkerService.fetchAllWorkers();
+        const list = await healthcareWorkerService.fetchAllWorkers();
         setWorkers(list);
       } catch (error) {
         console.error(error);

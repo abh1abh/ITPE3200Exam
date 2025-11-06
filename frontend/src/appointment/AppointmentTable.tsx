@@ -1,19 +1,36 @@
 import React from "react";
-import { Button } from "react-bootstrap";
+import { Button, Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { Appointment } from "../types/appointment";
+import { AppointmentView } from "../types/appointment";
+import { formatDate } from "../shared/timeUtils";
 
 interface AppointmentTableProps {
-  appointments: Appointment[];
+  appointments: AppointmentView[];
   onAppointmentDeleted?: (id: number) => void;
+  isAdmin?: boolean;
+  isWorker?: boolean;
+  isClient?: boolean;
 }
-const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onAppointmentDeleted }) => {
+const AppointmentTable: React.FC<AppointmentTableProps> = ({
+  appointments,
+  onAppointmentDeleted,
+  isAdmin = false,
+  isWorker = false,
+  isClient = false,
+}) => {
   return (
-    <table className="table table-striped">
+    <Table striped bordered hover responsive>
       <thead>
         <tr>
-          <th>Client ID</th>
-          <th>Worker ID</th>
+          {isAdmin && (
+            <>
+              <th>Client</th>
+              <th>Worker</th>
+            </>
+          )}
+
+          {isWorker && <th>Client</th>}
+          {isClient && <th>Worker</th>}
           <th>Start</th>
           <th>End</th>
           <th>Notes</th>
@@ -25,10 +42,17 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onApp
       <tbody>
         {appointments.map((a) => (
           <tr key={a.id}>
-            <td>{a.clientId}</td>
-            <td>{a.healthcareWorkerId}</td>
-            <td>{a.start}</td>
-            <td>{a.end}</td>
+            {isAdmin && (
+              <>
+                <td>{a.clientName}</td>
+                <td>{a.healthcareWorkerName}</td>
+              </>
+            )}
+
+            {isWorker && <td>{a.clientName}</td>}
+            {isClient && <td>{a.healthcareWorkerName}</td>}
+            <td>{formatDate(a.start)}</td>
+            <td>{formatDate(a.end)}</td>
             <td>{a.notes}</td>
             <td>{a.availableSlotId}</td>
             <td>
@@ -51,7 +75,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onApp
           </tr>
         ))}
       </tbody>
-    </table>
+    </Table>
   );
 };
 export default AppointmentTable;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { AvailableSlot } from "../types/availableSlot";
-import * as AvailableSlotService from "./availableSlotService";
+import * as availableSlotService from "./availableSlotService";
 import { useNavigate, useParams } from "react-router-dom";
 import Loading from "../shared/Loading";
 import { useAuth } from "../auth/AuthContext";
@@ -21,7 +21,7 @@ const AvailableSlotUpdatePage: React.FC = () => {
       setLoading(true);
 
       try {
-        const slot = await AvailableSlotService.fetchAvailableSlot(Number(slotId));
+        const slot = await availableSlotService.fetchAvailableSlot(Number(slotId));
         setAvailableSlot(slot);
       } catch (error) {
         console.error(error);
@@ -37,7 +37,7 @@ const AvailableSlotUpdatePage: React.FC = () => {
     setError(null);
     setLoading(true);
     try {
-      const data = await AvailableSlotService.updateAvailableSlot(Number(slotId), updatedSlot);
+      const data = await availableSlotService.updateAvailableSlot(Number(slotId), updatedSlot);
       navigate("/availableslot"); // Navigate back to the slot page after update
     } catch (error) {
       console.error("Error updating available slot:", error);

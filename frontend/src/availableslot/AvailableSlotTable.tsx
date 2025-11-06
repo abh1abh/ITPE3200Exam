@@ -2,6 +2,7 @@ import React from "react";
 import { Badge, Button, Table } from "react-bootstrap";
 import { AvailableSlot } from "../types/availableSlot";
 import { Link } from "react-router-dom";
+import { formatDate } from "../shared/timeUtils";
 
 interface Props {
   availableSlots: AvailableSlot[];
@@ -9,14 +10,14 @@ interface Props {
   onDeleteClick: (slot: AvailableSlot) => void;
 }
 const AvailableSlotTable: React.FC<Props> = ({ availableSlots, isAdmin, onDeleteClick }) => {
-  const formatDate = (d: string | Date) =>
-    new Date(d).toLocaleString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  // const formatDate = (d: string | Date) =>
+  //   new Date(d).toLocaleString(undefined, {
+  //     year: "numeric",
+  //     month: "short",
+  //     day: "2-digit",
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //   });
 
   return (
     <Table striped bordered hover responsive>
@@ -55,9 +56,6 @@ const AvailableSlotTable: React.FC<Props> = ({ availableSlots, isAdmin, onDelete
                     Update
                   </Link>
                 )}
-                {/* <Link to={`/availableslot/${slot.id}/delete`} className="btn btn-sm btn-danger">
-                  Delete
-                </Link> */}
                 <Button variant="danger" size="sm" disabled={slot.isBooked} onClick={() => onDeleteClick(slot)}>
                   Delete{" "}
                 </Button>
