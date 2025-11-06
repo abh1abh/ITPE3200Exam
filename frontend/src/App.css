@@ -1,8 +1,23 @@
+/* remove max-width from root */
 #root {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+/* use this only for inner content pages */
+.page-container {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
-  text-align: center;
+}
+
+:root {
+  --nav-height: 3rem;
+} /* adjust if needed */
+
+body {
+  padding-top: var(--nav-height);
 }
 
 .logo {

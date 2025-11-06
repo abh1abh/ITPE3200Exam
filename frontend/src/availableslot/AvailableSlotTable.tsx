@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge, Button, Table } from "react-bootstrap";
-import { AvailableSlot } from "../types/AvailableSlot";
+import { AvailableSlot } from "../types/availableSlot";
 import { Link } from "react-router-dom";
 
 interface Props {

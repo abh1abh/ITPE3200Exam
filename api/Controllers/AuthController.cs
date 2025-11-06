@@ -32,10 +32,10 @@ namespace api.Controllers
             var result = await _authService.RegisterUserAsync(registerDto); //Call the auth service to register user
             if (result.Succeeded) //Log successful registration
             {
-                _logger.LogInformation("[AuthAPIController] user registered successfully for {Username}", registerDto.Username);
+                _logger.LogInformation("[AuthAPIController] user registered successfully for {Username}", registerDto.Email);
                 return Ok(new { Message = "User registered successfully" });
             }
-            _logger.LogError("[AuthAPIController] user registration failed for {Username}: {Errors}", registerDto.Username, result.Errors); //Log failed registration
+            _logger.LogError("[AuthAPIController] user registration failed for {Username}: {Errors}", registerDto.Email, result.Errors); //Log failed registration
             return BadRequest(result.Errors);
         }
         [Authorize(Roles = "Admin")]
@@ -46,11 +46,11 @@ namespace api.Controllers
             var result = await _authService.RegisterUserFromAdminAsync(registerDto); //Call the auth service to register user
             if (result.Succeeded) //Log successful registration
             {
-                _logger.LogInformation("[AuthAPIController] admin registered user successfully for {Username}", registerDto.Username);
+                _logger.LogInformation("[AuthAPIController] admin registered user successfully for {Username}", registerDto.Email);
                 return Ok(new { Message = "User registered successfully by admin" });
             }
             //Log failed registration
-            _logger.LogError("[AuthAPIController] admin user registration failed for {Username}: {Errors}", registerDto.Username, result.Errors);
+            _logger.LogError("[AuthAPIController] admin user registration failed for {Username}: {Errors}", registerDto.Email, result.Errors);
             return BadRequest(result.Errors);
         }
 
