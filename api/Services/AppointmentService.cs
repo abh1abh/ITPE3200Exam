@@ -320,17 +320,18 @@ public class AppointmentService: IAppointmentService
             throw;
         }
     }
-            
-    
+
+
     public async Task<bool> Update(int id, AppointmentDto appointmentDto, string? role, string? authUserId)
     {
+        if (appointmentDto == null) return false;
         var existing = await _appointmentRepository.GetById(id); // Checks if the appointment exists 
         if (existing is null) return false;
 
         // Check the authorization 
         if (!await IsAuthorized(existing, authUserId, role))
             throw new UnauthorizedAccessException();
-        
+
         // Only notes + tasks can change
         var changes = new List<string>(); // To track changes for logging
         if (!string.Equals(existing.Notes ?? "", appointmentDto.Notes ?? "", StringComparison.Ordinal))
@@ -369,6 +370,25 @@ public class AppointmentService: IAppointmentService
                 changes.Add($"Task + \"{appointmentTask.Description}\" (new)");
             }
         }
+
+        if (existingById != null)
+        {
+            // Only keep ids > 0 (existing rows). New client-side tasks have Id = 0.
+            var incomingIds = appointmentDto.AppointmentTasks!
+                .Where(x => x.Id > 0)
+                .Select(x => x.Id)
+                .ToHashSet(); // HashSet<int>, not nullable
+
+            // Remove tasks that are NOT present in the incoming payload
+            var toRemove = existingById
+                .Where(x => !incomingIds.Contains(x.Key))   // <-- NOTE the "!"
+                .Select(x => x.Value)
+                .ToList();
+
+            foreach (var removeTask in toRemove)
+                await _appointmentTaskRepository.Delete(removeTask.Id);
+        }
+
         // If nothing actually changed
         if (changes.Count == 0) return true;
 
@@ -391,7 +411,7 @@ public class AppointmentService: IAppointmentService
             ChangedByUserId = authUserId!,
             ChangeDescription = description
         };
-        
+
         var logged = await _changeLogRepository.Create(log); // Log the change
         if (!logged)
         {
@@ -399,8 +419,8 @@ public class AppointmentService: IAppointmentService
             _logger.LogWarning("[AppointmentService] failed to create change log for AppointmentId {AppointmentId:0000}. Description: {Description}", appointmentDto.Id, description);
         }
         return true;
-        
     }
+    
     public async Task<bool> Delete(int id, string? role, string? authUserId)
     {
         var appointment = await _appointmentRepository.GetById(id); // Get appointment by ID
