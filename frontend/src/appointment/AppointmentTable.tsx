@@ -34,9 +34,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
           <th>Start</th>
           <th>End</th>
           <th>Notes</th>
-          <th>Slot Id</th>
           <th>Actions</th>
-          <th>Tasks</th>
         </tr>
       </thead>
       <tbody>
@@ -54,12 +52,6 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
             <td>{formatDate(a.start)}</td>
             <td>{formatDate(a.end)}</td>
             <td>{a.notes}</td>
-            <td>{a.availableSlotId}</td>
-            <td>
-              {a.appointmentTasks && a.appointmentTasks.length > 0
-                ? a.appointmentTasks.map((t: any, i: number) => <div key={i}>{t.description}</div>)
-                : "No tasks"}
-            </td>
             <td>
               <Link to={`/appointment/${a.id}`} className="btn btn-primary btn-sm me-2">
                 Update

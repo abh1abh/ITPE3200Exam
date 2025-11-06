@@ -57,6 +57,13 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
   // const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
+  // Init selectedWorker
+  useEffect(() => {
+    if (isAdmin && !isUpdating && workers.length > 0 && selectedWorkerId === null) {
+      setSelectedWorkerId(workers[0].healthcareWorkerId);
+    }
+  }, [workers, isAdmin, isUpdating, selectedWorkerId]);
+
   // Init date
   useEffect(() => {
     const nowRounded = () => {

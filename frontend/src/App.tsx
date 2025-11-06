@@ -13,7 +13,7 @@ import AvailableSlotPage from "./availableslot/AvailableslotPage";
 import AvailableSlotDeletePage from "./availableslot/AvailableSlotDeletePage";
 import AppointmentPage from "./appointment/AppointmentPage";
 import AppointmentCreatePage from "./appointment/AppointmentCreatePage";
-import AppointmentUpdatePage from "./appointment/AppointmentUpdate";
+import AppointmentUpdatePage from "./appointment/AppointmentUpdatePage";
 import NavMenu from "./shared/NavMenu";
 
 function App() {
