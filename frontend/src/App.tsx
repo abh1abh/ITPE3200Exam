@@ -6,12 +6,22 @@ import AppointmentUpdatePage from "./appointments/AppointmentUpdatePage";
 import { AuthProvider } from "./auth/AuthContext";
 import LoginPage from "./auth/LoginPage";
 import RegisterAdmin from "./auth/RegisterAdmin";
+import RegisterPage from "./auth/RegisterPage";
 import AvailableSlotCreatePage from "./availableslot/AvailableSlotCreatePage";
 import AvailableSlotDeletePage from "./availableslot/AvailableSlotDeletePage";
 import AvailableSlotPage from "./availableslot/AvailableslotPage";
 import AvailableSlotUpdatePage from "./availableslot/AvailableSlotUpdatePage";
+import AboutPage from "./dummypages/AboutPage";
+import BlogPage from "./dummypages/BlogPage";
+import CareersPage from "./dummypages/CareersPage";
+import ContactPage from "./dummypages/ContactPage";
+import FAQPage from "./dummypages/FAQPage";
+import PricingPage from "./dummypages/PricingPage";
+import ServicesPage from "./dummypages/ServicesPage";
+import TeamPage from "./dummypages/TeamPage";
+import HomePage from "./home/HomePage";
+import Footer from "./shared/Footer";
 import NavMenu from "./shared/NavMenu";
-
 function App() {
   return (
     <AuthProvider>
@@ -33,6 +43,14 @@ function App() {
               <Route path="/appointment/create" element={<AppointmentCreatePage />} />
               <Route path="/appointment/:id" element={<AppointmentUpdatePage />} />
               <Route path="/appointment" element={<AppointmentPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/careers" element={<CareersPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              
             </Routes>
           </div>
           <Footer />
