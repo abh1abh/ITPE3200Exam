@@ -4,7 +4,8 @@ import * as appointmentService from "./appointmentService";
 import { AppointmentView } from "../types/appointment";
 import ViewAppointmentCard from "./ViewAppointmentCard";
 import { useAuth } from "../auth/AuthContext";
-import { Button } from "react-bootstrap";
+import { Alert, Button } from "react-bootstrap";
+import Loading from "../shared/Loading";
 
 const AppointmentDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,23 +37,40 @@ const AppointmentDetailsPage: React.FC = () => {
     if (id) fetchAppointment();
   }, [id]);
 
-  if (!appointment) return <p>No appointment found.</p>;
-
   return (
     <div>
       <h2>Appointment Details</h2>
-      <ViewAppointmentCard initialData={appointment} isAdmin={isAdmin} isClient={isClient} isWorker={isWorker} />
-      <div className="d-flex justify-content-center gap-2">
-        <Link to={`/appointment/${appointment.id}/update`} className="btn btn-primary ">
-          Edit
-        </Link>
+      {loading ? (
+        <Loading />
+      ) : !appointment ? (
+        <Alert variant="warning" className="mt-3">
+          No appointment found.
+        </Alert>
+      ) : error ? (
+        <Alert variant="danger" className="mt-3">
+          {error}
+        </Alert>
+      ) : (
+        <>
+          <ViewAppointmentCard
+            initialData={appointment}
+            isAdmin={isAdmin}
+            isClient={isClient}
+            isWorker={isWorker}
+          />
+          <div className="d-flex justify-content-center gap-2">
+            <Link to={`/appointment/${appointment.id}/update`} className="btn btn-primary ">
+              Edit
+            </Link>
 
-        <Button variant="outline-danger">Delete</Button>
+            <Button variant="outline-danger">Delete</Button>
 
-        <Button variant="secondary" onClick={onCancel}>
-          Back
-        </Button>
-      </div>
+            <Button variant="secondary" onClick={onCancel}>
+              Back
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

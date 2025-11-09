@@ -1,11 +1,11 @@
 import React from "react";
-import { Appointment, AppointmentView } from "../types/appointment";
-import { Badge, Card, Col, Container, ListGroup, Row, Table } from "react-bootstrap";
-import { formatDateOnly, formatDateTime, formatTimeOnly } from "../shared/timeUtils";
+import { AppointmentView } from "../types/appointment";
+import { Badge, Card, Col, Container, Row, Table } from "react-bootstrap";
+import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
 
 interface ViewAppointmentCard {
   initialData: AppointmentView;
-  serverError?: string | null;
+  // serverError?: string | null;
   isAdmin?: boolean;
   isClient?: boolean;
   isWorker?: boolean;
@@ -13,12 +13,11 @@ interface ViewAppointmentCard {
 
 const ViewAppointmentCard: React.FC<ViewAppointmentCard> = ({
   initialData,
-  serverError = null,
+  // serverError = null,
   isAdmin,
   isClient,
   isWorker,
 }) => {
-  console.log(isAdmin);
   return (
     <Container style={{ maxWidth: "35rem" }}>
       <Card className="mb-3 border-0">

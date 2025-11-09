@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { AppointmentView } from "../types/appointment";
-import { formatDateOnly, formatDateTime, formatTimeOnly } from "../shared/timeUtils";
+import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
 
 interface AppointmentTableProps {
   appointments: AppointmentView[];

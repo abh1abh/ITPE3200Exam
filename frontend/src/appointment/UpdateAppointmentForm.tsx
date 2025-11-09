@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { Appointment, AppointmentTask, AppointmentView } from "../types/appointment";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Col, Container, Form, InputGroup, Row, Table } from "react-bootstrap";
-import { formatDateOnly, formatDateTime, formatTimeOnly } from "../shared/timeUtils";
+import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
 // import { formatDate } from "../shared/timeUtils";
 
 interface UpdateAppointmentFormProps {
