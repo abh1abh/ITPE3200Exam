@@ -8,7 +8,7 @@ const RegisterPage: React.FC = () => {
     email: "",
     password: "",
     name: "",
-    phone: "",
+    number: "",
     address: "",
   });
   const [error, setError] = useState<string | null>(null);
@@ -26,8 +26,6 @@ const RegisterPage: React.FC = () => {
     try {
       await authService.register({
         ...formData,
-        phone: formData.phone,
-        address: formData.address,
       });
       setSuccess("Registration successful! You can now log in.");
       setTimeout(() => navigate("/login"), 2000); // Redirect after 2 seconds
@@ -70,7 +68,7 @@ const RegisterPage: React.FC = () => {
 
         <Form.Group className="mb-3">
           <Form.Label>Number</Form.Label>
-          <Form.Control type="text" name="number" value={formData.phone} onChange={handleChange} required />
+          <Form.Control type="text" name="number" value={formData.number} onChange={handleChange} required />
         </Form.Group>
 
         <Form.Group className="mb-3">
