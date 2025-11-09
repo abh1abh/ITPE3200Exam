@@ -92,7 +92,7 @@ const AppointmentDetailsPage: React.FC = () => {
             </Link>
 
             <Button variant="outline-danger" onClick={() => setShowDelete(true)}>
-              Delete
+              Cancel appointment
             </Button>
 
             <Button variant="secondary" onClick={onCancel}>

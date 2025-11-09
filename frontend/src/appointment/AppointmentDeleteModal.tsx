@@ -11,7 +11,7 @@ type Props = {
 
 const AppointmentDeleteModal: React.FC<Props> = ({ appointment, onConfirm, onCancel, isDeleting }) => (
   <Modal show onHide={onCancel}>
-    <Modal.Header closeButton>Delete appointment?</Modal.Header>
+    <Modal.Header closeButton>Cancel appointment?</Modal.Header>
     <Modal.Body>
       <p>
         <strong>Client:</strong> {appointment.clientName}

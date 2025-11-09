@@ -73,7 +73,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
                 </Link>
                 {onDeleteClick && (
                   <Button variant="danger" size="sm" onClick={() => onDeleteClick(a)}>
-                    Delete
+                    Cancel
                   </Button>
                 )}
               </td>
