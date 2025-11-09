@@ -26,6 +26,13 @@ export const updateClient = async (id: number, client: Client) => {
   return handleResponse(response);
 };
 
+export const fetchClientByAuthId = async (authId: string) => {
+  const response = await fetch(`${API_URL}/api/Client/clientauth/${authId}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};
 export const deleteClient = async (id: number) => {
   const response = await fetch(`${API_URL}/api/client/${id}`, {
     method: "DELETE",

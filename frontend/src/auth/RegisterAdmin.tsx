@@ -75,12 +75,12 @@ const RegisterAdmin: React.FC = () => {
 
         <Form.Group className="mb-3">
           <Form.Label>Number</Form.Label>
-          <Form.Control type="text" name="number" value={formData.Number} onChange={handleChange} required />
+          <Form.Control type="text" name="Number" value={formData.Number} onChange={handleChange} required />
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>Address</Form.Label>
-          <Form.Control type="text" name="address" value={formData.Address} onChange={handleChange} required />
+          <Form.Control type="text" name="Address" value={formData.Address} onChange={handleChange} required />
         </Form.Group>
         <Form.Group className="mb-3">
           <Form.Label>Role</Form.Label>

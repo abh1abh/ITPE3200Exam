@@ -3,6 +3,7 @@
 using api.Models;
 
 namespace api.DAL;
+
 public interface IClientRepository
 {
     Task<IEnumerable<Client>> GetAll();

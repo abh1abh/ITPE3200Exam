@@ -5,7 +5,7 @@ using api.Services;
 
 namespace api.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin, HealthcareWorker")]
 [ApiController]
 [Route("api/[controller]")]
 public class HealthcareWorkerController : ControllerBase
@@ -38,6 +38,18 @@ public class HealthcareWorkerController : ControllerBase
         if (worker == null)
         {
             _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
+            return NotFound("Healthcare worker not found");
+        }
+        return Ok(worker);
+    }
+
+    [HttpGet("workerauth/{authUserId}")]
+    public async Task<IActionResult> GetByAuthUserId(string authUserId)
+    {
+        var worker = await _service.GetByAuthUserId(authUserId);
+        if (worker == null)
+        {
+            _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
             return NotFound("Healthcare worker not found");
         }
         return Ok(worker);

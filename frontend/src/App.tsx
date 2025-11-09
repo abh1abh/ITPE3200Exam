@@ -10,6 +10,9 @@ import RegisterAdmin from "./auth/RegisterAdmin";
 import RegisterPage from "./auth/RegisterPage";
 import AvailableSlotCreatePage from "./availableslot/AvailableSlotCreatePage";
 import AvailableSlotDeletePage from "./availableslot/AvailableSlotDeletePage";
+import ProfileForm from "./shared/ProfileForm";
+import ClientPage from "./client/ClientPage";
+import HealthcareWorkerPage from "./healtcareworker/HealthcareWorkerPage";
 import AvailableSlotPage from "./availableslot/AvailableSlotPage";
 import AvailableSlotUpdatePage from "./availableslot/AvailableSlotUpdatePage";
 import AboutPage from "./dummypages/AboutPage";
@@ -44,6 +47,9 @@ function App() {
               <Route path="/appointment/create" element={<AppointmentCreatePage />} />
               <Route path="/appointment/:id/update" element={<AppointmentUpdatePage />} />
               <Route path="/appointment" element={<AppointmentPage />} />
+              <Route path="/profile" element={<ProfileForm />} />
+              <Route path="/clients" element={<ClientPage />} />
+              <Route path="/healthcareworkers" element={<HealthcareWorkerPage />} />
               <Route path="/appointment/:id" element={<AppointmentDetailsPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/services" element={<ServicesPage />} />
