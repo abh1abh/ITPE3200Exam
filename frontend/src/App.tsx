@@ -14,6 +14,9 @@ import AvailableSlotDeletePage from "./availableslot/AvailableSlotDeletePage";
 import AppointmentPage from "./appointment/AppointmentPage";
 import AppointmentCreatePage from "./appointment/AppointmentCreatePage";
 import AppointmentUpdatePage from "./appointment/AppointmentUpdate";
+import ProfileForm from "./shared/ProfileForm";
+import ClientPage from "./client/ClientPage";
+import HealthcareWorkerPage from "./healtcareworker/HealthcareWorkerPage";
 import NavMenu from "./shared/NavMenu";
 
 function App() {
@@ -37,6 +40,9 @@ function App() {
               <Route path="/appointment/create" element={<AppointmentCreatePage />} />
               <Route path="/appointment/:id" element={<AppointmentUpdatePage />} />
               <Route path="/appointment" element={<AppointmentPage />} />
+              <Route path="/profile" element={<ProfileForm />} />
+              <Route path="/clients" element={<ClientPage />} />
+              <Route path="/healthcareworkers" element={<HealthcareWorkerPage />} />
             </Routes>
           </div>
           <Footer />

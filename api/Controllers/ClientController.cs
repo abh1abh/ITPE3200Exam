@@ -5,7 +5,7 @@ using api.Services;
 
 namespace api.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin, Client")]
 [ApiController]
 [Route("api/[controller]")]
 public class ClientController : ControllerBase
@@ -38,6 +38,18 @@ public class ClientController : ControllerBase
         if (client == null)
         {
             _logger.LogError("[ClientController] Client not found for ClientId {ClientId:0000}", id);
+            return NotFound("Client not found");
+        }
+        return Ok(client);
+    }
+
+    [HttpGet("clientauth/{authUserId}")]
+    public async Task<IActionResult> GetByAuthUserId(string authUserId)
+    {
+        var client = await _service.GetByAuthUserId(authUserId);
+        if (client == null)
+        {
+            _logger.LogError("[ClientController] Client not found for AuthUserId {AuthUserId}", authUserId);
             return NotFound("Client not found");
         }
         return Ok(client);

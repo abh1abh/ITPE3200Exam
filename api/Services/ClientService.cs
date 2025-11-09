@@ -33,6 +33,27 @@ public class ClientService : IClientService
 
     }
 
+    public async Task<ClientDto?> GetByAuthUserId(string authUserId)
+    {
+        var client = await _repository.GetByAuthUserId(authUserId);
+        if (client == null)
+        {
+            _logger.LogWarning("[ClientController] Client not found for AuthUserId {AuthUserId}", authUserId);
+            return null;
+        }
+
+        var clientDto = new ClientDto
+        {
+            ClientId = client.ClientId,
+            Name = client.Name,
+            Address = client.Address,
+            Phone = client.Phone,
+            Email = client.Email,
+            AuthUserId = client.AuthUserId
+        };
+        return clientDto;
+    }
+
     public async Task<ClientDto?> GetById(int id)
     {
         var client = await _repository.GetClientById(id);

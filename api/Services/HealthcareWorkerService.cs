@@ -59,6 +59,27 @@ public class HealthcareWorkerService: IHealthcareWorkerService
 
         return workerDto;
     }
+    public async Task<HealthcareWorkerDto?> GetByAuthUserId(string authUserId)
+    {
+        var worker = await _repository.GetByAuthUserId(authUserId);
+        if (worker == null)
+        {
+            _logger.LogError("[HealthcareWorkerService] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
+            return null;
+        }
+
+        var workerDto = new HealthcareWorkerDto
+        {
+            HealthcareWorkerId = worker.HealthcareWorkerId,
+            Name = worker.Name,
+            Address = worker.Address,
+            Phone = worker.Phone,
+            Email = worker.Email,
+            AuthUserId = worker.AuthUserId
+        };
+
+        return workerDto;
+    }
     public async Task<HealthcareWorkerDto> Create(HealthcareWorkerDto workerDto)
     {
         var worker = new HealthcareWorker

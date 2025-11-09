@@ -9,5 +9,5 @@ public interface IHealthcareWorkerService
     Task<HealthcareWorkerDto> Create(HealthcareWorkerDto workerDto);
     Task<bool> Update(int id, HealthcareWorkerDto workerDto);
     Task<bool> Delete(int id);
-
+    Task<HealthcareWorkerDto?> GetByAuthUserId(string authUserId);
 }

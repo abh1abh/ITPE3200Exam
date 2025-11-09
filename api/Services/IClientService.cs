@@ -9,5 +9,5 @@ public interface IClientService
     Task<ClientDto> Create(ClientDto dto);
     Task<bool> Update(int id, ClientDto dto);
     Task<bool> Delete(int id);
-
+    Task<ClientDto?> GetByAuthUserId(string authUserId);
 }
