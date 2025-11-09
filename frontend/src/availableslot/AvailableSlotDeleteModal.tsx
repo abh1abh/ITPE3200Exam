@@ -5,9 +5,15 @@ type DeleteDialogProps = {
   availableSlot: AvailableSlot;
   onConfirm: () => void;
   onCancel: () => void;
+  isDeleting: boolean;
 };
 
-const DeleteAvailableSlotModal: React.FC<DeleteDialogProps> = ({ availableSlot, onConfirm, onCancel }) => (
+const DeleteAvailableSlotModal: React.FC<DeleteDialogProps> = ({
+  availableSlot,
+  onConfirm,
+  onCancel,
+  isDeleting,
+}) => (
   <Modal show onHide={onCancel}>
     <Modal.Header closeButton>Delete available slot?</Modal.Header>
     <Modal.Body>
@@ -23,11 +29,11 @@ const DeleteAvailableSlotModal: React.FC<DeleteDialogProps> = ({ availableSlot, 
       <Alert variant="danger">This action cannot be undone.</Alert>
     </Modal.Body>
     <Modal.Footer>
-      <Button variant="secondary" onClick={onCancel}>
+      <Button variant="secondary" onClick={onCancel} disabled={isDeleting}>
         Cancel
       </Button>
-      <Button variant="danger" onClick={onConfirm} disabled={availableSlot.isBooked}>
-        Delete
+      <Button variant="danger" onClick={onConfirm} disabled={isDeleting}>
+        {isDeleting ? "Deleting..." : "Delete"}
       </Button>
     </Modal.Footer>
   </Modal>

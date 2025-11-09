@@ -5,6 +5,7 @@ import { Appointment, AppointmentView } from "../types/appointment";
 import UpdateAppointmentForm from "./UpdateAppointmentForm";
 import { useAuth } from "../auth/AuthContext";
 import Loading from "../shared/Loading";
+import { Alert } from "react-bootstrap";
 
 const AppointmentUpdatePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +18,9 @@ const AppointmentUpdatePage: React.FC = () => {
   const isWorker = hasRole("HealthcareWorker");
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchAppointment = async () => {
       try {
@@ -25,7 +28,7 @@ const AppointmentUpdatePage: React.FC = () => {
         setAppointment(data);
       } catch (error) {
         console.error("Error fetching appointment:", error);
-        setError("Failed to fetch appointment data");
+        setFetchError("Failed to fetch appointment data.");
       } finally {
         setLoading(false);
       }
@@ -40,23 +43,33 @@ const AppointmentUpdatePage: React.FC = () => {
       navigate("/appointment");
     } catch (error) {
       console.error("error update appointment:", error);
-      setError("failed to update");
+      setSubmitError("Failed to update appointment.");
     }
   };
 
-  if (loading) return <Loading />;
-  if (!appointment) return <p>No appointment found.</p>;
   return (
     <div>
       <h2>Update Appointment</h2>
-      <UpdateAppointmentForm
-        initialData={appointment}
-        onAppointmentChanged={handleAppointmentUpdated}
-        serverError={error}
-        isAdmin={isAdmin}
-        isClient={isClient}
-        isWorker={isWorker}
-      />
+      {loading ? (
+        <Loading />
+      ) : !appointment ? (
+        <Alert variant="warning" className="mt-3">
+          No appointment found.
+        </Alert>
+      ) : fetchError ? (
+        <Alert variant="danger" className="mt-3">
+          {fetchError}
+        </Alert>
+      ) : (
+        <UpdateAppointmentForm
+          initialData={appointment}
+          onAppointmentChanged={handleAppointmentUpdated}
+          serverError={submitError}
+          isAdmin={isAdmin}
+          isClient={isClient}
+          isWorker={isWorker}
+        />
+      )}
     </div>
   );
 };

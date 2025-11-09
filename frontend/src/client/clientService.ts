@@ -1,4 +1,4 @@
-import { Client } from "../types/Client";
+import { Client } from "../types/client";
 import { API_URL, getAuthHeaders, handleResponse } from "../shared/http";
 
 export const fetchAllClients = async () => {

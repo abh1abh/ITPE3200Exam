@@ -1,23 +1,26 @@
-import React, { useEffect, useState } from "react";
-import { Button, Form, InputGroup } from "react-bootstrap";
+import React, { useState } from "react";
+import { Button, Form, InputGroup, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { Appointment, AppointmentTask } from "../types/appointment";
 import { Client } from "../types/client";
 import { AvailableSlot } from "../types/availableSlot";
+import Loading from "../shared/Loading";
 
 interface CreateAppointmentFormProps {
   onAppointmentChanged: (newAppointment: Appointment) => void;
   clients?: Client[];
   unbookedSlots: AvailableSlot[];
   isAdmin: boolean;
-  serverError?: string | null;
+  submitError?: string | null;
+  isSubmitting?: boolean;
 }
 const CreateAppointmentForm: React.FC<CreateAppointmentFormProps> = ({
   onAppointmentChanged,
   clients = [],
   unbookedSlots,
   isAdmin,
-  serverError = null,
+  submitError = null,
+  isSubmitting,
 }) => {
   const [clientId, setClientId] = useState<number>(0);
   const [notes, setNotes] = useState<string>("");
@@ -59,7 +62,7 @@ const CreateAppointmentForm: React.FC<CreateAppointmentFormProps> = ({
     event.preventDefault();
 
     if (new Date(start) < new Date()) {
-      setError("Start time need to before now");
+      setError("Start time must be in the future");
       return;
     }
 
@@ -168,14 +171,21 @@ const CreateAppointmentForm: React.FC<CreateAppointmentFormProps> = ({
       </Form.Group>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
-      {serverError && <p style={{ color: "red" }}>{serverError}</p>}
+      {submitError && <p style={{ color: "red" }}>{submitError}</p>}
 
       <div className="d-flex justify-content-between mt-4">
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
-        <Button variant="primary" type="submit">
-          Create
+        <Button variant="primary" type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Spinner as="span" animation="border" size="sm" className="me-2" />
+              Creating…
+            </>
+          ) : (
+            "Create"
+          )}
         </Button>
       </div>
     </Form>
