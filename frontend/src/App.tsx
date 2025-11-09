@@ -12,8 +12,10 @@ import AvailableSlotCreatePage from "./availableslot/AvailableSlotCreatePage";
 import AvailableSlotDeletePage from "./availableslot/AvailableSlotDeletePage";
 import ProfileForm from "./shared/ProfileForm";
 import ClientPage from "./client/ClientPage";
-import HealthcareWorkerPage from "./healtcareworker/HealthcareWorkerPage";
-import AvailableSlotPage from "./availableslot/AvailableSlotPage";
+import ClientUpdate from "./client/ClientUpdate";
+import HealthcareWorkerPage from "./healtcareWorker/HealthcareWorkerPage";
+import HealthcareWorkerUpdate from "./healtcareWorker/HealthcareWorkerUpdate";
+import AvailableSlotPage from "./availableslot/AvailableslotPage";
 import AvailableSlotUpdatePage from "./availableslot/AvailableSlotUpdatePage";
 import AboutPage from "./dummypages/AboutPage";
 import BlogPage from "./dummypages/BlogPage";
@@ -49,7 +51,9 @@ function App() {
               <Route path="/appointment" element={<AppointmentPage />} />
               <Route path="/profile" element={<ProfileForm />} />
               <Route path="/clients" element={<ClientPage />} />
+              <Route path="/client/:id/update" element={<ClientUpdate />} />
               <Route path="/healthcareworkers" element={<HealthcareWorkerPage />} />
+              <Route path="/healthcareworker/:id/update" element={<HealthcareWorkerUpdate />} />
               <Route path="/appointment/:id" element={<AppointmentDetailsPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/services" element={<ServicesPage />} />

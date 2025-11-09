@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import * as HealthcareWorkerService from "../healtcareworker/HealthcareWorkerService";
+import * as HealthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
 import { HealthcareWorker } from "../types/healthcareWorker";
 import { Client } from "../types/client";
 import { useNavigate } from "react-router-dom";
-import * as ClientService from "../client/ClientService";
+import * as ClientService from "../client/clientService";
 import { useAuth } from "../auth/AuthContext";
 
 const ProfileForm: React.FC = () => {
@@ -25,24 +25,19 @@ const ProfileForm: React.FC = () => {
         try {
             if (user?.role === "HealthcareWorker") {
                 const workerId = user.nameid;
-                console.log("Worker ID: " + workerId)
                 const worker = await HealthcareWorkerService.fetchWorkerByAuthId(workerId);
-                console.log(worker);
                 data.email = worker.email;
                 data.name = worker.name;
                 data.number = worker.phone;
                 data.address = worker.address;
-                console.log("Data: " + data);
             }
             else if (user?.role === "Client") {
                 const clientId = user.nameid;
                 const client = await ClientService.fetchClientByAuthId(clientId);
-                console.log(client);
                 data.email = client.email;
                 data.name = client.name;
                 data.number = client.phone;
                 data.address = client.address;
-                console.log(data);
             } else {
                 setError("Unknown user role");
             }
@@ -51,14 +46,12 @@ const ProfileForm: React.FC = () => {
             setError("Failed to fetch profile data");
         } finally {
             setLoading(false);
-            console.log("Finished loading");
         }
     }
     useEffect(() => {
         fetchUserData();
     }, []);
 
-    
     return (
             <div>
                 <h2>Profile</h2>
@@ -66,14 +59,14 @@ const ProfileForm: React.FC = () => {
                 {error && <p style={{ color: "red" }}>{error}</p>}
                 <div
                 style={{
-                  flex: "0 0 50%", // left half of the screen
+                  flex: "0 0 50%",
                   maxWidth: "600px",
                 }}
               >
                 {!loading && !error && (
                   <div
                     style={{
-                      textAlign: "left", // ensure text is left-aligned
+                      textAlign: "left",
                     }}
                   >
                     <div style={{ marginBottom: "12px" }}>

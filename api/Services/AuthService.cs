@@ -111,6 +111,13 @@ public class AuthService: IAuthService{
                 };
                 var createWorker =  await _healthcareWorkerService.Create(worker); //use HealthcareWorkerService to create healthcare worker
                 var result = await _userManager.CreateAsync(user, registerDto.Password); //create user in AspNetUsers table
+                if(!result.Succeeded) //check if user creation succeeded
+                {
+                    // If user creation failed, delete the created healthcare worker to maintain data consistency
+                    await _healthcareWorkerService.Delete(worker.HealthcareWorkerId);
+                    _logger.LogWarning("[AuthService] user creation failed for {Username}: {Errors}", registerDto.Email, result.Errors);
+                    return result;
+                }
                 var roleResult = await _userManager.AddToRoleAsync(user, "HealthcareWorker"); //assign HealthcareWorker role to user
                 _logger.LogInformation("[AuthService] Worker user registered successfully for {Username}", registerDto.Email);
                 return result;
@@ -184,26 +191,59 @@ public class AuthService: IAuthService{
             _logger.LogWarning("[AuthService] delete user failed for {Username}: {Errors}", username, result.Errors); //log deletion failure
             return false;
         }
-
-        public async Task<bool> DeleteUserAdminAsync(string username) //method to delete user by admin
+    public async Task<bool> UpdateUserAsync(string userId, string? email, string? password)
+    { //method to update user email and/or password
+        var user = await _userManager.FindByIdAsync(userId); //find user by userId
+        if (user == null) //log user not found
         {
-            var user = await _userManager.FindByNameAsync(username); //find user by username
-            if (user == null) //log user not found
-            {
-                _logger.LogWarning("[AuthService] admin delete user failed for {Username}: user not found", username);
-                return false;
-            }
-
-            var result = await _userManager.DeleteAsync(user); //delete user
-            if (result.Succeeded) //log successful deletion
-            {
-                _logger.LogInformation("[AuthService] admin deleted user successfully for {Username}", username);
-                return true;
-            }
-
-            _logger.LogWarning("[AuthService] admin delete user failed for {Username}: {Errors}", username, result.Errors); //log deletion failure
+            _logger.LogWarning("[AuthService] update user failed for {UserId}: user not found", userId);
             return false;
         }
+
+        if (!string.IsNullOrEmpty(email) && email != user.Email) //update email if provided and different
+        {
+            user.Email = email;
+            user.UserName = email; //assuming username is same as email
+                    var updateResult = await _userManager.UpdateAsync(user); //update user details
+            if (!updateResult.Succeeded) //log update failure
+            {
+                _logger.LogWarning("[AuthService] update user failed for {UserId}: {Errors}", userId, updateResult.Errors);
+                return false;
+            }
+        }
+        if (!string.IsNullOrEmpty(password)) //update password if provided
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var passwordResult = await _userManager.ResetPasswordAsync(user, token, password);
+            if (!passwordResult.Succeeded) //log password update failure
+            {
+                _logger.LogWarning("[AuthService] password update failed for {UserId}: {Errors}", userId, passwordResult.Errors);
+                return false;
+            }
+        }
+
+        _logger.LogInformation("[AuthService] user updated successfully for {UserId}", userId); //log successful update
+        return true;
+    }
+        public async Task<bool> DeleteUserAdminAsync(string username) //method to delete user by admin
+    {
+        var user = await _userManager.FindByNameAsync(username); //find user by username
+        if (user == null) //log user not found
+        {
+            _logger.LogWarning("[AuthService] admin delete user failed for {Username}: user not found", username);
+            return false;
+        }
+
+        var result = await _userManager.DeleteAsync(user); //delete user
+        if (result.Succeeded) //log successful deletion
+        {
+            _logger.LogInformation("[AuthService] admin deleted user successfully for {Username}", username);
+            return true;
+        }
+
+        _logger.LogWarning("[AuthService] admin delete user failed for {Username}: {Errors}", username, result.Errors); //log deletion failure
+        return false;
+    }
 
 
     public async Task<string> GenerateJwtTokenAsync(AuthUser user) //method to generate JWT token for authenticated user

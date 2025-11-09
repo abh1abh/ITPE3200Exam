@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { AvailableSlot } from "../types/availableSlot";
+import React, { useEffect, useState } from "react"; 
 import { useAuth } from "../auth/AuthContext";
-import * as ClientService from "../client/ClientService";
+import * as ClientService from "./clientService";
 import { Alert, Badge, Button, Container, Spinner, Table } from "react-bootstrap";
 import Loading from "../shared/Loading";
 import { Client } from "../types/client";
+import ClientTable from "./ClientTable";
+import ClientDeleteModal from "./ClientDeleteModal";
 
 const ClientPage: React.FC = () => {
-    const { user } = useAuth();
+    const {hasRole} = useAuth();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [clients, setClients] = useState<Client[]>([]);
-
+    const [toDelete, setToDelete] = useState<Client | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchClientData = async () => {
         setLoading(true);
@@ -30,41 +32,47 @@ const ClientPage: React.FC = () => {
     useEffect(() => {
         fetchClientData();
     }, []);
+    
+    const confirmDelete = async () => {
+        if (!toDelete?.clientId) return;
+        setError(null);
+        setIsDeleting(true);
+        try {
+        await ClientService.deleteClient(toDelete.clientId);
+        fetchClientData();
+        setToDelete(null);
+        } catch (error) {
+        console.error("Error deleting Client: ", error);
+        setError("Error deleting Client. Try again later.");
+        setToDelete(null);
+        } finally {
+        setIsDeleting(false);
+        }
+    };
 
     
     return (
         <div>
             <Button onClick={fetchClientData} className="btn btn-primary mb-3 me-2" disabled={loading}>
-                    {loading ? "Loading..." : "Refresh Clients"}
+                    {loading ? "Loading..." : "Refresh clients"}
                   </Button>
             <h2>Clients</h2>
-            {loading ? (
-                <Loading />
-            ) : error ? (
-                <Alert variant="danger">{error}</Alert>
-            ) : (
-                <Table striped bordered hover>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Address</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {clients.map((client) => (
-                            <tr key={client.clientId}>
-                                <td>{client.clientId}</td>
-                                <td>{client.name}</td>
-                                <td>{client.email}</td>
-                                <td>{client.phone}</td>
-                                <td>{client.address}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
+            {!loading && error && <Alert variant="danger">{error}</Alert>}
+            {!loading && !error && (
+                <>
+                <ClientTable
+                    clients={clients}
+                    isAdmin={hasRole("Admin")}
+                    onDeleteClick={(setToDelete)} />
+                {toDelete && (
+                    <ClientDeleteModal 
+                        client = {toDelete}
+                        onCancel={() => setToDelete(null)}
+                        onConfirm={confirmDelete}
+                        isDeleting={isDeleting}
+                    />
+                )}
+                </>
             )}
         </div>
     );

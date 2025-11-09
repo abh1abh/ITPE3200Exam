@@ -1,21 +1,21 @@
 import React from "react";
 import { Button, Table } from "react-bootstrap";
-import { HealthcareWorker } from "../types/healthcareWorker";
+import { Client } from "../types/client";
 import { Link } from "react-router-dom";
 
 interface Props {
-  workers: HealthcareWorker[];
+  clients: Client[];
   isAdmin: boolean;
-  onDeleteClick: (worker: HealthcareWorker) => void;
+  onDeleteClick: (client: Client) => void;
 }
 
-const HealthcareWorkerTable: React.FC<Props> = ({ workers, isAdmin, onDeleteClick }) => {
+const ClientTable: React.FC<Props> = ({ clients, isAdmin, onDeleteClick }) => {
   return (
     <Table striped bordered hover responsive>
       <thead>
         <tr>
           <th>#</th>
-          {isAdmin && <th>Healthcare Worker ID</th>}
+          {isAdmin && <th>Client ID</th>}
           <th>Name</th>
           <th>Address</th>
           <th>Phone Number</th>
@@ -23,35 +23,35 @@ const HealthcareWorkerTable: React.FC<Props> = ({ workers, isAdmin, onDeleteClic
         </tr>
       </thead>
       <tbody>
-        {workers.length === 0 ? (
+        {clients.length === 0 ? (
           <tr>
             <td className="text-center text-muted">
               No healthcare workers found.
             </td>
           </tr>
         ) : (
-          workers.map((worker, index) => (
-            <tr key={worker.healthcareWorkerId}>
+          clients.map((client, index) => (
+            <tr key={client.clientId}>
               <td>{index + 1}</td>
-              {isAdmin && <td>{worker.healthcareWorkerId}</td>}
-              <td>{worker.name}</td>
-              <td>{worker.address}</td>
-              <td>{worker.phone}</td>
+              {isAdmin && <td>{client.clientId}</td>}
+              <td>{client.name}</td>
+              <td>{client.address}</td>
+              <td>{client.phone}</td>
               <td>
                 {isAdmin ? (
                   <Link
-                  to={`/healthcareworker/${worker.healthcareWorkerId}/update`}
+                  to={`/client/${client.clientId}/update`}
                   className="btn btn-sm btn-primary me-2"
                 >
                   Update
                 </Link>
                 ) : (
                   <Link
-                  to={`/healthcareworker/${worker.healthcareWorkerId}/view`}
+                  to={`/client/${client.clientId}/view`}
                   className="btn btn-sm btn-primary me-2"
                 >Update </Link>
                 )}
-                <Button variant="danger" size="sm" onClick={() => onDeleteClick(worker)}>
+                <Button variant="danger" size="sm" onClick={() => onDeleteClick(client)}>
                   Delete
                 </Button>
               </td>
@@ -63,4 +63,4 @@ const HealthcareWorkerTable: React.FC<Props> = ({ workers, isAdmin, onDeleteClic
   );
 };
 
-export default HealthcareWorkerTable;
+export default ClientTable;

@@ -40,7 +40,7 @@ namespace api.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpPost("register-admin")]
-        public async Task<IActionResult> RegisterFromAdmin([FromBody] RegisterFromAdminDto registerDto) 
+        public async Task<IActionResult> RegisterFromAdmin([FromBody] RegisterFromAdminDto registerDto)
         //Registration from Admin for any role. This is to ensure only admin can create other users with elevated roles.
         {
             var result = await _authService.RegisterUserFromAdminAsync(registerDto); //Call the auth service to register user
@@ -76,11 +76,10 @@ namespace api.Controllers
             return Ok(new { Message = "User logged out successfully" });
         }
 
-
         private async Task<string> GenerateJwtToken(AuthUser user) //Generate JWT token for authenticated user
         {
             var token = await _authService.GenerateJwtTokenAsync(user);
             return token;
-        }
+        }        
     }
 }
