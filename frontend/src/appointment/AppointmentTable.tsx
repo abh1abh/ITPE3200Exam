@@ -6,18 +6,21 @@ import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
 
 interface AppointmentTableProps {
   appointments: AppointmentView[];
-  onAppointmentDeleted?: (id: number) => void;
+  onDeleteClick?: (a: AppointmentView) => void;
   isAdmin?: boolean;
   isWorker?: boolean;
   isClient?: boolean;
 }
 const AppointmentTable: React.FC<AppointmentTableProps> = ({
   appointments,
-  onAppointmentDeleted,
+  onDeleteClick,
   isAdmin = false,
   isWorker = false,
   isClient = false,
 }) => {
+  // Dynamic column count for proper no appointments found
+  const nameCols = isAdmin ? 2 : isWorker || isClient ? 1 : 0;
+  const columnsCount = nameCols + 4;
   return (
     <Table striped bordered hover responsive>
       <thead>
@@ -39,38 +42,44 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
         </tr>
       </thead>
       <tbody>
-        {appointments.map((a) => (
-          <tr key={a.id}>
-            {isAdmin && (
-              <>
-                <td>{a.clientName}</td>
-                <td>{a.healthcareWorkerName}</td>
-              </>
-            )}
-
-            {isWorker && <td>{a.clientName}</td>}
-            {isClient && <td>{a.healthcareWorkerName}</td>}
-            <td>{formatDateOnly(a.start)}</td>
-            <td>{formatTimeOnly(a.start)}</td>
-            <td>{formatTimeOnly(a.end)}</td>
-            {/* <td>{a.notes}</td> */}
-            <td>
-              <Link to={`/appointment/${a.id}`} className="btn btn-primary btn-sm me-2">
-                Details
-              </Link>
-              <Link to={`/appointment/${a.id}/update`} className="btn btn-primary btn-sm me-2">
-                Update
-              </Link>
-              {onAppointmentDeleted && a.id && (
-                <>
-                  <Button variant="danger" size="sm" onClick={() => onAppointmentDeleted(a.id!)}>
-                    Delete
-                  </Button>
-                </>
-              )}
+        {appointments.length === 0 ? (
+          <tr>
+            <td colSpan={columnsCount} className="text-center text-muted">
+              No appointments found.
             </td>
           </tr>
-        ))}
+        ) : (
+          appointments.map((a) => (
+            <tr key={a.id}>
+              {isAdmin && (
+                <>
+                  <td>{a.clientName}</td>
+                  <td>{a.healthcareWorkerName}</td>
+                </>
+              )}
+
+              {isWorker && <td>{a.clientName}</td>}
+              {isClient && <td>{a.healthcareWorkerName}</td>}
+              <td>{formatDateOnly(a.start)}</td>
+              <td>{formatTimeOnly(a.start)}</td>
+              <td>{formatTimeOnly(a.end)}</td>
+              {/* <td>{a.notes}</td> */}
+              <td>
+                <Link to={`/appointment/${a.id}`} className="btn btn-primary btn-sm me-2">
+                  Details
+                </Link>
+                <Link to={`/appointment/${a.id}/update`} className="btn btn-primary btn-sm me-2">
+                  Update
+                </Link>
+                {onDeleteClick && (
+                  <Button variant="danger" size="sm" onClick={() => onDeleteClick(a)}>
+                    Delete
+                  </Button>
+                )}
+              </td>
+            </tr>
+          ))
+        )}
       </tbody>
     </Table>
   );

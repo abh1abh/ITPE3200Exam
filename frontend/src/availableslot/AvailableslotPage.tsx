@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { AvailableSlot } from "../types/availableSlot";
 import { useAuth } from "../auth/AuthContext";
-import * as AvailableSlotService from "./availableSlotService";
+import * as availableSlotService from "./availableSlotService";
 import { Alert, Container } from "react-bootstrap";
 import Loading from "../shared/Loading";
 import DeleteAvailableSlotModal from "./AvailableSlotDeleteModal";
@@ -13,6 +13,7 @@ const AvailableSlotPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [toDelete, setToDelete] = useState<AvailableSlot | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const { hasRole } = useAuth();
 
   const fetchAvailableSlots = async () => {
@@ -21,9 +22,9 @@ const AvailableSlotPage: React.FC = () => {
     try {
       let data;
       if (hasRole("HealthcareWorker")) {
-        data = await AvailableSlotService.fetchAllAvailableSlotsMine();
+        data = await availableSlotService.fetchAllAvailableSlotsMine();
       } else {
-        data = await AvailableSlotService.fetchAllAvailableSlots();
+        data = await availableSlotService.fetchAllAvailableSlots();
       }
       setAvailableSlots(data);
       console.log(data);
@@ -43,6 +44,23 @@ const AvailableSlotPage: React.FC = () => {
     fetchAvailableSlots();
   }, []);
 
+  const confirmDelete = async () => {
+    if (!toDelete?.id) return;
+    setError(null);
+    setIsDeleting(true);
+    try {
+      await availableSlotService.deleteAvailableSlot(toDelete.id);
+      fetchAvailableSlots();
+      setToDelete(null);
+    } catch (error) {
+      console.error("Error deleting slot: ", error);
+      setError("Error deleting slot");
+      setToDelete(null);
+    } finally {
+      setIsDeleting(true);
+    }
+  };
+
   return (
     <div>
       <h2>Available Slots</h2>
@@ -55,7 +73,7 @@ const AvailableSlotPage: React.FC = () => {
 
       {!loading && error && <Alert variant="danger">{error}</Alert>}
 
-      {!loading && !error && (
+      {!loading && (
         <>
           <AvailableSlotTable
             availableSlots={availableSlots}
@@ -66,11 +84,8 @@ const AvailableSlotPage: React.FC = () => {
             <DeleteAvailableSlotModal
               availableSlot={toDelete}
               onCancel={() => setToDelete(null)}
-              onConfirm={async () => {
-                await AvailableSlotService.deleteAvailableSlot(toDelete.id!);
-                setToDelete(null);
-                fetchAvailableSlots(); // refresh list
-              }}
+              onConfirm={confirmDelete}
+              isDeleting={isDeleting}
             />
           )}
         </>
