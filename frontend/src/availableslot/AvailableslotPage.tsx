@@ -2,19 +2,11 @@ import React, { useEffect, useState } from "react";
 import { AvailableSlot } from "../types/availableSlot";
 import { useAuth } from "../auth/AuthContext";
 import * as AvailableSlotService from "./availableSlotService";
-import { Alert, Badge, Button, Container, Spinner, Table } from "react-bootstrap";
+import { Alert, Container } from "react-bootstrap";
 import Loading from "../shared/Loading";
 import DeleteAvailableSlotModal from "./AvailableSlotDeleteModal";
 import AvailableSlotTable from "./AvailableSlotTable";
-
-const formatDate = (d: string | Date) =>
-  new Date(d).toLocaleString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+import { Link } from "react-router-dom";
 
 const AvailableSlotPage: React.FC = () => {
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
@@ -56,7 +48,9 @@ const AvailableSlotPage: React.FC = () => {
       <h2>Available Slots</h2>
       {loading && <Loading />}
       <Container className="my-4">
-        <Button href="/availableslot/create">Create new available slot</Button>
+        <Link to="/availableslot/create" className="btn btn-primary">
+          Create new available slot
+        </Link>
       </Container>
 
       {!loading && error && <Alert variant="danger">{error}</Alert>}

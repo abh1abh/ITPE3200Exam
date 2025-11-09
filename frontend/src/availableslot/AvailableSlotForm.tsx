@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Form, Row, Col, Container } from "react-bootstrap";
+import { Button, Form, Row, Col, Container, Spinner } from "react-bootstrap";
 import { AvailableSlot } from "../types/availableSlot";
 import { useNavigate } from "react-router-dom";
 import Loading from "../shared/Loading";
@@ -13,6 +13,7 @@ interface AvailableSlotFormProps {
   isAdmin?: boolean;
   availableSlotId?: number;
   serverError?: string | null;
+  isSubmitting?: boolean;
 }
 
 // Helper function for date and time
@@ -46,6 +47,7 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
   isAdmin = false,
   availableSlotId,
   serverError = null,
+  isSubmitting,
 }) => {
   const [dateStr, setDateStr] = useState<string>("");
   const [timeStr, setTimeStr] = useState<string>("");
@@ -198,10 +200,19 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
       {serverError && <div className="text-danger mb-3">{serverError}</div>}
 
       <Container className="my-4">
-        <Button variant="primary" type="submit" className="me-2">
-          {isUpdating ? "Update Available Slot" : "Create Available Slot"}
+        <Button variant="primary" type="submit" className="me-2" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+              Saving…
+            </>
+          ) : isUpdating ? (
+            "Update Available Slot"
+          ) : (
+            "Create Available Slot"
+          )}
         </Button>
-        <Button variant="secondary" type="button" onClick={onCancel}>
+        <Button variant="secondary" type="button" disabled={isSubmitting} onClick={onCancel}>
           Cancel
         </Button>
       </Container>

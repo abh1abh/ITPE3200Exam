@@ -10,7 +10,7 @@ import RegisterAdmin from "./auth/RegisterAdmin";
 import RegisterPage from "./auth/RegisterPage";
 import AvailableSlotCreatePage from "./availableslot/AvailableSlotCreatePage";
 import AvailableSlotDeletePage from "./availableslot/AvailableSlotDeletePage";
-import AvailableSlotPage from "./availableslot/AvailableslotPage";
+import AvailableSlotPage from "./availableslot/AvailableSlotPage";
 import AvailableSlotUpdatePage from "./availableslot/AvailableSlotUpdatePage";
 import AboutPage from "./dummypages/AboutPage";
 import BlogPage from "./dummypages/BlogPage";
