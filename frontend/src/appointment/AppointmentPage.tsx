@@ -1,28 +1,43 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button } from "react-bootstrap";
+import { Alert, Button } from "react-bootstrap";
 import { useAuth } from "../auth/AuthContext";
 import AppointmentTable from "./AppointmentTable";
-import { Appointment } from "../types/appointment";
-import * as AppointmentService from "./appointmentService";
+import { Appointment, AppointmentView } from "../types/appointment";
+import * as appointmentService from "./appointmentService";
+import { useNavigate } from "react-router-dom";
+import AppointmentDeleteModal from "./AppointmentDeleteModal";
+import Loading from "../shared/Loading";
 
 const AppointmentPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("Admin");
+  const isClient = hasRole("Client");
+  const isWorker = hasRole("HealthcareWorker");
+  const navigate = useNavigate();
+
+  const [toDelete, setToDelete] = useState<AppointmentView | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchAppointments = async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token,please try again.");
-      const data = await AppointmentService.fetchAppointments();
+      let data: AppointmentView[] = [];
+      if (isAdmin) data = await appointmentService.fetchAppointments();
+      else if (isClient) data = await appointmentService.fetchAppointmentsByClientId();
+      else if (isWorker) data = await appointmentService.fetchAppointmentsByWorkerId();
+      else {
+        setError("No role matched.");
+        return;
+      }
       setAppointments(data);
       console.log("Appointments fetched:", data);
     } catch (error: any) {
       console.error("Error fetching ", error);
-      setError("Failed");
+      setError("Failed to fetch appointments.");
     } finally {
       setLoading(false);
     }
@@ -36,17 +51,21 @@ const AppointmentPage: React.FC = () => {
     () => [...appointments].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
     [appointments]
   );
-  // Delete
-  const handleAppointmentDeleted = async (id: number) => {
-    const confirmDelete = window.confirm(`Are you sure ${id}?`);
-    if (!confirmDelete) return;
+
+  const confirmDelete = async () => {
+    if (!toDelete?.id) return;
+    setError(null);
+    setIsDeleting(true);
     try {
-      await AppointmentService.deleteAppointment(id);
-      setAppointments((prev) => prev.filter((a) => a.id !== id));
-      console.log(`Appointment ${id} deleted`);
+      await appointmentService.deleteAppointment(toDelete.id);
+      fetchAppointments();
+      setToDelete(null);
     } catch (error) {
-      console.error("Error deleting:", error);
-      setError("Error deleting");
+      console.error("Error deleting appointment: ", error);
+      setError("Error deleting appointment");
+      setToDelete(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -54,21 +73,37 @@ const AppointmentPage: React.FC = () => {
     <div>
       <h1>Appointments</h1>
 
-      <Button onClick={fetchAppointments} className="btn btn-primary mb-3 me-2" disabled={loading}>
-        {loading ? "Loading..." : "Refresh Appointments"}
-      </Button>
+      {loading && <Loading />}
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <AppointmentTable
-        appointments={sortedAppointments}
-        onAppointmentDeleted={user ? handleAppointmentDeleted : undefined}
-      />
+      {!loading && error && <Alert variant="danger">{error}</Alert>}
 
-      {user && (
-        <Button href="/appointment/create" className="btn btn-secondary mt-3">
-          Add New Appointment
-        </Button>
+      {!loading && (
+        <>
+          {user && (isAdmin || isClient) && (
+            <Button className="mb-3" onClick={() => navigate("/appointment/create")}>
+              Add New Appointment
+            </Button>
+          )}
+
+          <AppointmentTable
+            appointments={sortedAppointments}
+            onDeleteClick={setToDelete}
+            isAdmin={isAdmin}
+            isWorker={isWorker}
+            isClient={isClient}
+          />
+
+          {toDelete && (
+            <AppointmentDeleteModal
+              appointment={toDelete}
+              onCancel={() => setToDelete(null)}
+              onConfirm={confirmDelete}
+              isDeleting={isDeleting}
+            />
+          )}
+        </>
       )}
+      {/* Dont href with buttons */}
     </div>
   );
 };

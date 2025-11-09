@@ -1,59 +1,69 @@
 import React, { useEffect, useState } from "react";
 import { AvailableSlot } from "../types/availableSlot";
-import * as AvailableSlotService from "./availableSlotService";
+import * as availableSlotService from "./availableSlotService";
 import { useNavigate, useParams } from "react-router-dom";
 import Loading from "../shared/Loading";
 import { useAuth } from "../auth/AuthContext";
 import AvailableSlotForm from "./AvailableSlotForm";
+import { Alert } from "react-bootstrap";
 
 const AvailableSlotUpdatePage: React.FC = () => {
   const { slotId } = useParams<{ slotId: string }>();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [availableSlot, setAvailableSlot] = useState<AvailableSlot | null>(null);
+
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const { hasRole } = useAuth();
   const isAdmin = hasRole("Admin");
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAvailableSlot = async () => {
-      setError(null);
-      setLoading(true);
+      setFetchError(null);
+      setIsFetching(true);
 
       try {
-        const slot = await AvailableSlotService.fetchAvailableSlot(Number(slotId));
+        const slot = await availableSlotService.fetchAvailableSlot(Number(slotId));
         setAvailableSlot(slot);
       } catch (error) {
         console.error(error);
-        setError("Failed to fetch available slot. Please try again later.");
+        setFetchError("Failed to fetch available slot. Please try again later.");
       } finally {
-        setLoading(false);
+        setIsFetching(false);
       }
     };
     fetchAvailableSlot();
   }, [slotId]);
 
   const handleSlotUpdate = async (updatedSlot: AvailableSlot) => {
-    setError(null);
-    setLoading(true);
+    setSubmitError(null);
+    setIsSubmitting(true);
     try {
-      const data = await AvailableSlotService.updateAvailableSlot(Number(slotId), updatedSlot);
+      const data = await availableSlotService.updateAvailableSlot(Number(slotId), updatedSlot);
       navigate("/availableslot"); // Navigate back to the slot page after update
     } catch (error) {
       console.error("Error updating available slot:", error);
-      setError("Failed to update available slot. Try again later");
+      setSubmitError("Failed to update available slot. Try again later");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (error) return <div>{error}</div>;
+  // if (error) return <div>{error}</div>;
 
   return (
     <div>
       <h2 className="mb-4">Update available slot</h2>
-      {loading ? (
+      {isFetching ? (
         <Loading />
+      ) : fetchError ? (
+        <Alert variant="danger" className="mt-3">
+          {fetchError}
+        </Alert>
       ) : (
         <AvailableSlotForm
           availableSlotId={availableSlot?.id}
@@ -61,7 +71,8 @@ const AvailableSlotUpdatePage: React.FC = () => {
           isUpdating={true}
           onAvailableSlotChanged={handleSlotUpdate}
           isAdmin={isAdmin}
-          serverError={error}
+          serverError={submitError}
+          isSubmitting={isSubmitting}
         />
       )}
     </div>

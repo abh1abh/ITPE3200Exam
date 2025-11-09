@@ -1,34 +1,39 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AvailableSlot } from "../types/availableSlot";
-import * as AvailableSlotService from "./availableSlotService";
+import * as availableSlotService from "./availableSlotService";
 import AvailableSlotForm from "./AvailableSlotForm";
 import { useAuth } from "../auth/AuthContext";
 import { HealthcareWorker } from "../types/healthcareWorker";
 import Loading from "../shared/Loading";
-import * as HealthcareWorkerService from "../healtcareWorker/HealthcareWorkerService";
+import * as healthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
+import { Alert } from "react-bootstrap";
 
 const AvailableSlotCreatePage: React.FC = () => {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
   const [workers, setWorkers] = useState<HealthcareWorker[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const isAdmin: boolean = hasRole("Admin");
 
   const handleAvailableSlotCreated = async (availableSlot: AvailableSlot) => {
-    setServerError(null);
-    setLoading(true);
+    setSubmitError(null);
+    setIsSubmitting(true);
     try {
-      const data = await AvailableSlotService.createAvailableSlot(availableSlot);
+      const data = await availableSlotService.createAvailableSlot(availableSlot);
       console.log("Available slot created:", data);
       navigate("/availableslot"); // Navigate back to the item list page after creation
     } catch (error: any) {
       console.error("Error creating available slot:", error);
-      setServerError("Failed to create available slot. Try again later");
+      setSubmitError("Failed to create available slot. Try again later");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -36,32 +41,36 @@ const AvailableSlotCreatePage: React.FC = () => {
   useEffect(() => {
     const fetchWorkers = async () => {
       if (!isAdmin) return;
-      setLoading(true);
+      setIsFetching(true);
       try {
-        const list = await HealthcareWorkerService.fetchAllWorkers();
+        const list = await healthcareWorkerService.fetchAllWorkers();
         setWorkers(list);
       } catch (error) {
         console.error(error);
+        setFetchError("Failed to load healthcare workers. Try again later.");
       } finally {
-        setLoading(false);
+        setIsFetching(false);
       }
     };
     fetchWorkers();
   }, [isAdmin]);
 
-  console.log(workers);
-
   return (
     <div>
       <h2>Create Available Slot</h2>
-      {loading ? (
+      {isFetching ? (
         <Loading />
+      ) : fetchError ? (
+        <Alert variant="danger" className="mt-3">
+          {fetchError}
+        </Alert>
       ) : (
         <AvailableSlotForm
           onAvailableSlotChanged={handleAvailableSlotCreated}
           isAdmin={isAdmin}
           workers={workers}
-          serverError={serverError}
+          serverError={submitError}
+          isSubmitting={isSubmitting}
         />
       )}
     </div>

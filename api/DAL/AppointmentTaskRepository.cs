@@ -29,7 +29,7 @@ public class AppointmentTaskRepository : IAppointmentTaskRepository
         }
     }
 
-    public async Task<bool> Update(AppointmentTask appointmentTask) 
+    public async Task<bool> Update(AppointmentTask appointmentTask)
     {
         try
         {
@@ -43,4 +43,23 @@ public class AppointmentTaskRepository : IAppointmentTaskRepository
             return false; // Return false on failure
         }
     }
+    
+    public async Task<bool> Delete(int id)
+    {
+        try
+        {
+            var appointmentTask = await _db.AppointmentTasks.FindAsync(id);
+            if (appointmentTask == null) return false; 
+
+            _db.AppointmentTasks.Remove(appointmentTask); // Remove the client
+            await _db.SaveChangesAsync(); // Save changes to the database
+            return true; // Return true on success
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("[AppointmentTaskRepository] appointment task Delete() failed when Remove() for AppointmentTaskId {AppointmentTaskId:0000}, error messager: {e}", id, e.Message);
+            return false; // Return false on failure
+        }
+    }
+    
 }

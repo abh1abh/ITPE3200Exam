@@ -1,6 +1,6 @@
 import React from "react";
-import { Container, Row, Col } from "react-bootstrap";
-import { FaHome, FaEnvelope, FaPhone } from "react-icons/fa";
+import { Col, Container, Row } from "react-bootstrap";
+import { FaEnvelope, FaHome, FaPhone } from "react-icons/fa";
 
 // Insperations:
 // https://getbootstrap.com/docs/5.3/examples/footers/#
@@ -15,22 +15,22 @@ const Footer: React.FC = () => {
             <h6 className="text-uppercase fw-bold mb-3">Products</h6>
             <ul className="list-unstyled">
               <li>
-                <a href="#" className="text-muted text-decoration-none">
+                <a href="pricing" className="text-muted text-decoration-none">
                   Pricing
                 </a>
               </li>
               <li>
-                <a href="#" className="text-muted text-decoration-none">
+                <a href="services" className="text-muted text-decoration-none">
                   Services
                 </a>
               </li>
               <li>
-                <a href="#" className="text-muted text-decoration-none">
+                <a href="faq" className="text-muted text-decoration-none">
                   FAQs
                 </a>
               </li>
               <li>
-                <a href="#" className="text-muted text-decoration-none">
+                <a href="about" className="text-muted text-decoration-none">
                   About us
                 </a>
               </li>
@@ -45,17 +45,17 @@ const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-muted text-decoration-none">
+                <a href="careers" className="text-muted text-decoration-none">
                   Careers
                 </a>
               </li>
               <li>
-                <a href="#" className="text-muted text-decoration-none">
+                <a href="blog" className="text-muted text-decoration-none">
                   Blog
                 </a>
               </li>
               <li>
-                <a href="#" className="text-muted text-decoration-none">
+                <a href="contact" className="text-muted text-decoration-none">
                   Contact
                 </a>
               </li>

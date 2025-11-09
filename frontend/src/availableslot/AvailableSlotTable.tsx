@@ -2,6 +2,8 @@ import React from "react";
 import { Badge, Button, Table } from "react-bootstrap";
 import { AvailableSlot } from "../types/availableSlot";
 import { Link } from "react-router-dom";
+import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
+// import { formatDate } from "../shared/timeUtils";
 
 interface Props {
   availableSlots: AvailableSlot[];
@@ -9,21 +11,13 @@ interface Props {
   onDeleteClick: (slot: AvailableSlot) => void;
 }
 const AvailableSlotTable: React.FC<Props> = ({ availableSlots, isAdmin, onDeleteClick }) => {
-  const formatDate = (d: string | Date) =>
-    new Date(d).toLocaleString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
   return (
     <Table striped bordered hover responsive>
       <thead>
         <tr>
           <th>#</th>
           {isAdmin ? <th>Healthcare Worker Id</th> : null}
+          <th>Date</th>
           <th>Start</th>
           <th>End</th>
           <th>Status</th>
@@ -33,7 +27,7 @@ const AvailableSlotTable: React.FC<Props> = ({ availableSlots, isAdmin, onDelete
       <tbody>
         {availableSlots.length === 0 ? (
           <tr>
-            <td colSpan={5} className="text-center text-muted">
+            <td colSpan={7} className="text-center text-muted">
               No available slots found.
             </td>
           </tr>
@@ -42,8 +36,9 @@ const AvailableSlotTable: React.FC<Props> = ({ availableSlots, isAdmin, onDelete
             <tr key={slot.id}>
               <td>{slot.id}</td>
               {isAdmin ? <td>{slot.healthcareWorkerId}</td> : null}
-              <td>{formatDate(slot.start)}</td>
-              <td>{formatDate(slot.end)}</td>
+              <td>{formatDateOnly(slot.start)}</td>
+              <td>{formatTimeOnly(slot.start)}</td>
+              <td>{formatTimeOnly(slot.end)}</td>
               <td>{slot.isBooked ? <Badge bg="danger">Booked</Badge> : <Badge bg="success">Open</Badge>}</td>
               <td>
                 {slot.isBooked ? (
@@ -55,9 +50,6 @@ const AvailableSlotTable: React.FC<Props> = ({ availableSlots, isAdmin, onDelete
                     Update
                   </Link>
                 )}
-                {/* <Link to={`/availableslot/${slot.id}/delete`} className="btn btn-sm btn-danger">
-                  Delete
-                </Link> */}
                 <Button variant="danger" size="sm" disabled={slot.isBooked} onClick={() => onDeleteClick(slot)}>
                   Delete{" "}
                 </Button>

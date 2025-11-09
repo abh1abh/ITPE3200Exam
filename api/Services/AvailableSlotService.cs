@@ -97,7 +97,6 @@ public class AvailableSlotService: IAvailableSlotService
         }
         else
         {
-            // TODO: Do we need this? Can we just use the id from the DTO?
             var currentWorkerId = await ResolveWorkerIdAsync(authUserId);
             if (!currentWorkerId.HasValue) throw new UnauthorizedAccessException();
             workerId = currentWorkerId.Value;

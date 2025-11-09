@@ -27,7 +27,6 @@ public class AvailableSlotRepository : IAvailableSlotRepository
         }
     }
     
-
     public async Task<IEnumerable<AvailableSlot>?> GetAllUnbooked()   
     {
         try

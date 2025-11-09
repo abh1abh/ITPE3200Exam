@@ -36,6 +36,8 @@ public class AppointmentServiceTests
             Id = appointmentId,
             AvailableSlotId = slotId,
             ClientId = clientId,
+            HealthcareWorker = new HealthcareWorker { HealthcareWorkerId = 20, Name = "B" },
+            Client = new Client { ClientId = 10, Name = "A" },
             HealthcareWorkerId = workerId,
             Notes = "Initial notes",
             AppointmentTasks = new List<AppointmentTask>

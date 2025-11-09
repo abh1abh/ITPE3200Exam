@@ -1,57 +1,87 @@
 import React from "react";
-import { Button } from "react-bootstrap";
+import { Button, Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { Appointment } from "../types/appointment";
+import { AppointmentView } from "../types/appointment";
+import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
 
 interface AppointmentTableProps {
-  appointments: Appointment[];
-  onAppointmentDeleted?: (id: number) => void;
+  appointments: AppointmentView[];
+  onDeleteClick?: (a: AppointmentView) => void;
+  isAdmin?: boolean;
+  isWorker?: boolean;
+  isClient?: boolean;
 }
-const AppointmentTable: React.FC<AppointmentTableProps> = ({ appointments, onAppointmentDeleted }) => {
+const AppointmentTable: React.FC<AppointmentTableProps> = ({
+  appointments,
+  onDeleteClick,
+  isAdmin = false,
+  isWorker = false,
+  isClient = false,
+}) => {
+  // Dynamic column count for proper no appointments found
+  const nameCols = isAdmin ? 2 : isWorker || isClient ? 1 : 0;
+  const columnsCount = nameCols + 4;
   return (
-    <table className="table table-striped">
+    <Table striped bordered hover responsive>
       <thead>
         <tr>
-          <th>Client ID</th>
-          <th>Worker ID</th>
+          {isAdmin && (
+            <>
+              <th>Client</th>
+              <th>Worker</th>
+            </>
+          )}
+
+          {isWorker && <th>Client</th>}
+          {isClient && <th>Worker</th>}
+          <th>Date</th>
           <th>Start</th>
           <th>End</th>
-          <th>Notes</th>
-          <th>Slot Id</th>
-          <th>Actions</th>
-          <th>Tasks</th>
+          {/* <th>Notes</th> */}
+          <th>Options</th>
         </tr>
       </thead>
       <tbody>
-        {appointments.map((a) => (
-          <tr key={a.id}>
-            <td>{a.clientId}</td>
-            <td>{a.healthcareWorkerId}</td>
-            <td>{a.start}</td>
-            <td>{a.end}</td>
-            <td>{a.notes}</td>
-            <td>{a.availableSlotId}</td>
-            <td>
-              {a.appointmentTasks && a.appointmentTasks.length > 0
-                ? a.appointmentTasks.map((t: any, i: number) => <div key={i}>{t.description}</div>)
-                : "No tasks"}
-            </td>
-            <td>
-              <Link to={`/appointment/${a.id}`} className="btn btn-primary btn-sm me-2">
-                Update
-              </Link>
-              {onAppointmentDeleted && a.id && (
-                <>
-                  <Button variant="danger" size="sm" onClick={() => onAppointmentDeleted(a.id!)}>
-                    Delete
-                  </Button>
-                </>
-              )}
+        {appointments.length === 0 ? (
+          <tr>
+            <td colSpan={columnsCount} className="text-center text-muted">
+              No appointments found.
             </td>
           </tr>
-        ))}
+        ) : (
+          appointments.map((a) => (
+            <tr key={a.id}>
+              {isAdmin && (
+                <>
+                  <td>{a.clientName}</td>
+                  <td>{a.healthcareWorkerName}</td>
+                </>
+              )}
+
+              {isWorker && <td>{a.clientName}</td>}
+              {isClient && <td>{a.healthcareWorkerName}</td>}
+              <td>{formatDateOnly(a.start)}</td>
+              <td>{formatTimeOnly(a.start)}</td>
+              <td>{formatTimeOnly(a.end)}</td>
+              {/* <td>{a.notes}</td> */}
+              <td>
+                <Link to={`/appointment/${a.id}`} className="btn btn-primary btn-sm me-2">
+                  Details
+                </Link>
+                <Link to={`/appointment/${a.id}/update`} className="btn btn-primary btn-sm me-2">
+                  Update
+                </Link>
+                {onDeleteClick && (
+                  <Button variant="danger" size="sm" onClick={() => onDeleteClick(a)}>
+                    Cancel
+                  </Button>
+                )}
+              </td>
+            </tr>
+          ))
+        )}
       </tbody>
-    </table>
+    </Table>
   );
 };
 export default AppointmentTable;
