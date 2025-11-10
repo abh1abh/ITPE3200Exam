@@ -11,5 +11,6 @@ public interface IAuthService
     Task<bool> Logout();
     Task<bool> DeleteUserAsync(string username);
     Task<bool> DeleteUserAdminAsync(string username);
+    Task<bool> UpdateUserAsync(string userId, string? email, string? password);
     Task<string> GenerateJwtTokenAsync(AuthUser user);
 }
