@@ -1,6 +1,7 @@
 import React from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import { FaEnvelope, FaHome, FaPhone } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 // Insperations:
 // https://getbootstrap.com/docs/5.3/examples/footers/#
@@ -15,24 +16,24 @@ const Footer: React.FC = () => {
             <h6 className="text-uppercase fw-bold mb-3">Products</h6>
             <ul className="list-unstyled">
               <li>
-                <a href="pricing" className="text-muted text-decoration-none">
+                <Link to="/pricing" className="text-muted text-decoration-none">
                   Pricing
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="services" className="text-muted text-decoration-none">
+                <Link to="/services" className="text-muted text-decoration-none">
                   Services
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="faq" className="text-muted text-decoration-none">
+                <Link to="/faq" className="text-muted text-decoration-none">
                   FAQs
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="about" className="text-muted text-decoration-none">
+                <Link to="/about" className="text-muted text-decoration-none">
                   About us
-                </a>
+                </Link>
               </li>
             </ul>
           </Col>
@@ -40,24 +41,24 @@ const Footer: React.FC = () => {
             <h6 className="text-uppercase fw-bold mb-3">Company</h6>
             <ul className="list-unstyled">
               <li>
-                <a href="/team" className="text-muted text-decoration-none">
+                <Link to="/team" className="text-muted text-decoration-none">
                   Team
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="careers" className="text-muted text-decoration-none">
+                <Link to="/careers" className="text-muted text-decoration-none">
                   Careers
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="blog" className="text-muted text-decoration-none">
+                <Link to="/blog" className="text-muted text-decoration-none">
                   Blog
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="contact" className="text-muted text-decoration-none">
+                <Link to="/contact" className="text-muted text-decoration-none">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </Col>
