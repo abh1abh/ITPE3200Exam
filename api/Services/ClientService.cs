@@ -22,7 +22,7 @@ public class ClientService : IClientService
 
         var clientDtos = clients.Select(c => new ClientDto
         {
-            ClientId = c.ClientId,
+            Id = c.Id,
             Name = c.Name,
             Address = c.Address,
             Phone = c.Phone,
@@ -44,7 +44,7 @@ public class ClientService : IClientService
 
         var clientDto = new ClientDto
         {
-            ClientId = client.ClientId,
+            Id = client.Id,
             Name = client.Name,
             Address = client.Address,
             Phone = client.Phone,
@@ -59,13 +59,13 @@ public class ClientService : IClientService
         var client = await _repository.GetClientById(id);
         if (client == null)
         {
-            _logger.LogWarning("[ClientService] Client not found for ClientId {ClientId:0000}", id);
+            _logger.LogWarning("[ClientService] Client not found for Id {Id:0000}", id);
             return null;
         }
 
         var clientDto = new ClientDto
         {
-            ClientId = client.ClientId,
+            Id = client.Id,
             Name = client.Name,
             Address = client.Address,
             Phone = client.Phone,
@@ -96,7 +96,7 @@ public class ClientService : IClientService
         // It's good practice to return the created object, with its new ID
         var createdDto = new ClientDto
         {
-            ClientId = client.ClientId,
+            Id = client.Id,
             Name = client.Name,
             Address = client.Address,
             Phone = client.Phone,
@@ -136,7 +136,7 @@ public class ClientService : IClientService
         var ok = await _repository.Delete(id);
         if (!ok)
         {
-            _logger.LogError("[ClientService] Client deletion failed for ClientId {ClientId:0000}", id);
+            _logger.LogError("[ClientService] Client deletion failed for Id {Id:0000}", id);
             throw new InvalidOperationException($"Delete operation failed for client ID {id}");
 
         }

@@ -71,7 +71,7 @@ public class ClientRepository : IClientRepository
         }
         catch (Exception e)
         {
-            _logger.LogError("[ClientRepository] client Update() failed when Update() for ClientId {ClientId:0000}, error messager: {e}", client.ClientId, e.Message);
+            _logger.LogError("[ClientRepository] client Update() failed when Update() for ClientId {ClientId:0000}, error messager: {e}", client.Id, e.Message);
             return false; // Return false on failure
         }
     }

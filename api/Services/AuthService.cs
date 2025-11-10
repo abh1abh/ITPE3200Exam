@@ -114,7 +114,7 @@ public class AuthService: IAuthService{
                 if(!result.Succeeded) //check if user creation succeeded
                 {
                     // If user creation failed, delete the created healthcare worker to maintain data consistency
-                    await _healthcareWorkerService.Delete(worker.HealthcareWorkerId);
+                    await _healthcareWorkerService.Delete(createWorker.Id);
                     _logger.LogWarning("[AuthService] user creation failed for {Username}: {Errors}", registerDto.Email, result.Errors);
                     return result;
                 }

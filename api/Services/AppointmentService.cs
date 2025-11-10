@@ -50,13 +50,13 @@ public class AppointmentService: IAppointmentService
         if (role == "Client" && appt.ClientId != 0)
         {
             var client = await _clientRepository.GetByAuthUserId(authUserId);
-            ok = client is not null && client.ClientId == appt.ClientId;
+            ok = client is not null && client.Id == appt.ClientId;
         }
 
         if (role == "HealthcareWorker" && appt.HealthcareWorkerId != 0)
         {
             var worker = await _healthcareWorkerRepository.GetByAuthUserId(authUserId);
-            ok = worker is not null && worker.HealthcareWorkerId == appt.HealthcareWorkerId;
+            ok = worker is not null && worker.Id == appt.HealthcareWorkerId;
         }
         return ok;
     }
@@ -105,7 +105,7 @@ public class AppointmentService: IAppointmentService
         {
             throw new UnauthorizedAccessException();
         }
-        var appointments = await _appointmentRepository.GetByClientId(client.ClientId); // Calls AppointmentRepository to get all appointments for client
+        var appointments = await _appointmentRepository.GetByClientId(client.Id); // Calls AppointmentRepository to get all appointments for client
         if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentViewDto>(); // If appointments are null Service returns a empty AppointmentDto List
 
         
@@ -150,7 +150,7 @@ public class AppointmentService: IAppointmentService
             throw new UnauthorizedAccessException();
         }
 
-        var appointments = await _appointmentRepository.GetByHealthcareWorkerId(worker.HealthcareWorkerId); // Calls AppointmentRepository to get all appointments for worker
+        var appointments = await _appointmentRepository.GetByHealthcareWorkerId(worker.Id); // Calls AppointmentRepository to get all appointments for worker
         if (appointments is null || !appointments.Any()) return Enumerable.Empty<AppointmentViewDto>(); // If appointments are null Service returns a empty AppointmentDto List
 
         // Service convert the appointment list to AppointmentDto List
@@ -235,13 +235,13 @@ public class AppointmentService: IAppointmentService
         {
             if (string.IsNullOrEmpty(authUserId)) throw new UnauthorizedAccessException(); // If the service to not receive a AuthUserId we throw an UnauthorizedAccessException 
             var client = await _clientRepository.GetByAuthUserId(authUserId) ?? throw new UnauthorizedAccessException(); // And if the AuthUserId does not belong to a Client we do the same
-            clientId = client.ClientId;
+            clientId = client.Id;
         }
         else if (role == "Admin")
         {
             if (dto.ClientId == 0) throw new ArgumentException("ClientId is required for admin creation."); // If the incoming AppointmentDto does not have a clientId we throw an ArgumentException
             var client = await _clientRepository.GetClientById(dto.ClientId) ?? throw new ArgumentException($"Client {dto.ClientId} not found."); // As well as if the clientId is not from a client in the DB
-            clientId = client.ClientId;
+            clientId = client.Id;
         }
         else
         {

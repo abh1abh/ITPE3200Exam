@@ -39,7 +39,7 @@ public class ClientController : ControllerBase
         var client = await _service.GetById(id);
         if (client == null)
         {
-            _logger.LogError("[ClientController] Client not found for ClientId {ClientId:0000}", id);
+            _logger.LogError("[ClientController] Client not found for Id {ClientId:0000}", id);
             return NotFound("Client not found");
         }
         return Ok(client);
@@ -63,7 +63,7 @@ public class ClientController : ControllerBase
         try
         {
             var created = await _service.Create(clientDto);
-            return CreatedAtAction(nameof(GetById), new { id = created.ClientId }, created);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
         catch (InvalidOperationException)
         {
@@ -77,13 +77,13 @@ public class ClientController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update([FromBody] UpdateClientDto clientDto)
     {
-        int id = clientDto.ClientId;
+        int id = clientDto.Id;
         ClientDto? client = await _service.GetById(id);
         if (client == null)
         {
             return NotFound("Healthcare worker not found");
         }
-        if (id != clientDto.ClientId)
+        if (id != clientDto.Id)
         {
             return BadRequest("ID mismatch");
         }

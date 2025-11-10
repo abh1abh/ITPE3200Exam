@@ -23,7 +23,7 @@ public class AvailableSlotService: IAvailableSlotService
     {
         if (string.IsNullOrWhiteSpace(authUserId)) return null;
         var worker = await _healthcareWorkerRepository.GetByAuthUserId(authUserId);
-        return worker?.HealthcareWorkerId;
+        return worker?.Id;
     }
 
     // Private helper method that helps check if the user is to view or edit a specific slot
