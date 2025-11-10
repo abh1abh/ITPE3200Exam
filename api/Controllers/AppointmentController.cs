@@ -225,7 +225,6 @@ public class AppointmentController : ControllerBase
         try
         {
             var logs = await _service.GetChangeLog(id, role: role, authUserId: authUserId); // Calls Service to get changelog
-            if (!logs.Any()) return NotFound("Change log not found"); 
             return Ok(logs);
         }
         catch (UnauthorizedAccessException)

@@ -87,16 +87,17 @@ const AppointmentDetailsPage: React.FC = () => {
             isWorker={isWorker}
           />
           <div className="d-flex justify-content-center gap-2">
+            <Link to="/appointment" className="btn btn-secondary">
+              Back
+            </Link>
+            <Link to={`/appointment/${appointment!.id}/changelog`} className="btn btn-outline-primary">
+              View Changes
+            </Link>
             <Link to={`/appointment/${appointment.id}/update`} className="btn btn-primary ">
               Edit
             </Link>
-
-            <Button variant="outline-danger" onClick={() => setShowDelete(true)}>
+            <Button variant="danger" onClick={() => setShowDelete(true)}>
               Cancel appointment
-            </Button>
-
-            <Button variant="secondary" onClick={onCancel}>
-              Back
             </Button>
           </div>
 
