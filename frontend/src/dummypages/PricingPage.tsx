@@ -10,7 +10,7 @@ const PricingPage: React.FC = () => {
             <h1>Pricing</h1>
             <p className="text-muted">Overview of the prices.</p>
             <Row>
-            {prices.map((price, i) => (<Col md={12} key={i}><Card className="shadow-sm mb-4 p-3">
+            {prices.map((price, i) => (<Col md={4} key={i}><Card className="shadow-sm mb-4 p-3">
                 <Card.Body>
                     <Card.Title className="fw-bold">{price.title}</Card.Title>
                     <Card.Text>{price.desc}</Card.Text>

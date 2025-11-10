@@ -1,14 +1,15 @@
 export const API_URL = import.meta.env.VITE_API_URL;
-
+//Return headers for api request
 export const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
+  //Check if user is logged in and include token
   if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
 };
-
+//Handle api responses(no content res=204 and any other status=Throw an error)
 export const handleResponse = async (response: Response) => {
   if (response.ok) {
     if (response.status === 204) return null;

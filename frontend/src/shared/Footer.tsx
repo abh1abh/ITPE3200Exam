@@ -9,6 +9,10 @@ import { Link } from "react-router-dom";
 
 const Footer: React.FC = () => {
   return (
+    //Shared footer.
+    //Placed in the 'shared' so that all pages can use it.
+    //Main footer element.
+    //Used Bootstrap.
     <footer className="bg-light text-center text-lg-start mt-auto border-top">
       <Container className="py-4">
         <Row>
