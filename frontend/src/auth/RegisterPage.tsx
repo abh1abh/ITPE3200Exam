@@ -26,8 +26,6 @@ const RegisterPage: React.FC = () => {
     try {
       await authService.register({
         ...formData,
-        Number: formData.number,
-        Address: formData.address,
       });
       setSuccess("Registration successful! You can now log in.");
       setTimeout(() => navigate("/login"), 2000); // Redirect after 2 seconds

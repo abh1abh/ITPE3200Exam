@@ -10,12 +10,17 @@ interface AuthSectionProps {
 const AuthSection: React.FC<AuthSectionProps> = ({ onAnyClick }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { hasRole } = useAuth(); // Admin, Client and Worker.
 
   const handleLogout = () => {
     logout();
     onAnyClick?.(); // close navbar/dropdown if open
     navigate("/");
   };
+  const handleProfile = () => {
+    onAnyClick?.(); // close navbar/dropdown if open
+    navigate("/profile");
+  }
 
   return (
     <Nav>
@@ -26,6 +31,12 @@ const AuthSection: React.FC<AuthSectionProps> = ({ onAnyClick }) => {
           </Dropdown.Toggle>
           <Dropdown.Menu>
             <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
+            {(hasRole("Client") || hasRole("HealthcareWorker")) && (
+              <>
+                <Dropdown.Item onClick={handleProfile}>Profile</Dropdown.Item>
+              </>
+            )}
+            
           </Dropdown.Menu>
         </Dropdown>
       ) : (

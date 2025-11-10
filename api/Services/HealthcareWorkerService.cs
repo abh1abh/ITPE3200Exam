@@ -10,11 +10,13 @@ public class HealthcareWorkerService: IHealthcareWorkerService
 {
     private readonly IHealthcareWorkerRepository _repository;
     private readonly ILogger<HealthcareWorkerService> _logger;
-    
+    private readonly IAuthService _authService;
+
     public HealthcareWorkerService(IHealthcareWorkerRepository repository, ILogger<HealthcareWorkerService> logger)
     {
         _repository = repository;
         _logger = logger;
+        _authService = _authService;
     }
     
     public async Task<IEnumerable<HealthcareWorkerDto>> GetAll()
@@ -111,7 +113,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
 
         return createdDto;
     }
-    public async Task<bool> Update(int id, HealthcareWorkerDto workerDto)
+    public async Task<bool> Update(int id, UpdateWorkerDto workerDto)
     {
         var existingWorker = await _repository.GetById(id);
         if (existingWorker == null)
@@ -123,7 +125,6 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         existingWorker.Address = workerDto.Address;
         existingWorker.Phone = workerDto.Phone;
         existingWorker.Email = workerDto.Email;
-        existingWorker.AuthUserId = workerDto.AuthUserId;
 
         bool updated = await _repository.Update(existingWorker);
         if (!updated)
@@ -131,7 +132,6 @@ public class HealthcareWorkerService: IHealthcareWorkerService
             _logger.LogError("[HealthcareWorkerService] Update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, existingWorker);
             throw new InvalidOperationException($"Update operation failed for HealthcareWorkerId {id}");
         }
-
         return updated;
     }
     public async Task<bool> Delete(int id)

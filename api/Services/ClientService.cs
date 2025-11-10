@@ -38,7 +38,7 @@ public class ClientService : IClientService
         var client = await _repository.GetByAuthUserId(authUserId);
         if (client == null)
         {
-            _logger.LogWarning("[ClientController] Client not found for AuthUserId {AuthUserId}", authUserId);
+            _logger.LogWarning("[ClientService] Client not found for AuthUserId {AuthUserId}", authUserId);
             return null;
         }
 
@@ -59,7 +59,7 @@ public class ClientService : IClientService
         var client = await _repository.GetClientById(id);
         if (client == null)
         {
-            _logger.LogWarning("[ClientController] Client not found for ClientId {ClientId:0000}", id);
+            _logger.LogWarning("[ClientService] Client not found for ClientId {ClientId:0000}", id);
             return null;
         }
 
@@ -106,27 +106,26 @@ public class ClientService : IClientService
 
         return createdDto;
     }
-    public async Task<bool> Update(int id, ClientDto dto)
+    public async Task<bool> Update(int id, UpdateClientDto clientDto)
     {
         var existingClient = await _repository.GetClientById(id);
         if (existingClient == null)
         {
             return false;
         }
-         
-        existingClient.Name = dto.Name;
-        existingClient.Address = dto.Address;
-        existingClient.Phone = dto.Phone;
-        existingClient.Email = dto.Email;
-        existingClient.AuthUserId = dto.AuthUserId;
+
+        existingClient.Name = clientDto.Name;
+        existingClient.Address = clientDto.Address;
+        existingClient.Phone = clientDto.Phone;
+        existingClient.Email = clientDto.Email;
 
         bool updated = await _repository.Update(existingClient);
         if (!updated)
         {
-            _logger.LogError("[ClientController] Client update failed for ClientId {ClientId:0000}, {@client}", id, existingClient);
-            throw new InvalidOperationException($"Update operation failed for client ID {id}");
+            _logger.LogError("[ClientService] Update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, existingClient);
+            throw new InvalidOperationException($"Update operation failed for HealthcareWorkerId {id}");
         }
-        return updated;      
+        return updated;
     }
     
     public async Task<bool> Delete(int id)
@@ -137,7 +136,7 @@ public class ClientService : IClientService
         var ok = await _repository.Delete(id);
         if (!ok)
         {
-            _logger.LogError("[ClientController] Client deletion failed for ClientId {ClientId:0000}", id);
+            _logger.LogError("[ClientService] Client deletion failed for ClientId {ClientId:0000}", id);
             throw new InvalidOperationException($"Delete operation failed for client ID {id}");
 
         }

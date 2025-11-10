@@ -6,14 +6,14 @@ export interface RegisterDto{
     password: string;
     email: string;
     name: string;
-    Number: string;
-    Address: string;
+    number: string;
+    address: string;
 }
 export interface RegisterFromAdminDto{
     password: string;
     email: string;
     name: string;
-    Number: string;
-    Address: string;
+    number: string;
+    address: string;
     role: string;
 }

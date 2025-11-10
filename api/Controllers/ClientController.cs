@@ -12,11 +12,13 @@ public class ClientController : ControllerBase
 {
     private readonly IClientService _service;
     private readonly ILogger<ClientController> _logger;
+    private readonly IAuthService _authService;
 
-    public ClientController(IClientService service, ILogger<ClientController> logger)
+    public ClientController(IClientService service, ILogger<ClientController> logger, IAuthService authService)
     {
         _service = service;
         _logger = logger;
+        _authService = authService;
     }
 
     [HttpGet]
@@ -72,36 +74,45 @@ public class ClientController : ControllerBase
             return BadRequest(e.Message);
         } 
     }
-
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] ClientDto clientDto)
+    public async Task<IActionResult> Update([FromBody] UpdateClientDto clientDto)
     {
+        int id = clientDto.ClientId;
+        ClientDto? client = await _service.GetById(id);
+        if (client == null)
+        {
+            return NotFound("Healthcare worker not found");
+        }
         if (id != clientDto.ClientId)
         {
             return BadRequest("ID mismatch");
         }
-
         try
         {
-            bool updated = await _service.Update(id, clientDto);
-            if (!updated)
+            var existingClient = await _service.Update(id, clientDto);
+            var authClientUpdate = await _authService.UpdateUserAsync(client.AuthUserId, clientDto.Email!, clientDto.Password!);
+            if (!existingClient)
             {
                 return NotFound("Client not found");
+            }
+            if (!authClientUpdate)
+            {
+                _logger.LogError("[ClientController] Worker update failed for AuthUserId {userId}, {@client}", client.AuthUserId, clientDto);
+                return StatusCode(500, "Failed to update associated user.");
             }
             return NoContent();
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "[ClientController] Client update failed for ClientId {ClientId:0000}, {@client}", id, clientDto);
+            _logger.LogError(ex, "[ClientController] Worker update failed for ClientId {id:0000}, {@client}", id, clientDto);
             return StatusCode(500, "Failed to update client.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[ClientController] Client update failed for ClientId {ClientId:0000}, {@client}", id, clientDto);
-            return StatusCode(500, "A problem happened while updating the client.");
+            _logger.LogError(ex, "[ClientController] Client update failed for ClientId {id:0000}, {@client}", id, clientDto);
+            return StatusCode(500, "A problem happened while updating the Client.");
         }
-
-    }        
+    }   
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)

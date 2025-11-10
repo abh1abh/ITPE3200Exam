@@ -1,5 +1,6 @@
 import { HealthcareWorker } from "../types/healthcareWorker";
 import { API_URL, getAuthHeaders, handleResponse } from "../shared/http";
+import { UpdateWorkerDto } from "../types/healthcareWorker";
 
 export const fetchAllWorkers = async () => {
   const response = await fetch(`${API_URL}/api/HealthcareWorker/`, {
@@ -23,7 +24,7 @@ export const fetchWorkerByAuthId = async (authId: string) => {
   });
   return handleResponse(response);
 }
-export const updateWorker = async (id: number, worker: HealthcareWorker) => {
+export const updateWorker = async (id: number, worker: UpdateWorkerDto) => {
   const response = await fetch(`${API_URL}/api/HealthcareWorker/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),

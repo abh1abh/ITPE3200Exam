@@ -12,8 +12,8 @@ const RegisterAdmin: React.FC = () => {
     email: "",
     password: "",
     name: "",
-    Number: "", // should not be capital letter. Not a good naming convention
-    Address: "",
+    number: "", // should not be capital letter. Not a good naming convention
+    address: "",
     role: "",
   });
   const [error, setError] = useState<string | null>(null);
@@ -75,12 +75,12 @@ const RegisterAdmin: React.FC = () => {
 
         <Form.Group className="mb-3">
           <Form.Label>Number</Form.Label>
-          <Form.Control type="text" name="Number" value={formData.Number} onChange={handleChange} required />
+          <Form.Control type="text" name="Number" value={formData.number} onChange={handleChange} required />
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>Address</Form.Label>
-          <Form.Control type="text" name="Address" value={formData.Address} onChange={handleChange} required />
+          <Form.Control type="text" name="Address" value={formData.address} onChange={handleChange} required />
         </Form.Group>
         <Form.Group className="mb-3">
           <Form.Label>Role</Form.Label>
