@@ -33,7 +33,7 @@ const UpdateHealthcareWorkerForm: React.FC<UpdateHealthcareWorkerFormProps> = ({
         password: password,
         phone: phone || initialData.phone,
         address: address || initialData.address,
-        healthcareWorkerId: initialData.healthcareWorkerId
+        id: initialData.id
     };
     onHealthcareWorkerUpdated(updatedWorker);
     };

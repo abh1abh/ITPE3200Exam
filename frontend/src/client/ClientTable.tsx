@@ -31,23 +31,23 @@ const ClientTable: React.FC<Props> = ({ clients, isAdmin, onDeleteClick }) => {
           </tr>
         ) : (
           clients.map((client, index) => (
-            <tr key={client.clientId}>
+            <tr key={client.id}>
               <td>{index + 1}</td>
-              {isAdmin && <td>{client.clientId}</td>}
+              {isAdmin && <td>{client.id}</td>}
               <td>{client.name}</td>
               <td>{client.address}</td>
               <td>{client.phone}</td>
               <td>
                 {isAdmin ? (
                   <Link
-                  to={`/client/${client.clientId}/update`}
+                  to={`/client/${client.id}/update`}
                   className="btn btn-sm btn-primary me-2"
                 >
                   Update
                 </Link>
                 ) : (
                   <Link
-                  to={`/client/${client.clientId}/view`}
+                  to={`/client/${client.id}/view`}
                   className="btn btn-sm btn-primary me-2"
                 >Update </Link>
                 )}

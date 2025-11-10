@@ -34,11 +34,11 @@ const ClientPage: React.FC = () => {
     }, []);
     
     const confirmDelete = async () => {
-        if (!toDelete?.clientId) return;
+        if (!toDelete?.id) return;
         setError(null);
         setIsDeleting(true);
         try {
-        await ClientService.deleteClient(toDelete.clientId);
+        await ClientService.deleteClient(toDelete.id);
         fetchClientData();
         setToDelete(null);
         } catch (error) {

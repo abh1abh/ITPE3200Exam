@@ -35,11 +35,11 @@ const HealthcareWorkerPage: React.FC = () => {
     }, []);
     
     const confirmDelete = async () => {
-        if (!toDelete?.healthcareWorkerId) return;
+        if (!toDelete?.id) return;
         setError(null);
         setIsDeleting(true);
         try {
-        await HealthcareWorkerService.deleteWorker(toDelete.healthcareWorkerId);
+        await HealthcareWorkerService.deleteWorker(toDelete.id);
         fetchWorkerData();
         setToDelete(null);
         } catch (error) {

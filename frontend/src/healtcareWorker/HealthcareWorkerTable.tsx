@@ -31,23 +31,23 @@ const HealthcareWorkerTable: React.FC<Props> = ({ workers, isAdmin, onDeleteClic
           </tr>
         ) : (
           workers.map((worker, index) => (
-            <tr key={worker.healthcareWorkerId}>
+            <tr key={worker.id}>
               <td>{index + 1}</td>
-              {isAdmin && <td>{worker.healthcareWorkerId}</td>}
+              {isAdmin && <td>{worker.id}</td>}
               <td>{worker.name}</td>
               <td>{worker.address}</td>
               <td>{worker.phone}</td>
               <td>
                 {isAdmin ? (
                   <Link
-                  to={`/healthcareworker/${worker.healthcareWorkerId}/update`}
+                  to={`/healthcareworker/${worker.id}/update`}
                   className="btn btn-sm btn-primary me-2"
                 >
                   Update
                 </Link>
                 ) : (
                   <Link
-                  to={`/healthcareworker/${worker.healthcareWorkerId}/view`}
+                  to={`/healthcareworker/${worker.id}/view`}
                   className="btn btn-sm btn-primary me-2"
                 >Update </Link>
                 )}

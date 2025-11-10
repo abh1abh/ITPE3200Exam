@@ -11,7 +11,6 @@ import LoginPage from "./auth/LoginPage";
 import RegisterAdmin from "./auth/RegisterAdmin";
 import RegisterPage from "./auth/RegisterPage";
 import AvailableSlotCreatePage from "./availableslot/AvailableSlotCreatePage";
-import AvailableSlotDeletePage from "./availableslot/AvailableSlotDeletePage";
 import ProfileForm from "./shared/ProfileForm";
 import ClientPage from "./client/ClientPage";
 import ClientUpdate from "./client/ClientUpdate";
@@ -55,7 +54,6 @@ function App() {
                 <Route path="/availableslot" element={<AvailableSlotPage />} />
                 <Route path="/availableslot/create" element={<AvailableSlotCreatePage />} />
                 <Route path="/availableslot/:slotId" element={<AvailableSlotUpdatePage />} />
-                <Route path="/availableslot/:slotId/delete" element={<AvailableSlotDeletePage />} />
               </Route>
               <Route element={<RequireRole roles={["Admin", "Client"]} />}>              
                 <Route path="/availableslot" element={<AvailableSlotPage />} />

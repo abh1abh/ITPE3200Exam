@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import * as AppointmentService from "./appointmentService";
 import { Appointment } from "../types/appointment";
 import * as ClientService from "../client/clientService";
-import * as availableSlotService from "../availableslot/availableSlotService";
+import * as availableSlotService from "../availableslot/availableslotService";
 
 import { Client } from "../types/client";
 import { AvailableSlot } from "../types/availableSlot";

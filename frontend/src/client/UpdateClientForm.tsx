@@ -34,7 +34,7 @@ const UpdateClientForm: React.FC<UpdateClientFormProps> = ({
         password: password,
         phone: phone || initialData.phone,
         address: address || initialData.address,
-        clientId: initialData.clientId
+        id: initialData.id
     };
     onClientUpdated(updatedClient);
     };

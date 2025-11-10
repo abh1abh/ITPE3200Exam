@@ -1,5 +1,5 @@
 export interface Client {
-  clientId: number;
+  id: number;
   name: string;
   address: string;
   phone: string;
@@ -12,5 +12,5 @@ export interface UpdateClientDto{
   address: string;
   email: string;
   password?: string;
-  clientId: number;
+  id: number;
 }

@@ -62,7 +62,7 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
   // Init selectedWorker
   useEffect(() => {
     if (isAdmin && !isUpdating && workers.length > 0 && selectedWorkerId === null) {
-      setSelectedWorkerId(workers[0].healthcareWorkerId);
+      setSelectedWorkerId(workers[0].id);
     }
   }, [workers, isAdmin, isUpdating, selectedWorkerId]);
 
@@ -151,8 +151,8 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
                 required>
                 {(!workers || workers?.length === 0) && <option value="">Loading…</option>}
                 {workers?.map((w) => (
-                  <option key={w.healthcareWorkerId} value={w.healthcareWorkerId}>
-                    {`${w.name} - #${w.healthcareWorkerId}`}
+                  <option key={w.id} value={w.id}>
+                    {`${w.name} - #${w.id}`}
                   </option>
                 ))}
               </Form.Select>
