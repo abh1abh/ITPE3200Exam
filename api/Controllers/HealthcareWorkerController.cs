@@ -40,7 +40,7 @@ public class HealthcareWorkerController : ControllerBase
         var worker = await _service.GetById(id);
         if (worker == null)
         {
-            _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
+            _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for Id {Id:0000}", id);
             return NotFound("Healthcare worker not found");
         }
         return Ok(worker);
@@ -64,7 +64,7 @@ public class HealthcareWorkerController : ControllerBase
         try
         {
             var created = await _service.Create(workerDto);
-            return CreatedAtAction(nameof(GetById), new { id = created.HealthcareWorkerId }, created);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         } catch (InvalidOperationException)
         {
             return StatusCode(500, "API had a problem while handling your request.");
@@ -77,13 +77,13 @@ public class HealthcareWorkerController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update([FromBody] UpdateWorkerDto workerDto)
     {
-        int id = workerDto.HealthcareWorkerId;
+        int id = workerDto.Id;
         HealthcareWorkerDto? worker = await _service.GetById(id);
         if (worker == null)
         {
             return NotFound("Healthcare worker not found");
         }
-        if (id != workerDto.HealthcareWorkerId)
+        if (id != workerDto.Id)
         {
             return BadRequest("ID mismatch");
         }
@@ -104,12 +104,12 @@ public class HealthcareWorkerController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "[HealthcareWorkerController] Worker update failed for HealthcareWorkerId {id:0000}, {@worker}", id, workerDto);
+            _logger.LogError(ex, "[HealthcareWorkerController] Worker update failed for Id {Id:0000}, {@worker}", id, workerDto);
             return StatusCode(500, "Failed to update worker.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[HealthcareWorkerController] Worker update failed for HealthcareWorkerId {id:0000}, {@worker}", id, workerDto);
+            _logger.LogError(ex, "[HealthcareWorkerController] Worker update failed for Id {Id:0000}, {@worker}", id, workerDto);
             return StatusCode(500, "A problem happened while updating the worker.");
         }        
     }
@@ -118,7 +118,7 @@ public class HealthcareWorkerController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {   
         string? userName = (await _service.GetById(id))?.Email;
-        _logger.LogError("[HealthcareWorkerController] Deleting worker with HealthcareWorkerId {id:0000} and AuthUserId {userId}", id, userName);
+        _logger.LogError("[HealthcareWorkerController] Deleting worker with Id {Id:0000} and AuthUserId {userId}", id, userName);
         try
         {
             bool deleted = await _service.Delete(id);
@@ -136,12 +136,12 @@ public class HealthcareWorkerController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "[HealthcareWorkerController] Worker deletion failed for HealthcareWorkerId {id:0000}", id);
+            _logger.LogError(ex, "[HealthcareWorkerController] Worker deletion failed for Id {Id:0000}", id);
             return StatusCode(500, "Failed to delete worker.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[HealthcareWorkerController] Worker deletion failed for HealthcareWorkerId {id:0000}", id);
+            _logger.LogError(ex, "[HealthcareWorkerController] Worker deletion failed for Id {Ids:0000}", id);
             return StatusCode(500, "A problem happened while deleting the worker.");
         }
     }

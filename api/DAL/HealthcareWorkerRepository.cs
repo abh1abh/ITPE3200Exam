@@ -65,7 +65,7 @@ public class HealthcareWorkerRepository : IHealthcareWorkerRepository
         }
         catch (Exception e)
         {
-            _logger.LogError("[HealthcareWorkerRepository] healthcare worker Update() failed when Update() for HealthcareWorkerId {HealthcareWorkerId:0000}, error messager: {e}", healthcareWorker.HealthcareWorkerId, e.Message);
+            _logger.LogError("[HealthcareWorkerRepository] healthcare worker Update() failed when Update() for HealthcareWorkerId {HealthcareWorkerId:0000}, error messager: {e}", healthcareWorker.Id, e.Message);
             return false; // Return false on failure
         }
     }

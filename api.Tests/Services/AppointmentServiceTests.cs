@@ -36,8 +36,8 @@ public class AppointmentServiceTests
             Id = appointmentId,
             AvailableSlotId = slotId,
             ClientId = clientId,
-            HealthcareWorker = new HealthcareWorker { HealthcareWorkerId = 20, Name = "B" },
-            Client = new Client { ClientId = 10, Name = "A" },
+            HealthcareWorker = new HealthcareWorker { Id = 20, Name = "B" },
+            Client = new Client { Id = 10, Name = "A" },
             HealthcareWorkerId = workerId,
             Notes = "Initial notes",
             AppointmentTasks = new List<AppointmentTask>
@@ -83,7 +83,7 @@ public class AppointmentServiceTests
         var clientAuthId = "client-auth-100";
         _clientRepository
             .Setup(r => r.GetByAuthUserId(clientAuthId))
-            .ReturnsAsync(new Client { ClientId = appt.ClientId, AuthUserId = clientAuthId });
+            .ReturnsAsync(new Client { Id = appt.ClientId, AuthUserId = clientAuthId });
 
         var service = CreateService();
 
@@ -114,7 +114,7 @@ public class AppointmentServiceTests
         var workerAuthId = "worker-auth-654";
         _healthcareWorkerRepository
             .Setup(r => r.GetByAuthUserId(workerAuthId))
-            .ReturnsAsync(new HealthcareWorker { HealthcareWorkerId = appt.HealthcareWorkerId, AuthUserId = workerAuthId });
+            .ReturnsAsync(new HealthcareWorker { Id = appt.HealthcareWorkerId, AuthUserId = workerAuthId });
 
         var service = CreateService();
 
@@ -181,7 +181,7 @@ public class AppointmentServiceTests
 
         // Client lookup for authUserId
         _clientRepository.Setup(r => r.GetByAuthUserId(authUserId))
-            .ReturnsAsync(new Client { ClientId = clientId, AuthUserId = authUserId });
+            .ReturnsAsync(new Client { Id = clientId, AuthUserId = authUserId });
 
         // Slot lookup. Slot is free and in the future
         var slot = new AvailableSlot
@@ -287,7 +287,7 @@ public class AppointmentServiceTests
 
         // Client lookup for authUserId
         _clientRepository.Setup(r => r.GetByAuthUserId(authUserId))
-            .ReturnsAsync(new Client { ClientId = clientId, AuthUserId = authUserId });
+            .ReturnsAsync(new Client { Id = clientId, AuthUserId = authUserId });
 
         // Slot lookup. Slot is free and in the future
         var slot = new AvailableSlot
@@ -376,7 +376,7 @@ public class AppointmentServiceTests
 
         // Client lookup for authUserId
         _clientRepository.Setup(r => r.GetByAuthUserId(authUserId))
-            .ReturnsAsync(new Client { ClientId = clientId, AuthUserId = authUserId });
+            .ReturnsAsync(new Client { Id = clientId, AuthUserId = authUserId });
 
         // Slot lookup. Slot is free and in the future
         var slot = new AvailableSlot
@@ -469,7 +469,7 @@ public class AppointmentServiceTests
 
         // Client lookup for authUserId
         _clientRepository.Setup(r => r.GetByAuthUserId(authUserId))
-            .ReturnsAsync(new Client { ClientId = clientId, AuthUserId = authUserId });
+            .ReturnsAsync(new Client { Id = clientId, AuthUserId = authUserId });
 
         // Repo updates succeed
         _appointmentTaskRepository.Setup(r => r.Update(It.IsAny<AppointmentTask>())).ReturnsAsync(true);
@@ -648,7 +648,7 @@ public class AppointmentServiceTests
 
         // Auth for Client role
         _clientRepository.Setup(r => r.GetByAuthUserId(authUserId))
-            .ReturnsAsync(new Client { ClientId = clientId, AuthUserId = authUserId });
+            .ReturnsAsync(new Client { Id = clientId, AuthUserId = authUserId });
 
         // Slot lookup
         var slot = new AvailableSlot
@@ -774,7 +774,7 @@ public class AppointmentServiceTests
 
         // Auth for Client role
         _clientRepository.Setup(r => r.GetByAuthUserId(authUserId))
-            .ReturnsAsync(new Client { ClientId = clientId, AuthUserId = authUserId });
+            .ReturnsAsync(new Client { Id = clientId, AuthUserId = authUserId });
 
         // Slot lookup
         var slot = new AvailableSlot
