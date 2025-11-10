@@ -13,8 +13,8 @@ const FAQPage: React.FC = () => {
                 <p>Yes, you can reschedule or cancel your appointment before it starts.</p>
             </div>
             <div className="mb-3 p-3 shadow-sm">
-                <h5>3. How much does a consultation cost?</h5>
-                <p>Most consultations cost around 500 NOK per hour, depending on the service.</p>
+                <h5>3. How much does an appointment cost?</h5>
+                <p>Most appointments cost around 400 NOK per hour, depending on the service.</p>
             </div>
         </Container>
         );};

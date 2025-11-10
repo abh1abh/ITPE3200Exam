@@ -2,9 +2,9 @@ import React from "react";
 import { Card, Col, Container, Row } from "react-bootstrap";
 const ServicesPage: React.FC = () => {
     const services = [
-    { title: "Consultation", desc: "Book and attend medical appointments with ease." },
-    { title: "Medication Tracking", desc: "Keep track of your prescriptions and tasks better." },
-    { title: "Health Analytics", desc: "Monitor your progress and receive professional recommendations." },];
+    { title: "Home Consultation", desc: "Book and attend medical appointments for health check-ups." },
+    { title: "Household Help", desc: "Book tasks like cleaning, washing, grocery delivery, or other home tasks." },
+    { title: "Physical exercise support", desc: "Monitor your progress and receive professional recommendations." },];
     return (
         <Container className="py-5 text-center">
             <h1>Services</h1>

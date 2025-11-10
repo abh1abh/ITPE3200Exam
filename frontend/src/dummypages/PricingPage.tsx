@@ -2,9 +2,9 @@ import React from "react";
 import { Card, Col, Container, Row } from "react-bootstrap";
 const PricingPage: React.FC = () => {
     const prices = [
-    { title: "Appointments", desc: "500 NOK / hour" },
-    { title: "Medication Tracking", desc: "350 NOK / hour" },
-    { title: "Health Analytics", desc: "400 NOK / hour" },];
+    { title: "Home Consultation", desc: "500 NOK / hour" },
+    { title: "Household Help", desc: "350 NOK / hour" },
+    { title: "Physical exercise support", desc: "400 NOK / hour" },];
     return (
         <Container className="py-5 text-center ">
             <h1>Pricing</h1>
