@@ -16,22 +16,22 @@ const Footer: React.FC = () => {
             <h6 className="text-uppercase fw-bold mb-3">Products</h6>
             <ul className="list-unstyled">
               <li>
-                <Link to="pricing" className="text-muted text-decoration-none">
+                <Link to="/pricing" className="text-muted text-decoration-none">
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link to="services" className="text-muted text-decoration-none">
+                <Link to="/services" className="text-muted text-decoration-none">
                   Services
                 </Link>
               </li>
               <li>
-                <Link to="faq" className="text-muted text-decoration-none">
+                <Link to="/faq" className="text-muted text-decoration-none">
                   FAQs
                 </Link>
               </li>
               <li>
-                <Link to="about" className="text-muted text-decoration-none">
+                <Link to="/about" className="text-muted text-decoration-none">
                   About us
                 </Link>
               </li>
@@ -46,17 +46,17 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="careers" className="text-muted text-decoration-none">
+                <Link to="/careers" className="text-muted text-decoration-none">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link to="blog" className="text-muted text-decoration-none">
+                <Link to="/blog" className="text-muted text-decoration-none">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link to="contact" className="text-muted text-decoration-none">
+                <Link to="/contact" className="text-muted text-decoration-none">
                   Contact
                 </Link>
               </li>
