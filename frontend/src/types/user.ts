@@ -9,3 +9,11 @@ export interface User {
   aud: string;
   role: string;
 }
+export interface UpdateUserDto {
+  name: string;
+  phone: string;
+  address: string;
+  email: string;
+  password?: string;
+  id: number;
+}

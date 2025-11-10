@@ -12,7 +12,7 @@ const RegisterAdmin: React.FC = () => {
     email: "",
     password: "",
     name: "",
-    number: "", // should not be capital letter. Not a good naming convention
+    number: "",
     address: "",
     role: "",
   });
@@ -35,7 +35,7 @@ const RegisterAdmin: React.FC = () => {
         ...formData,
       });
       setSuccess("Registration successful! You can now log in.");
-      setTimeout(() => navigate("/login"), 2000); // Redirect after 2 seconds
+      setTimeout(() => navigate("/"), 2000); // Redirect after 2 seconds
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -75,12 +75,12 @@ const RegisterAdmin: React.FC = () => {
 
         <Form.Group className="mb-3">
           <Form.Label>Number</Form.Label>
-          <Form.Control type="text" name="Number" value={formData.number} onChange={handleChange} required />
+          <Form.Control type="text" name="number" value={formData.number} onChange={handleChange} required />
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>Address</Form.Label>
-          <Form.Control type="text" name="Address" value={formData.address} onChange={handleChange} required />
+          <Form.Control type="text" name="address" value={formData.address} onChange={handleChange} required />
         </Form.Group>
         <Form.Group className="mb-3">
           <Form.Label>Role</Form.Label>

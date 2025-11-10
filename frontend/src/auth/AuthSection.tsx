@@ -21,6 +21,10 @@ const AuthSection: React.FC<AuthSectionProps> = ({ onAnyClick }) => {
     onAnyClick?.(); // close navbar/dropdown if open
     navigate("/profile");
   }
+  const handleRegister = () => {
+    onAnyClick?.(); // close navbar/dropdown if open
+    navigate("/admin/register");
+  }
 
   return (
     <Nav>
@@ -36,6 +40,12 @@ const AuthSection: React.FC<AuthSectionProps> = ({ onAnyClick }) => {
                 <Dropdown.Item onClick={handleProfile}>Profile</Dropdown.Item>
               </>
             )}
+            {(hasRole("Admin")) && (
+              <>
+                <Dropdown.Item onClick={handleRegister}>Register User</Dropdown.Item>
+              </>
+            )}
+
             
           </Dropdown.Menu>
         </Dropdown>

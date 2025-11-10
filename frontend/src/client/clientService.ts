@@ -1,4 +1,5 @@
-import { Client, UpdateClientDto } from "../types/client";
+import { Client } from "../types/client";
+import { UpdateUserDto } from "../types/user";
 import { API_URL, getAuthHeaders, handleResponse } from "../shared/http";
 
 export const fetchAllClients = async () => {
@@ -17,7 +18,7 @@ export const fetchClient = async (id: number) => {
   return handleResponse(response);
 };
 
-export const updateClient = async (id: number, client: UpdateClientDto) => {
+export const updateClient = async (id: number, client: UpdateUserDto) => {
   const response = await fetch(`${API_URL}/api/client/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),

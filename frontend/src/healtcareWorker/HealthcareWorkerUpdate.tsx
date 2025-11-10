@@ -2,20 +2,21 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as healthcareWorkerService from "./healthcareWorkerService";
 import { HealthcareWorker } from "../types/healthcareWorker";
-import UpdateHealthcareWorkerForm from "./UpdateHealthcareWorkerForm";
+import UserUpdateForm from "../shared/UserUpdateForm";
 import { useAuth } from "../auth/AuthContext";
 import Loading from "../shared/Loading";
 import { Alert } from "react-bootstrap";
-import { UpdateWorkerDto } from "../types/healthcareWorker";
+import { UpdateUserDto, User } from "../types/user";
 
 const HealthcareWorkerUpdatePage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [worker, setWorker] = useState<HealthcareWorker | null>(null);
-    const { hasRole } = useAuth();
+    const { hasRole, user } = useAuth();
     
     const isAdmin = hasRole("Admin");
     
+    const [isSelf, setIsSelf] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -24,7 +25,20 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
         const fetchWorker = async () => {
         try {
             const data = await healthcareWorkerService.fetchWorker(Number(id));
-            setWorker(data);
+                setWorker(data);
+
+            // If not admin, check if this is user's own worker profile
+            if (!isAdmin && hasRole("HealthcareWorker")) {
+                if (user?.nameid) {
+                    // Match logged-in AuthUserId to HealthcareWorker
+                    const me = await healthcareWorkerService.fetchWorkerByAuthId(user.nameid);
+                    if (me?.id === data.id) {
+                        setIsSelf(true);
+                    } else {
+                        setIsSelf(false);
+                    }
+                }
+            }
         } catch (error) {
             console.error("Error fetching worker:", error);
             setFetchError("Failed to fetch worker data.");
@@ -33,18 +47,32 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
         }
         };
         if (id) fetchWorker();
-    }, [id]);
+    }, [id, isAdmin, hasRole, user]);
 
-    const handleWorkerUpdated = async (updated: UpdateWorkerDto) => {
+    const canAccessPage = isAdmin || isSelf;
+
+    const handleWorkerUpdated = async (updated: UpdateUserDto) => {
         try {
             await healthcareWorkerService.updateWorker(Number(id), updated);
             console.log("Updated successfully");
-            navigate("/healthcare-workers");
+            if(isAdmin){
+                navigate("/healthcareworkers");
+            }
+            else{
+                navigate("/profile");
+            }
         } catch (error) {
             console.error("error update worker:", error);
             setSubmitError("Failed to update worker.");
         }
     };
+    if (!canAccessPage) {
+        return (
+            <Alert variant="danger" className="mt-3">
+                You do not have permission to access this page.
+            </Alert>
+        );
+    }
     return (
         <div>
             <h2>Update Healthcare Worker</h2>
@@ -59,9 +87,11 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
                     {fetchError}
                 </Alert>
             ) : (
-                <UpdateHealthcareWorkerForm
-                    worker={worker}
-                    onHealthcareWorkerUpdated={handleWorkerUpdated}
+                <UserUpdateForm
+                    user={worker}
+                    role="HealthcareWorker"
+                    onUserChanged={handleWorkerUpdated}
+                    serverError={submitError}
                 />
             )}
         </div>

@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as clientService from "./clientService";
 import { Client } from "../types/client";
-import UpdateClientForm from "./UpdateClientForm";
+import UserUpdateForm from "../shared/UserUpdateForm";
 import { useAuth } from "../auth/AuthContext";
 import Loading from "../shared/Loading";
 import { Alert } from "react-bootstrap";
-import { UpdateClientDto } from "../types/client";
+import { UpdateUserDto } from "../types/user";
 
 const ClientUpdatePage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -35,7 +35,7 @@ const ClientUpdatePage: React.FC = () => {
         if (id) fetchClient();
     }, [id]);
 
-    const handleClientUpdated = async (updated: UpdateClientDto) => {
+    const handleClientUpdated = async (updated: UpdateUserDto) => {
         try {
             await clientService.updateClient(Number(id), updated);
             console.log("Updated successfully");
@@ -59,9 +59,11 @@ const ClientUpdatePage: React.FC = () => {
                     {fetchError}
                 </Alert>
             ) : (
-                <UpdateClientForm
-                    client={client}
-                    onClientUpdated={handleClientUpdated}
+                <UserUpdateForm
+                    user={client}
+                    onUserChanged={handleClientUpdated}
+                    role="Client"
+                    serverError={submitError}
                 />
             )}
         </div>
