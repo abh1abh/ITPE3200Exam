@@ -4,7 +4,7 @@ namespace api.DTO
 {
     public class ClientDto
     {
-        public int ClientId { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [StringLength(100, ErrorMessage = "Name must be at most {1} characters.")]

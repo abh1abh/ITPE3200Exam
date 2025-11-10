@@ -30,7 +30,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
 
         var workerDtos = healthcareWorkers.Select(w => new HealthcareWorkerDto
         {
-            HealthcareWorkerId = w.HealthcareWorkerId,
+            Id = w.Id,
             Name = w.Name,
             Address = w.Address,
             Phone = w.Phone,
@@ -45,13 +45,13 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         var worker = await _repository.GetById(id);
         if (worker == null)
         {
-            _logger.LogError("[HealthcareWorkerService] Healthcare worker not found for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
+            _logger.LogError("[HealthcareWorkerService] Healthcare worker not found for Id {Id:0000}", id);
             return null;
         }
 
         var workerDto = new HealthcareWorkerDto
         {
-            HealthcareWorkerId = worker.HealthcareWorkerId,
+            Id = worker.Id,
             Name = worker.Name,
             Address = worker.Address,
             Phone = worker.Phone,
@@ -72,7 +72,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
 
         var workerDto = new HealthcareWorkerDto
         {
-            HealthcareWorkerId = worker.HealthcareWorkerId,
+            Id = worker.Id,
             Name = worker.Name,
             Address = worker.Address,
             Phone = worker.Phone,
@@ -103,7 +103,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
 
         var createdDto = new HealthcareWorkerDto
         {
-            HealthcareWorkerId = worker.HealthcareWorkerId,
+            Id = worker.Id,
             Name = worker.Name,
             Address = worker.Address,
             Phone = worker.Phone,
@@ -129,8 +129,8 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         bool updated = await _repository.Update(existingWorker);
         if (!updated)
         {
-            _logger.LogError("[HealthcareWorkerService] Update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, existingWorker);
-            throw new InvalidOperationException($"Update operation failed for HealthcareWorkerId {id}");
+            _logger.LogError("[HealthcareWorkerService] Update failed for Id {Id:0000}, {@worker}", id, existingWorker);
+            throw new InvalidOperationException($"Update operation failed for Id {id}");
         }
         return updated;
     }
@@ -145,8 +145,8 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         bool deleted = await _repository.Delete(id);
         if (!deleted)
         {
-            _logger.LogError("[HealthcareWorkerService] Deletion failed for HealthcareWorkerId {HealthcareWorkerId:0000}", id);
-            throw new InvalidOperationException($"Deletion operation failed for HealthcareWorkerId {id}");
+            _logger.LogError("[HealthcareWorkerService] Deletion failed for Id {Id:0000}", id);
+            throw new InvalidOperationException($"Deletion operation failed for Id {id}");
         }
         return deleted;
     }
