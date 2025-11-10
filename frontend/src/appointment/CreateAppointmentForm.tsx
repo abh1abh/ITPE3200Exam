@@ -104,8 +104,8 @@ const CreateAppointmentForm: React.FC<CreateAppointmentFormProps> = ({
           <Form.Select value={clientId} onChange={(e) => setClientId(Number(e.target.value))} required>
             <option value={0}>Select a client</option>
             {clients.map((cl) => (
-              <option key={cl.clientId} value={cl.clientId}>
-                {cl.name || `Client ${cl.clientId}`}
+              <option key={cl.id} value={cl.id}>
+                {cl.name || `Client ${cl.id}`}
               </option>
             ))}
           </Form.Select>

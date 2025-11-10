@@ -11,7 +11,6 @@ import LoginPage from "./auth/LoginPage";
 import RegisterAdmin from "./auth/RegisterAdmin";
 import RegisterPage from "./auth/RegisterPage";
 import AvailableSlotCreatePage from "./availableslot/AvailableSlotCreatePage";
-import AvailableSlotDeletePage from "./availableslot/AvailableSlotDeletePage";
 import ProfileForm from "./shared/ProfileForm";
 import ClientPage from "./client/ClientPage";
 import ClientUpdate from "./client/ClientUpdate";
@@ -44,6 +43,29 @@ function App() {
               <Route path="/team" element={<TeamPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route element={<RequireRole roles={["Admin"]} />}>
+                <Route path="/admin/register" element={<RegisterAdmin />} />
+                <Route path="/clients" element={<ClientPage />} />
+                <Route path="/client/:id/update" element={<ClientUpdate />} />
+                <Route path="/healthcareworkers" element={<HealthcareWorkerPage />} />
+                <Route path="/healthcareworker/:id/update" element={<HealthcareWorkerUpdate />} />
+              </Route>
+                <Route element={<RequireRole roles={["Admin", "HealthcareWorker"]} />}>              
+                <Route path="/availableslot" element={<AvailableSlotPage />} />
+                <Route path="/availableslot/create" element={<AvailableSlotCreatePage />} />
+                <Route path="/availableslot/:slotId" element={<AvailableSlotUpdatePage />} />
+              </Route>
+              <Route element={<RequireRole roles={["Admin", "Client"]} />}>              
+                <Route path="/availableslot" element={<AvailableSlotPage />} />
+                <Route path="/appointment/create" element={<AppointmentCreatePage />} />
+              </Route>
+                <Route element={<RequireRole roles={["Admin", "HealthcareWorker", "Client"]} />}>             
+                <Route path="/availableslot" element={<AvailableSlotPage />} />
+                <Route path="/appointment/:id/update" element={<AppointmentUpdatePage />} />
+                <Route path="/appointment" element={<AppointmentPage />} />
+                <Route path="/profile" element={<ProfileForm />} />
+                <Route path="/appointment/:id" element={<AppointmentDetailsPage />} />
+              </Route>
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/services" element={<ServicesPage />} />
               <Route path="/faq" element={<FAQPage />} />

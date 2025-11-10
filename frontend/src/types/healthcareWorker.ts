@@ -1,5 +1,5 @@
 export interface HealthcareWorker {
-  healthcareWorkerId: number;
+  id: number;
   name: string;
   address: string;
   phone: string;
@@ -12,5 +12,5 @@ export interface UpdateWorkerDto{
   address: string;
   email: string;
   password?: string;
-  healthcareWorkerId: number;
+  id: number;
 }
