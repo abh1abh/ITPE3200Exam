@@ -108,6 +108,7 @@ public class AvailableSlotRepository : IAvailableSlotRepository
             var item = await _db.AvailableSlots.FindAsync(id); // Find the available slot by ID
             if (item == null) // Check if the available slot exists
             {
+                _logger.LogWarning("[AvailableSlotRepository] Delete() attempted for non-existent AvailableSlotId {AvailableSlotId:0000}", id);
                 return false; // Return false if not found
             }
 

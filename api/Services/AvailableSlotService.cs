@@ -6,8 +6,8 @@ using api.Models;
 namespace api.Services;
 public class AvailableSlotService: IAvailableSlotService
 {
-    private readonly IAvailableSlotRepository _availableSlotRepository;
-    private readonly IHealthcareWorkerRepository _healthcareWorkerRepository;
+    private readonly IAvailableSlotRepository _availableSlotRepository; // Repository for available slots
+    private readonly IHealthcareWorkerRepository _healthcareWorkerRepository; // Repository for healthcare workers
     private readonly ILogger<AvailableSlotService> _logger;
 
     public AvailableSlotService(IAvailableSlotRepository availableSlotRepository, ILogger<AvailableSlotService> logger, IHealthcareWorkerRepository healthcareWorkerRepository)
@@ -34,16 +34,16 @@ public class AvailableSlotService: IAvailableSlotService
         return currentWorkerId.HasValue && slot.HealthcareWorkerId == currentWorkerId.Value;
     }
 
-    public async Task<IEnumerable<AvailableSlotDto>> GetAll(bool isAdmin)
+    public async Task<IEnumerable<AvailableSlotDto>> GetAll(bool isAdmin) // Admin can see all slots
     {
-        if (!isAdmin)
+        if (!isAdmin) // If not admin, return empty
         {
             return Enumerable.Empty<AvailableSlotDto>();
 
         }
-        var allSlots = await _availableSlotRepository.GetAll();
-        if (allSlots is null || !allSlots.Any()) return Enumerable.Empty<AvailableSlotDto>();
-        var allSlotsDtos = allSlots.Select(s => new AvailableSlotDto
+        var allSlots = await _availableSlotRepository.GetAll(); // Calls repository to get all slots
+        if (allSlots is null || !allSlots.Any()) return Enumerable.Empty<AvailableSlotDto>(); // Return empty if no slots found
+        var allSlotsDtos = allSlots.Select(s => new AvailableSlotDto // Map to DTO
         {
             Id = s.Id,
             HealthcareWorkerId = s.HealthcareWorkerId,
@@ -54,13 +54,13 @@ public class AvailableSlotService: IAvailableSlotService
         return allSlotsDtos;
     }
 
-    public async Task<IEnumerable<AvailableSlotDto>> GetAllByWorkerId(string? authUserId)
+    public async Task<IEnumerable<AvailableSlotDto>> GetAllByWorkerId(string? authUserId) // Healthcare workers can see their own slots by their authUserId
     {
-        var currentWorkerId = await ResolveWorkerIdAsync(authUserId);
-        if (!currentWorkerId.HasValue) return Enumerable.Empty<AvailableSlotDto>();
-        var slots = await _availableSlotRepository.GetByWorkerId(currentWorkerId.Value);
-        if (slots is null || !slots.Any()) return Enumerable.Empty<AvailableSlotDto>();
-        var slotDtos = slots.Select(s => new AvailableSlotDto
+        var currentWorkerId = await ResolveWorkerIdAsync(authUserId); // Get current worker id
+        if (!currentWorkerId.HasValue) return Enumerable.Empty<AvailableSlotDto>(); // Return empty if no worker found
+        var slots = await _availableSlotRepository.GetByWorkerId(currentWorkerId.Value); // Calls repository to get slots by worker id
+        if (slots is null || !slots.Any()) return Enumerable.Empty<AvailableSlotDto>(); // Return empty if no slots found
+        var slotDtos = slots.Select(s => new AvailableSlotDto // Map to DTO
         {
             Id = s.Id,
             HealthcareWorkerId = s.HealthcareWorkerId,
@@ -71,15 +71,15 @@ public class AvailableSlotService: IAvailableSlotService
         return slotDtos;
     }
 
-    public async Task<AvailableSlotDto?> GetById(int id, bool isAdmin, string? authUserId)
+    public async Task<AvailableSlotDto?> GetById(int id, bool isAdmin, string? authUserId) // Healthcare workers and Admins can get slot by ID
     {
-        var existing = await _availableSlotRepository.GetById(id);
+        var existing = await _availableSlotRepository.GetById(id); // Calls repository to get slot by ID
         if (existing is null) return null; // Handle by controller by using NotFound()
 
         if (!await IsAuthorizedForSlot(existing, isAdmin, authUserId))
             throw new UnauthorizedAccessException(); // Handle by controller by using Forbid()
 
-        return new AvailableSlotDto
+        return new AvailableSlotDto // Map to DTO
         {
             Id = existing.Id,
             HealthcareWorkerId = existing.HealthcareWorkerId,
@@ -88,35 +88,37 @@ public class AvailableSlotService: IAvailableSlotService
             IsBooked = existing.IsBooked
         };
     }
-    public async Task<AvailableSlotDto> Create(AvailableSlotDto dto, bool isAdmin, string? authUserId)
+    public async Task<AvailableSlotDto> Create(AvailableSlotDto dto, bool isAdmin, string? authUserId) // Healthcare workers and Admins can create slots
     {
         int workerId;
-        if (isAdmin)
+        // Determine healthcare worker ID based on role
+        if (isAdmin) // If Admin, use provided worker ID
         {
             workerId = dto.HealthcareWorkerId;
         }
-        else
+        else // If Healthcare Worker, resolve worker ID from authUserId
         {
             var currentWorkerId = await ResolveWorkerIdAsync(authUserId);
-            if (!currentWorkerId.HasValue) throw new UnauthorizedAccessException();
+            if (!currentWorkerId.HasValue) throw new UnauthorizedAccessException(); // If no worker found, throw UnauthorizedAccessException
             workerId = currentWorkerId.Value;
         }
 
-        var slot = new AvailableSlot
+        var slot = new AvailableSlot // Create new AvailableSlot model
         {
             HealthcareWorkerId = workerId,
             Start = dto.Start,
             End = dto.End,
             IsBooked = false
         };
-        
-        var ok = await _availableSlotRepository.Create(slot);
-        if (!ok)
+
+        var ok = await _availableSlotRepository.Create(slot); // Calls repository to create slot
+        if (!ok) // If creation failed, log error and throw invalid operation exception
         {
             _logger.LogError("[AvailableSlotService] create failed {@slot}", slot);
             throw new InvalidOperationException("Failed to create slot.");
         }
 
+        // Return created slot as DTO
         var createdSlotDto = new AvailableSlotDto
         {
             Id = slot.Id,
@@ -128,13 +130,17 @@ public class AvailableSlotService: IAvailableSlotService
 
         return createdSlotDto;
     }
-    public async Task<bool> Update(int id, AvailableSlotDto dto, bool isAdmin, string? authUserId)
-    {
-        var existing = await _availableSlotRepository.GetById(id);
-        if (existing is null) return false;
 
+    public async Task<bool> Update(int id, AvailableSlotDto dto, bool isAdmin, string? authUserId) // Healthcare workers and Admins can update slots
+    {
+        var existing = await _availableSlotRepository.GetById(id); // Calls repository to get slot by ID
+        if (existing is null) return false; // If no slot found, return false, handle by controller by using NotFound()
+
+        // If not authorized, throw UnauthorizedAccessException, handle by controller by using Forbid()
         if (!await IsAuthorizedForSlot(existing, isAdmin, authUserId)) throw new UnauthorizedAccessException();
 
+        // Update fields based on role
+        // Admin can update all fields, Healthcare Worker cannot update booked slots
         if (isAdmin)
         {
             existing.HealthcareWorkerId = dto.HealthcareWorkerId;
@@ -149,7 +155,9 @@ public class AvailableSlotService: IAvailableSlotService
             existing.End = dto.End;
             existing.IsBooked = false; // Cannot book a slot via this endpoint
         }
-        var updated = await _availableSlotRepository.Update(existing);
+        var updated = await _availableSlotRepository.Update(existing); // Calls repository to update slot
+
+        // If update failed, log error, handle by controller by using 500 Internal Server Error
         if (!updated)
         {
             _logger.LogError("[AvailableSlotService] update failed {@slot}", existing);
@@ -157,15 +165,21 @@ public class AvailableSlotService: IAvailableSlotService
         return updated;
 
     }
-    public async Task<bool> Delete(int id, bool isAdmin, string? authUserId)
+    
+    public async Task<bool> Delete(int id, bool isAdmin, string? authUserId) // Healthcare workers and Admins can delete slots 
     {
-        var existing = await _availableSlotRepository.GetById(id);
-        if (existing is null) return false;
+        var existing = await _availableSlotRepository.GetById(id); // Calls repository to get slot by ID
+        if (existing is null) return false; // If no slot found, return false, handle by controller by using NotFound()
 
-        if (!await IsAuthorizedForSlot(existing, isAdmin, authUserId)) throw new UnauthorizedAccessException();
+        // If not authorized, throw UnauthorizedAccessException, handle by controller by using Forbid()
+        if (!await IsAuthorizedForSlot(existing, isAdmin, authUserId)) throw new UnauthorizedAccessException();  
+
+        // If slot is booked, cannot delete, throw ArgumentException, handle by controller by using BadRequest()
         if (existing.IsBooked) throw new ArgumentException("Cannot delete a booked slot. Please cancel the appointment first.");
         var deleted = await _availableSlotRepository.Delete(id);
-        if (!deleted)
+
+        // If delete failed, log error, handle by controller by using 500 Internal Server Error
+        if (!deleted) 
         {
             _logger.LogError("[AvailableSlotService] delete failed for {Id:0000}", id);
         }
@@ -173,11 +187,12 @@ public class AvailableSlotService: IAvailableSlotService
 
     }
 
-    public async Task<IEnumerable<AvailableSlotDto>> GetAllUnbooked()
+    public async Task<IEnumerable<AvailableSlotDto>> GetAllUnbooked() // Clients can see all unbooked slots
     {
-        var allSlots = await _availableSlotRepository.GetAllUnbooked();
-        if (allSlots is null || !allSlots.Any()) return Enumerable.Empty<AvailableSlotDto>();
-        var allSlotsDtos = allSlots.Select(s => new AvailableSlotDto
+        var allSlots = await _availableSlotRepository.GetAllUnbooked(); // Calls repository to get all unbooked slots
+        if (allSlots is null || !allSlots.Any()) return Enumerable.Empty<AvailableSlotDto>(); // Return empty if no slots found
+        
+        var allSlotsDtos = allSlots.Select(s => new AvailableSlotDto // Map to DTO
         {
             Id = s.Id,
             HealthcareWorkerId = s.HealthcareWorkerId,

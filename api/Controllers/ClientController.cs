@@ -72,8 +72,9 @@ public class ClientController : ControllerBase
         catch (ArgumentException e)
         {
             return BadRequest(e.Message);
-        } 
+        }
     }
+    
     [HttpPut("{id}")]
     public async Task<IActionResult> Update([FromBody] UpdateClientDto clientDto)
     {

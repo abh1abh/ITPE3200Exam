@@ -11,8 +11,8 @@ namespace api.Controllers;
 [Route("api/[controller]")]
 public class AvailableSlotController : ControllerBase
 {
-    private readonly ILogger<AvailableSlotController> _logger;
-    private readonly IAvailableSlotService _service;
+    private readonly ILogger<AvailableSlotController> _logger; // Logger for logging errors and information
+    private readonly IAvailableSlotService _service; // Service layer
 
     public AvailableSlotController(IAvailableSlotService service, ILogger<AvailableSlotController> logger)
     {
@@ -31,17 +31,17 @@ public class AvailableSlotController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll() // Admin can see all slots
     {
-        var (role, _) = UserContext();
+        var (role, _) = UserContext(); 
         bool isAdmin = role == "Admin";
-        var slots = await _service.GetAll(isAdmin);
+        var slots = await _service.GetAll(isAdmin); // Calls service layer to get all slots
         return Ok(slots);
     }
 
     [Authorize(Roles = "Admin,Client")]
     [HttpGet("unbooked")]
-    public async Task<IActionResult> GetAllUnbooked()
+    public async Task<IActionResult> GetAllUnbooked() // Admin and Clients can see unbooked slots for appointment booking
     {
         var slots = await _service.GetAllUnbooked();
         return Ok(slots);
@@ -50,26 +50,31 @@ public class AvailableSlotController : ControllerBase
 
     [HttpGet("mine")]
     [Authorize(Roles = "HealthcareWorker,Admin")]
-    public async Task<IActionResult> GetAllByWorkerId()
+    public async Task<IActionResult> GetAllByWorkerId() // Healthcare workers can see their own slots
     {
         var (_, authUserId) = UserContext();
-        var slots = await _service.GetAllByWorkerId(authUserId);
+        var slots = await _service.GetAllByWorkerId(authUserId); // Calls service layer to get slots by worker id
         return Ok(slots);
     }
 
     [Authorize(Roles = "HealthcareWorker,Admin")]
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(int id)  // Healthcare workers and Admins can get slot by ID
     {
         try
         {
             var (role, authUserId) = UserContext();
             bool isAdmin = role == "Admin";
-            var dto = await _service.GetById(id, isAdmin, authUserId);
+            var dto = await _service.GetById(id, isAdmin, authUserId); // Calls service layer to get slot by ID
             if (dto is null) return NotFound("Available slot not found");
             return Ok(dto);
         }
-        catch (Exception ex)
+        catch (UnauthorizedAccessException) // Handles unauthorized access
+        {
+            _logger.LogWarning("[AvailableSlotController] User is not authorized to access available slot ID {Id:0000}", id);
+            return Forbid(); // Returns 403 Forbidden if user is not authorized
+        }
+        catch (Exception ex) // Handles general exceptions
         {
             _logger.LogError(ex, "[AvailableSlotController] Failed to get available slot ID {Id:0000}", id);
             return StatusCode(500, "A problem occurred while fetching available slot.");
@@ -79,16 +84,20 @@ public class AvailableSlotController : ControllerBase
     
     [Authorize(Roles = "HealthcareWorker,Admin")]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] AvailableSlotDto slotDto)
+    public async Task<IActionResult> Create([FromBody] AvailableSlotDto slotDto) // Healthcare workers and Admins can create slots
     {
         var (role, authUserId) = UserContext();
         bool isAdmin = role == "Admin";
         try
         {
-            var created = await _service.Create(slotDto, isAdmin, authUserId);
+            var created = await _service.Create(slotDto, isAdmin, authUserId); // Calls service layer to create slot
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
-        catch (UnauthorizedAccessException) { return Forbid(); }
+        catch (UnauthorizedAccessException) // Handles unauthorized access
+        {
+            _logger.LogWarning("[AvailableSlotController] User is not authorized to create available slot");
+            return Forbid(); 
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[AvailableSlotController] create failed");
@@ -98,23 +107,23 @@ public class AvailableSlotController : ControllerBase
 
     [Authorize(Roles = "HealthcareWorker,Admin")]
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] AvailableSlotDto slotDto)
+    public async Task<IActionResult> Update(int id, [FromBody] AvailableSlotDto slotDto) // Healthcare workers and Admins can update slots
     {
-        if (id != slotDto.Id) return BadRequest("ID mismatch");
-        var (role, authUserId) = UserContext();
+        if (id != slotDto.Id) return BadRequest("ID mismatch"); // Checks if id and slot id are the same
+        var (role, authUserId) = UserContext(); 
         bool isAdmin = role == "Admin";
         try
         {
-            var ok = await _service.Update(id, slotDto, isAdmin, authUserId);
+            var ok = await _service.Update(id, slotDto, isAdmin, authUserId); // Calls service layer to update slot
             if (!ok) return NotFound();
-            return NoContent();
+            return NoContent(); // Returns 204 No Content if update is successful
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException) // Handles unauthorized access
         {
             _logger.LogError("[AvailableSlotController] User is not authorized to access available slot");
             return Forbid(); 
         }
-        catch (ArgumentException e)
+        catch (ArgumentException e) // Handles bad input exceptions
         {
             
             _logger.LogError(e, "[AvailableSlotController] Arguments missing");
@@ -129,35 +138,38 @@ public class AvailableSlotController : ControllerBase
 
     [Authorize(Roles = "HealthcareWorker,Admin")]
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id) // Healthcare workers and Admins can delete slots
     {
         var (role, authUserId) = UserContext();
         bool isAdmin = role == "Admin";
         try
         {
-            var ok = await _service.Delete(id, isAdmin, authUserId);
-            if (!ok)
+            var ok = await _service.Delete(id, isAdmin, authUserId); // Calls service layer to delete slot
+
+            // If delete failed return 500 Internal Server Error
+            if (!ok) 
             {
-                NotFound();
+                _logger.LogError("[AvailableSlotController] Delete operation failed for available slot id {ID:0000}", id); 
+                return StatusCode(500, "Failed to delete slot.");
             }
-            return NoContent();
+            return NoContent(); // Returns 204 No Content if delete is successful
 
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException) // Handles unauthorized access
         {
             _logger.LogWarning("[AvailableSlotController] User is not authorized to access available slot");
-            return Forbid();
+            return Forbid(); // Returns 403 Forbidden if user is not authorized
         }
-        catch (ArgumentException e)
+        catch (ArgumentException e) // Handles bad input exceptions
         {
 
             _logger.LogError(e, "[AvailableSlotController] Arguments missing");
             return BadRequest(e.Message);
         }
-        catch (Exception ex)
+        catch (Exception ex) // Handles general exceptions
         {
             _logger.LogError(ex, "[AvailableSlotController] deleted failed for available slot id {ID:0000}", id);
-            return StatusCode(500, "Failed to update slot.");
+            return StatusCode(500, "Failed to delete slot."); // Returns 500 Internal Server Error for general exceptions
         }
     }    
 
