@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import * as AppointmentService from "./appointmentService";
 import { Appointment } from "../types/appointment";
 import * as ClientService from "../client/clientService";
-import * as availableSlotService from "../availableslot/availableslotService";
-
+import * as availableSlotService from "../availableslot/availableSlotService";
 import { Client } from "../types/client";
 import { AvailableSlot } from "../types/availableSlot";
 import { useAuth } from "../auth/AuthContext";
@@ -27,7 +26,7 @@ const AppointmentCreatePage: React.FC = () => {
 
   // Get user roles
   const { hasRole } = useAuth();
-  const isAdmin = hasRole("Admin");
+  const isAdmin: boolean = hasRole("Admin");
 
   // Handle appointment creation
   const handleAppointmentCreated = async (appointment: Appointment) => {

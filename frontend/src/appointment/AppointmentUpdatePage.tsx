@@ -16,9 +16,9 @@ const AppointmentUpdatePage: React.FC = () => {
 
   // Get user roles
   const { hasRole } = useAuth();
-  const isAdmin = hasRole("Admin");
-  const isClient = hasRole("Client");
-  const isWorker = hasRole("HealthcareWorker");
+  const isAdmin: boolean = hasRole("Admin");
+  const isClient: boolean = hasRole("Client");
+  const isWorker: boolean = hasRole("HealthcareWorker");
 
   // Loading and error states
   const [loading, setLoading] = useState<boolean>(true);

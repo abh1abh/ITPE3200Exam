@@ -15,9 +15,9 @@ const AppointmentPage: React.FC = () => {
 
   // Get user and roles
   const { user, hasRole } = useAuth();
-  const isAdmin = hasRole("Admin");
-  const isClient = hasRole("Client");
-  const isWorker = hasRole("HealthcareWorker");
+  const isAdmin: boolean = hasRole("Admin");
+  const isClient: boolean = hasRole("Client");
+  const isWorker: boolean = hasRole("HealthcareWorker");
   const navigate = useNavigate();
 
   // Deleting state
@@ -30,6 +30,7 @@ const AppointmentPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
+      // Fetch appointments based on role
       let data: AppointmentView[] = [];
       if (isAdmin) data = await appointmentService.fetchAppointments();
       else if (isClient) data = await appointmentService.fetchAppointmentsByClientId();
@@ -39,7 +40,6 @@ const AppointmentPage: React.FC = () => {
         return;
       }
       setAppointments(data);
-      console.log("Appointments fetched:", data);
     } catch (error: any) {
       // if error occurs during fetch
       console.error("Error fetching appointments: ", error);

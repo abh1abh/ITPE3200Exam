@@ -36,6 +36,17 @@ const NavMenu: React.FC = () => {
                 </Nav.Link>
               </>
             )}
+            {(hasRole("Admin") || hasRole("Client")) && (
+              <>
+                <Nav.Link
+                  as={NavLink}
+                  to="/appointment/create"
+                  onClick={handleNavClick}
+                  className="text-dark fw-medium mx-2">
+                  Create Appointment
+                </Nav.Link>
+              </>
+            )}
             {(hasRole("Admin") || hasRole("HealthcareWorker")) && (
               <>
                 <Nav.Link
@@ -44,6 +55,13 @@ const NavMenu: React.FC = () => {
                   onClick={handleNavClick}
                   className="text-dark fw-medium mx-2">
                   Available slots
+                </Nav.Link>
+                <Nav.Link
+                  as={NavLink}
+                  to="/availableslot/create"
+                  onClick={handleNavClick}
+                  className="text-dark fw-medium mx-2">
+                  Create Available Slot
                 </Nav.Link>
               </>
             )}

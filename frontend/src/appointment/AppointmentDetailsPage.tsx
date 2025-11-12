@@ -26,9 +26,9 @@ const AppointmentDetailsPage: React.FC = () => {
   const navigate = useNavigate();
 
   // Determine roles
-  const isAdmin = hasRole("Admin");
-  const isClient = hasRole("Client");
-  const isWorker = hasRole("HealthcareWorker");
+  const isAdmin: boolean = hasRole("Admin");
+  const isClient: boolean = hasRole("Client");
+  const isWorker: boolean = hasRole("HealthcareWorker");
 
   // Fetch appointment data on mount and when id changes
   useEffect(() => {
