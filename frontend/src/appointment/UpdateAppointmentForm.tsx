@@ -3,8 +3,8 @@ import { Appointment, AppointmentTask, AppointmentView } from "../types/appointm
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Col, Container, Form, InputGroup, Row, Table } from "react-bootstrap";
 import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
-// import { formatDate } from "../shared/timeUtils";
 
+// Props for UpdateAppointmentForm component
 interface UpdateAppointmentFormProps {
   initialData: AppointmentView;
   onAppointmentChanged: (updated: Appointment) => void;
@@ -25,17 +25,21 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
   const navigate = useNavigate();
   const onCancel = () => navigate(-1);
 
+  // State for notes, appointment tasks, new task input, and error messages
   const [notes, setNotes] = useState<string>(initialData.notes ?? "");
   const [appointmentTasks, setAppointmentTasks] = useState<AppointmentTask[]>(initialData.appointmentTasks);
   const [taskInput, setTaskInput] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
+  // useRef to keep track of locked task IDs. Tasks that are completed cannot be modified or removed.
   const lockedTaskKeysRef = useRef(
     new Set(initialData.appointmentTasks.filter((t) => t.isCompleted).map((t) => t.id))
   );
 
+  // Function to check if a task is locked (completed)
   const isLocked = (t: AppointmentTask) => lockedTaskKeysRef.current.has(t.id);
 
+  // Handler to toggle task completion status
   const handleToggleCompleted = (index: number, value: boolean) => {
     setAppointmentTasks((prev) =>
       prev.map((task, i) => {
@@ -46,10 +50,12 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
     );
   };
 
+  // Function to add a new task
   const addTask = () => {
     setError(null);
     const trimmed = taskInput.trim();
     if (!trimmed) {
+      // If task description is empty, set error
       setError("Need to fill out description of task");
       return;
     }
@@ -57,7 +63,9 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
     setTaskInput("");
   };
 
+  // Function to remove a task
   const removeTask = (index: number) => {
+    // Prevent removal of locked (completed) tasks
     setAppointmentTasks((prev) => {
       const task = prev[index];
       if (task && isLocked(task)) return prev;
@@ -65,21 +73,25 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
     });
   };
 
+  // Handler for form submission
   const handleSubmit = (event: React.FormEvent) => {
+    // Prevent default form submission behavior
     event.preventDefault();
+    setError(null);
 
+    // Validate that at least one task is present
     if (appointmentTasks.length < 1) {
       setError("Add task to appointment");
       return;
     }
+    // Prepare appointment data to send back
     const tasksToSave = appointmentTasks.map((t) => ({
       id: t.id, // include id if present
       description: t.description.trim(),
       isCompleted: t.isCompleted,
     }));
 
-    console.log(tasksToSave);
-
+    // Construct updated appointment object
     const appointment: Appointment = {
       ...initialData,
       notes,
@@ -88,12 +100,14 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
     onAppointmentChanged(appointment);
   };
 
+  // Render the update appointment form
   return (
     <Container style={{ maxWidth: "35rem" }}>
       <Card className="mb-3 border-0 ">
         <Card.Header className="fw-semibold">Details</Card.Header>
         <Card.Body>
           <Row className="g-3">
+            {/* Conditional rendering of client and healthcare worker info based on user role */}
             {isAdmin && (
               <>
                 <Col className="text-start">
@@ -142,6 +156,7 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
             </Col>
           </Row>
 
+          {/* Form for updating appointment notes and tasks */}
           <hr className="my-4" />
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="formNotes" className="mb-3">
@@ -165,10 +180,12 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
                   </thead>
                   <tbody>
                     {appointmentTasks.map((t, idx) => {
+                      // Check if the task is locked
                       const locked = isLocked(t);
 
                       return (
                         <tr key={`${t.description}-${idx}`}>
+                          {/* Check box to mark completed */}
                           <td className="text-center">
                             <Form.Check
                               type="checkbox"
@@ -178,12 +195,14 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
                             />
                           </td>
                           <td>{t.description}</td>
+                          {/* Badge to show completed or pending status */}
                           <td>
                             <Badge bg={t.isCompleted ? "success" : "secondary"}>
                               {t.isCompleted ? "Completed" : "Pending"}
                             </Badge>
                           </td>
                           <td>
+                            {/* If task is not locked, show remove button */}
                             {!locked && (
                               <Button
                                 variant="outline-danger"
@@ -202,6 +221,7 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
               </>
             )}
 
+            {/* Form for adding new tasks */}
             <Form.Group controlId="formTasks" className="mb-3 mt-2">
               <Form.Label>Add Task</Form.Label>
               <InputGroup className="mb-2">
@@ -223,9 +243,11 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
               </InputGroup>
             </Form.Group>
 
+            {/* Show error messages if any*/}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {serverError && <p style={{ color: "red" }}>{serverError}</p>}
 
+            {/* Form buttons  */}
             <div className="d-flex justify-content-between mt-4">
               <Button variant="secondary" onClick={onCancel}>
                 Cancel

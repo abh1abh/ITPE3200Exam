@@ -90,7 +90,7 @@ public class ClientController : ControllerBase
         catch (ArgumentException e)
         {
             return BadRequest(e.Message);
-        } 
+        }
     }
 
     [HttpDelete("{id}")]

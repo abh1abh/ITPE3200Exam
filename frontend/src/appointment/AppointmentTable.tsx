@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { AppointmentView } from "../types/appointment";
 import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
 
+// Props for AppointmentTable component
 interface AppointmentTableProps {
   appointments: AppointmentView[];
   onDeleteClick?: (a: AppointmentView) => void;
@@ -11,6 +12,7 @@ interface AppointmentTableProps {
   isWorker?: boolean;
   isClient?: boolean;
 }
+
 const AppointmentTable: React.FC<AppointmentTableProps> = ({
   appointments,
   onDeleteClick,
@@ -42,6 +44,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
         </tr>
       </thead>
       <tbody>
+        {/* If no appointments, show message with dynamic column count */}
         {appointments.length === 0 ? (
           <tr>
             <td colSpan={columnsCount} className="text-center text-muted">
@@ -49,6 +52,8 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
             </td>
           </tr>
         ) : (
+          // If appointments exist, map and show each appointment row.
+          // Show different columns based on roles.
           appointments.map((a) => (
             <tr key={a.id}>
               {isAdmin && (
@@ -63,8 +68,11 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
               <td>{formatDateOnly(a.start)}</td>
               <td>{formatTimeOnly(a.start)}</td>
               <td>{formatTimeOnly(a.end)}</td>
-              {/* <td>{a.notes}</td> */}
               <td>
+                {/* 
+                  Link to details and update pages.
+                  Show cancel button if onDeleteClick prop is provided
+                */}
                 <Link to={`/appointment/${a.id}`} className="btn btn-primary btn-sm me-2">
                   Details
                 </Link>
