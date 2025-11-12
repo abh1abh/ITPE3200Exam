@@ -22,17 +22,17 @@ public class HealthcareWorkerController : ControllerBase
         _authService = authService;
     }
 
-    private (string? role, string? authUserId) UserContext()
+    private (string? role, string? authUserId) UserContext() // Get role and AuthUserId from JWT token
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // AuthUserId
         var role = User.FindFirstValue(ClaimTypes.Role); // Specified Role when creating the JWT token
         return (role, userId);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll() // Get all healthcare workers
     {
-        var healthcareWorkers = await _service.GetAll();
+        var healthcareWorkers = await _service.GetAll(); // Get all healthcare workers from database through service
         if (!healthcareWorkers.Any())
         {
             _logger.LogWarning("[HealthcareWorkerController] No healthcare workers found.");
@@ -42,9 +42,9 @@ public class HealthcareWorkerController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(int id) // Get healthcare worker by Id
     {
-        var worker = await _service.GetById(id);
+        var worker = await _service.GetById(id); // Get healthcare worker from database through service
         if (worker == null)
         {
             _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for Id {Id:0000}", id);
@@ -54,12 +54,12 @@ public class HealthcareWorkerController : ControllerBase
     }
 
     [HttpGet("workerauth")]
-    public async Task<IActionResult> GetBySelf()
+    public async Task<IActionResult> GetBySelf() // Get healthcare worker by AuthUserId from JWT token
     {
         var (_, authUserId) = UserContext(); // Get role and AuthUserId
         try
         {
-            var worker = await _service.GetByAuthUserId(authUserId!);
+            var worker = await _service.GetByAuthUserId(authUserId!); // Get healthcare worker from database through service
             if (worker == null)
             {
                 _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
@@ -74,12 +74,12 @@ public class HealthcareWorkerController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] HealthcareWorkerDto workerDto)
+    public async Task<IActionResult> Create([FromBody] HealthcareWorkerDto workerDto) // Create a new healthcare worker
     {
         try
         {
-            var created = await _service.Create(workerDto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            var created = await _service.Create(workerDto); // Create healthcare worker in database through service
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created); // Return 201 Created with location header
         } catch (InvalidOperationException)
         {
             return StatusCode(500, "API had a problem while handling your request.");
@@ -90,14 +90,14 @@ public class HealthcareWorkerController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id) // Delete healthcare worker by Id
     {   
-        string? userName = (await _service.GetById(id))?.Email;
+        string? userName = (await _service.GetById(id))?.Email; // Get AuthUserId associated with the healthcare worker
         _logger.LogError("[HealthcareWorkerController] Deleting worker with Id {Id:0000} and AuthUserId {userId}", id, userName);
         try
         {
-            bool deleted = await _service.Delete(id);
-            bool deletedUser = await _authService.DeleteUserAdminAsync(userName!);
+            bool deleted = await _service.Delete(id); // Delete healthcare worker from database through service
+            bool deletedUser = await _authService.DeleteUserAdminAsync(userName!); // Delete user from Auth database through Auth service
             if (!deleted)
             {
                 return NotFound("Healthcare worker was not found or delete failed");

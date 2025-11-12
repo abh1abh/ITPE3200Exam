@@ -7,7 +7,7 @@ import React from "react";
 interface RequireRoleProps {
   roles: string[];
 }
-
+// Component that restricts access to routes based on user roles
 const RequireRole: React.FC<RequireRoleProps> = ({ roles }) => {
   const { hasRole, isLoading } = useAuth();
   if (isLoading) return <Loading />;

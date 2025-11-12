@@ -26,10 +26,10 @@ const AuthSection: React.FC<AuthSectionProps> = ({ onAnyClick }) => {
     navigate("/admin/register");
   }
 
-  return (
+  return ( //return html of the auth section of the navbar
     <Nav>
       {user ? (
-        <Dropdown align="end">
+        <Dropdown align="end"> 
           <Dropdown.Toggle as={Nav.Link} id="dropdown-user">
             Welcome, {user.sub}
           </Dropdown.Toggle>

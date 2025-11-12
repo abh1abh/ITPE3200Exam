@@ -23,7 +23,7 @@ public class ClientController : ControllerBase
         _authService = authService;
     }
 
-    private (string? role, string? authUserId) UserContext()
+    private (string? role, string? authUserId) UserContext() // Get role and AuthUserId from JWT token
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
         var role = User.FindFirstValue(ClaimTypes.Role); // Specified Role when creating the JWT token
@@ -32,7 +32,7 @@ public class ClientController : ControllerBase
 
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll() // Get all clients
     {
         var clients = await _service.GetAll();
         if (!clients.Any())
@@ -44,7 +44,7 @@ public class ClientController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(int id) // Get client by Id
     {
         var client = await _service.GetById(id);
         if (client == null)
@@ -56,7 +56,7 @@ public class ClientController : ControllerBase
     }
 
     [HttpGet("clientauth")]
-    public async Task<IActionResult> GetBySelf()
+    public async Task<IActionResult> GetBySelf() // Get client by AuthUserId from JWT token
     {
         var (_, authUserId) = UserContext(); // Get role and AuthUserId
         try
@@ -76,12 +76,12 @@ public class ClientController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ClientDto clientDto)
+    public async Task<IActionResult> Create([FromBody] ClientDto clientDto) // Create new client
     {
         try
         {
-            var created = await _service.Create(clientDto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            var created = await _service.Create(clientDto);                 // Create client in App Database
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created); // Return 201 Created with location header
         }
         catch (InvalidOperationException)
         {
@@ -94,14 +94,14 @@ public class ClientController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id) // Delete client by Id
     {
         try
         {
-            ClientDto user = await _service.GetById(id);
-            string username = user.Email;
-            bool deleted = await _service.Delete(id);
-            bool authDeleted = await _authService.DeleteUserAsync(username);
+            ClientDto user = await _service.GetById(id); //Find client in App Database
+            string username = user.Email;               //Get username to delete from Auth Database
+            bool deleted = await _service.Delete(id);   //Delete client from App Database
+            bool authDeleted = await _authService.DeleteUserAsync(username); //Delete client from Auth Database
             if (!deleted)
             {
                 return NotFound("Client not found");

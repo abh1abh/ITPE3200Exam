@@ -11,7 +11,7 @@ const ProfileForm: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [data, setdata] = useState({
+    const [data, setdata] = useState({ // Form data state with default values
         email: "",
         name: "",
         number: "",
@@ -19,22 +19,22 @@ const ProfileForm: React.FC = () => {
     });
     console.log(user);
     
-    const fetchUserData = async () => {
+    const fetchUserData = async () => { // Fetch profile data based on user role
         setLoading(true);
         setError(null);
         try {
             if(user?.role === "Admin"){
                 
             }
-            if (user?.role === "HealthcareWorker") {
-                const worker = await HealthcareWorkerService.fetchWorkerBySelf();
-                data.email = worker.email;
+            if (user?.role === "HealthcareWorker") { // Fetch healthcare worker data if user is a worker
+                const worker = await HealthcareWorkerService.fetchWorkerBySelf(); // Fetch worker data using the service
+                data.email = worker.email;                                        // Set form data
                 data.name = worker.name;
                 data.number = worker.phone;
                 data.address = worker.address;
             }
-            else if (user?.role === "Client") {
-                const client = await ClientService.fetchClientBySelf();
+            else if (user?.role === "Client") { // Fetch client data if user is a client
+                const client = await ClientService.fetchClientBySelf(); // Fetch client data using the service
                 data.email = client.email;
                 data.name = client.name;
                 data.number = client.phone;

@@ -15,16 +15,16 @@ const RegisterPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => { // Handling input changes
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => { // Handling form submission
+    e.preventDefault(); // Prevent default form submission behavior
     setError(null);
     setSuccess(null);
     try {
-      await authService.register({
+      await authService.register({ //register function from authService
         ...formData,
       });
       setSuccess("Registration successful! You can now log in.");

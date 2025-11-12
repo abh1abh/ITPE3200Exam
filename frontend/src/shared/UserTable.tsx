@@ -11,7 +11,7 @@ interface Props {
   onDeleteClick: (user: HealthcareWorker | Client) => void;
 }
 
-const UserTable: React.FC<Props> = ({ users, isHealthcareWorker, onDeleteClick }) => {
+const UserTable: React.FC<Props> = ({ users, isHealthcareWorker, onDeleteClick }) => { // User table component. Displays a list of users with actions to view details, update, or delete, based on user type.
   return (
     <Table striped bordered hover responsive>
       <thead>

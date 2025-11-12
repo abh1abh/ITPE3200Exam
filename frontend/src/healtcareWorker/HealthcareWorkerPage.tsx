@@ -17,12 +17,12 @@ const HealthcareWorkerPage: React.FC = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [success, setSuccess] = useState<string | null>(null);
 
-    const fetchWorkerData = async () => {
+    const fetchWorkerData = async () => { // Fetch profile data
         setLoading(true);
         setError(null);
         try {
-            const response = await HealthcareWorkerService.fetchAllWorkers();
-            setClients(response);
+            const response = await HealthcareWorkerService.fetchAllWorkers(); // Fetch worker data using the service
+            setClients(response); // Set the fetched data to state
         } catch (error: any) {
             console.error("Error fetching profile data:", error);
             setError("Failed to fetch profile data");
@@ -35,12 +35,12 @@ const HealthcareWorkerPage: React.FC = () => {
         fetchWorkerData();
     }, []);
     
-    const confirmDelete = async () => {
+    const confirmDelete = async () => { // Confirm deletion of worker
         if (!toDelete?.id) return;
         setError(null);
-        setIsDeleting(true);
+        setIsDeleting(true); // Deletion in progress
         try {
-        await HealthcareWorkerService.deleteWorker(toDelete.id);
+        await HealthcareWorkerService.deleteWorker(toDelete.id); // Call delete service
         fetchWorkerData();
         setSuccess("Worker deleted successfully.");
         setToDelete(null);

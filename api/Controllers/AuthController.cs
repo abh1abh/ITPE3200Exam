@@ -82,10 +82,10 @@ namespace api.Controllers
             return token;
         }
         [HttpPut("client/{id}")]
-        public async Task<IActionResult> UpdateClient([FromBody] UpdateUserDto updateUserDto)
+        public async Task<IActionResult> UpdateClient([FromBody] UpdateUserDto updateUserDto) //Update client information in Auth and client Db
         {
             int id = updateUserDto.Id;
-            ClientDto? client = await _clientService.GetById(id);
+            ClientDto? client = await _clientService.GetById(id); //Find client in App Database
             if (client == null)
             {
                 return NotFound("Client not found");
@@ -112,10 +112,10 @@ namespace api.Controllers
         }  
 
         [HttpPut("worker/{id}")]
-        public async Task<IActionResult> UpdateWorker([FromBody] UpdateUserDto updateUserDto)
+        public async Task<IActionResult> UpdateWorker([FromBody] UpdateUserDto updateUserDto) //Update healthcare worker information in Auth and worker Db
         {
             int id = updateUserDto.Id;
-            HealthcareWorkerDto? worker = await _healthcareWorkerService.GetById(id);
+            HealthcareWorkerDto? worker = await _healthcareWorkerService.GetById(id); //Find healthcare worker in App Database
             if (worker == null)
             {
                 return NotFound("HealthcareWorker not found");
@@ -126,7 +126,7 @@ namespace api.Controllers
             }
             try
             {   
-                var authWorkerUpdate = await _authService.UpdateHealthcareWorkerAsync(updateUserDto);
+                var authWorkerUpdate = await _authService.UpdateHealthcareWorkerAsync(updateUserDto); //Update healthcare worker in Auth Database
                 return Ok(authWorkerUpdate);
             }
             catch (InvalidOperationException ex)

@@ -20,19 +20,19 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
 
     const isHealthcareWorker = hasRole("HealthcareWorker");
 
-    const fetchProfileData = async () => {
+    const fetchProfileData = async () => { // Fetch profile data
         setLoading(true);
         setError(null);
         try {
-            const workerDto = await HealthcareWorkerService.fetchWorker(Number(id));
-            const worker: HealthcareWorker = {
+            const workerDto = await HealthcareWorkerService.fetchWorker(Number(id)); // Fetch worker data using the service
+            const worker: HealthcareWorker = { //map WorkerDto to Worker
                 id: workerDto.id,
                 name: workerDto.name,
                 email: workerDto.email,
                 phone: workerDto.phone,
                 address: workerDto.address
             };
-            setProfileData(worker);
+            setProfileData(worker); // Set the fetched data to state
         } catch (error: any) {
             console.error("Error fetching profile data:", error);
             setError("Failed to fetch profile data");
@@ -44,20 +44,20 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
         fetchProfileData();
     }, []);
 
-    const confirmDeleteWorker = async (user: HealthcareWorker) => 
+    const confirmDeleteWorker = async (user: HealthcareWorker) =>  // Confirm deletion of worker
     {
-        if (!toDelete?.id) return;
+        if (!toDelete?.id) return; // No worker to delete
         setError(null);
         setIsDeleting(true);
-        setToDelete(user as HealthcareWorker);
+        setToDelete(user as HealthcareWorker); // Set the worker to be deleted
         try {
-            await HealthcareWorkerService.deleteWorker(toDelete.id);
+            await HealthcareWorkerService.deleteWorker(toDelete.id); // Call delete service
             setToDelete(null);
-            if (isHealthcareWorker){
+            if (isHealthcareWorker){ // If the deleted user is viewing their own profile, redirect to home
                 navigate('/');
             }
             else{
-                navigate('/healthcareworkers');
+                navigate('/healthcareworkers'); // Redirect to workers list after deletion
             }
         } catch (error) {
             console.error("Error deleting Worker: ", error);

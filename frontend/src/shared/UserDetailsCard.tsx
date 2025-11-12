@@ -11,7 +11,7 @@ interface UserDetailsCardProps {
     isHealthcareWorker?: boolean;
 }
 
-const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user, isHealthcareWorker, onDeleteClick }) => {
+const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user, isHealthcareWorker, onDeleteClick }) => { // User details card component that displays user information and provides options to update or delete the user.
   const { hasRole } = useAuth();
   if (hasRole("Client")) {isHealthcareWorker = false;}
   if (hasRole("HealthcareWorker")) {isHealthcareWorker = true;}
