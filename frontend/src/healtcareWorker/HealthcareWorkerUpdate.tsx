@@ -25,17 +25,17 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
     const [success, setSuccess] = useState<string | null>(null);
     
     useEffect(() => {
-        const fetchWorker = async () => {
+        const fetchWorker = async () => { // Fetch worker data
         try {
             // If not admin, check if this is user's own worker profile
             if (!isAdmin && hasRole("HealthcareWorker")) {
-                const data = await healthcareWorkerService.fetchWorkerBySelf();
+                const data = await healthcareWorkerService.fetchWorkerBySelf(); // Fetch own worker data
                 setWorker(data);
-                setIsSelf(true);
+                setIsSelf(true); // Mark as self
             }
             else{
-                const data = await healthcareWorkerService.fetchWorker(Number(id));
-                setWorker(data);
+                const data = await healthcareWorkerService.fetchWorker(Number(id)); // Fetch worker data using the service
+                setWorker(data); // Set the fetched data to state
             }
         } catch (error) {
             console.error("Error fetching worker:", error);
@@ -44,34 +44,25 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
             setLoading(false);
         }
         };
-        if (id) fetchWorker();
-    }, [id, isAdmin, hasRole, user]);
+        if (id) fetchWorker(); //dependency array
+    }, [id, isAdmin, hasRole, user]); // On component mount
 
-    const canAccessPage = isAdmin || isSelf;
-
-    const handleWorkerUpdated = async (updated: UpdateUserDto) => {
+    const handleWorkerUpdated = async (updated: UpdateUserDto) => { // Handle worker update
         try {
-            await healthcareWorkerService.updateWorker(Number(id), updated);
+            await healthcareWorkerService.updateWorker(Number(id), updated); // Call update service
             setSuccess("Update successful!");
             if(isAdmin){
-                setTimeout(() => navigate("/healthcareworkers"), 2000);
+                setTimeout(() => navigate("/healthcareworkers"), 2000); // Redirect after 2 seconds
             }
             else if(isWorker){
-                setTimeout(() => navigate("/profile"), 2000);
+                setTimeout(() => navigate("/profile"), 2000); // Redirect after 2 seconds
             }
         } catch (error) {
             console.error("error update worker:", error);
             setSubmitError("Failed to update worker.");
         }
     };
-    if (!canAccessPage) {
-        return (
-            <Alert variant="danger" className="mt-3">
-                You do not have permission to access this page.
-            </Alert>
-        );
-    }
-    else{
+
     return (
         <div>
             <h2>Update Healthcare Worker</h2>
@@ -97,5 +88,5 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
         </div>
     );
 }
-}
+
 export default HealthcareWorkerUpdatePage;

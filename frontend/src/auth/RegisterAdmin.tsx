@@ -31,7 +31,7 @@ const RegisterAdmin: React.FC = () => {
     setError(null);
     setSuccess(null);
     try {
-      await authService.registerAdmin({
+      await authService.registerAdmin({ //registerAdmin function from authService
         ...formData,
       });
       setSuccess("Registration successful!");

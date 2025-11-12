@@ -19,14 +19,14 @@ const ProfilePage: React.FC = () => {
     const [toDelete, setToDelete] = useState<HealthcareWorker | null>(null);
     
 
-    const fetchProfileData = async () => {
+    const fetchProfileData = async () => { // Fetch profile data
         setLoading(true);
         setError(null);
         try {
-            if (user?.role === "HealthcareWorker") {
+            if (user?.role === "HealthcareWorker") { // Fetch healthcare worker data if user is a worker
                 const worker = await HealthcareWorkerService.fetchWorkerBySelf();
                 setProfileData(worker);
-            } else if (user?.role === "Client") {
+            } else if (user?.role === "Client") { // Fetch client data if user is a client
                 const client = await ClientService.fetchClientBySelf();
                 setProfileData(client);
             } else {
@@ -43,15 +43,15 @@ const ProfilePage: React.FC = () => {
         fetchProfileData();
     }, []);
 
-    const confirmDeleteWorker = async (user: HealthcareWorker) => 
+    const confirmDeleteWorker = async (user: HealthcareWorker) =>  // Confirm deletion of worker
     {
         if (!toDelete?.id) return;
         setError(null);
         setIsDeleting(true);
-        setToDelete(user as HealthcareWorker);
+        setToDelete(user as HealthcareWorker); // Set the worker to be deleted
         try {
-        await HealthcareWorkerService.deleteWorker(toDelete.id);
-        if(hasRole("HealthcareWorker")){
+        await HealthcareWorkerService.deleteWorker(toDelete.id); // Call delete service
+        if(hasRole("HealthcareWorker")){ // If the deleted user is viewing their own profile,
             logout();}
         setToDelete(null);
         } catch (error) {
@@ -63,14 +63,14 @@ const ProfilePage: React.FC = () => {
         }
         };
     
-    const confirmDeleteClient = async (user: Client) => {
+    const confirmDeleteClient = async (user: Client) => { // Confirm deletion of client
             if (!toDelete?.id) return;
             setError(null);
             setIsDeleting(true);
-            setToDelete(user as Client);
+            setToDelete(user as Client); // Set the client to be deleted
             try {
-            await ClientService.deleteClient(toDelete.id);
-            if(hasRole("Client")){
+            await ClientService.deleteClient(toDelete.id); // Call delete service
+            if(hasRole("Client")){  // If the deleted user is viewing their own profile,
                 logout();}
             setToDelete(null);
             } catch (error) {

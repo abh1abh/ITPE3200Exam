@@ -15,7 +15,7 @@ public class ClientService : IClientService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<ClientDto>> GetAll()
+    public async Task<IEnumerable<ClientDto>> GetAll() // Get all clients
     {
         var clients = await _repository.GetAll();
         if (clients == null || !clients.Any()) return Enumerable.Empty<ClientDto>();
@@ -29,20 +29,20 @@ public class ClientService : IClientService
             Email = c.Email,
             AuthUserId = c.AuthUserId
         });
-        return clientDtos;
+        return clientDtos; // return empty enumerable if no clients found
 
     }
 
-    public async Task<ClientDto?> GetByAuthUserId(string authUserId)
+    public async Task<ClientDto?> GetByAuthUserId(string authUserId) // Get client by AuthUserId
     {
-        var client = await _repository.GetByAuthUserId(authUserId);
+        var client = await _repository.GetByAuthUserId(authUserId); // Get client from repository
         if (client == null)
         {
             _logger.LogWarning("[ClientService] Client not found for AuthUserId {AuthUserId}", authUserId);
             return null;
         }
 
-        var clientDto = new ClientDto
+        var clientDto = new ClientDto // Map Client to ClientDto
         {
             Id = client.Id,
             Name = client.Name,
@@ -51,19 +51,19 @@ public class ClientService : IClientService
             Email = client.Email,
             AuthUserId = client.AuthUserId
         };
-        return clientDto;
+        return clientDto; // return null if not found
     }
 
-    public async Task<ClientDto?> GetById(int id)
+    public async Task<ClientDto?> GetById(int id) // Get client by Id
     {
-        var client = await _repository.GetClientById(id);
+        var client = await _repository.GetClientById(id); // Get client from repository
         if (client == null)
         {
             _logger.LogWarning("[ClientService] Client not found for Id {Id:0000}", id);
             return null;
         }
 
-        var clientDto = new ClientDto
+        var clientDto = new ClientDto // Map Client to ClientDto
         {
             Id = client.Id,
             Name = client.Name,
@@ -72,12 +72,12 @@ public class ClientService : IClientService
             Email = client.Email,
             AuthUserId = client.AuthUserId
         };
-        return clientDto;
+        return clientDto; // return null if not found
     }
     
-    public async Task<ClientDto> Create(ClientDto dto)
+    public async Task<ClientDto> Create(ClientDto dto) // Create new client
     {
-        var client = new Client
+        var client = new Client // Map ClientDto to Client
         {
             Name = dto.Name,
             Address = dto.Address,
@@ -86,7 +86,7 @@ public class ClientService : IClientService
             AuthUserId = dto.AuthUserId
         };
 
-        bool created = await _repository.Create(client);
+        bool created = await _repository.Create(client); // Create client in repository
         if (!created)
         {
             _logger.LogError("[ClientService] Client creation failed {@client}", client);
@@ -94,7 +94,7 @@ public class ClientService : IClientService
         }
 
         // It's good practice to return the created object, with its new ID
-        var createdDto = new ClientDto
+        var createdDto = new ClientDto // Map Client to ClientDto
         {
             Id = client.Id,
             Name = client.Name,
@@ -104,37 +104,37 @@ public class ClientService : IClientService
             AuthUserId = client.AuthUserId
         };
 
-        return createdDto;
+        return createdDto; // return created client dto
     }
-    public async Task<bool> Update(UpdateUserDto userDto)
+    public async Task<bool> Update(UpdateUserDto userDto) // Update existing client
     {
-        var id = userDto.Id;
-        var existingClient = await _repository.GetClientById(id);
+        var id = userDto.Id; // Get client Id from dto
+        var existingClient = await _repository.GetClientById(id); // Get existing client from repository
         if (existingClient == null)
         {
             return false;
         }
 
-        existingClient.Name = userDto.Name;
+        existingClient.Name = userDto.Name; // Update client properties
         existingClient.Address = userDto.Address;
         existingClient.Phone = userDto.Phone;
         existingClient.Email = userDto.Email;
 
-        bool updated = await _repository.Update(existingClient);
+        bool updated = await _repository.Update(existingClient); // Update client in repository
         if (!updated)
         {
             _logger.LogError("[ClientService] Update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, existingClient);
             throw new InvalidOperationException($"Update operation failed for HealthcareWorkerId {id}");
         }
-        return updated;
+        return updated; // return true if updated
     }
     
-    public async Task<bool> Delete(int id)
+    public async Task<bool> Delete(int id) // Delete client by Id
     {
-        var client = await _repository.GetClientById(id);
+        var client = await _repository.GetClientById(id); // Get client from repository
         if (client is null) return false; // normal "not found"
 
-        var ok = await _repository.Delete(id);
+        var ok = await _repository.Delete(id); // Delete client in repository
         if (!ok)
         {
             _logger.LogError("[ClientService] Client deletion failed for Id {Id:0000}", id);

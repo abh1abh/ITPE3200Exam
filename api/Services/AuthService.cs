@@ -251,7 +251,7 @@ public class AuthService: IAuthService{
 
     public async Task<bool> UpdateHealthcareWorkerAsync(UpdateUserDto userDto)
     {
-        var worker = await _healthcareWorkerService.GetById(userDto.Id);
+        var worker = await _healthcareWorkerService.GetById(userDto.Id); //get healthcare worker by Id
         var authId = worker?.AuthUserId;
         if (string.IsNullOrEmpty(authId)) // check if authId is null or empty
         {
@@ -288,8 +288,8 @@ public class AuthService: IAuthService{
             }
             if (!string.IsNullOrEmpty(userDto.Password)) //update password if provided
             {
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var passwordResult = await _userManager.ResetPasswordAsync(user, token, userDto.Password);
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user); //generate password reset token
+                var passwordResult = await _userManager.ResetPasswordAsync(user, token, userDto.Password); //reset password
                 if (!passwordResult.Succeeded) //log password update failure
                 {
                     _logger.LogWarning("[AuthService] password update failed for {UserId}: {Errors}", authId, passwordResult.Errors);

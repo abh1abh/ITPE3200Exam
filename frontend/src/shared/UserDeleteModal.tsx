@@ -9,7 +9,7 @@ type Props = {
     isDeleting?: boolean;
 };
 
-const UserDeleteModal: React.FC<Props> = ({ user, onConfirm, onCancel, isDeleting }) => (
+const UserDeleteModal: React.FC<Props> = ({ user, onConfirm, onCancel, isDeleting }) => ( // Delete confirmation modal component
     <Modal show onHide={onCancel}>
         <Modal.Header closeButton>Delete Client?</Modal.Header>
         <Modal.Body>
