@@ -77,6 +77,7 @@ public class AppointmentRepository : IAppointmentRepository
             var item = await _db.Appointments.FindAsync(id); // Find the appointment by ID
             if (item == null) // Check if the appointment exists
             {
+                _logger.LogWarning("[AppointmentRepository] Delete() attempted for non-existent AppointmentId {AppointmentId:0000}", id);
                 return false; // Return false if not found
             }
 

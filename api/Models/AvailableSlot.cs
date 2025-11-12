@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace api.Models;
 
@@ -24,6 +23,7 @@ public class AvailableSlot : IValidatableObject
 
     public virtual Appointment? Appointment { get; set; } // Navigation property to Appointment    
 
+    // Custom validation to ensure End is after Start and duration is 1 hour
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (End <= Start)

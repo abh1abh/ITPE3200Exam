@@ -11,7 +11,7 @@ namespace api.Controllers;
 [Route("api/[controller]")]
 public class AppointmentController : ControllerBase
 {
-    private readonly ILogger<AppointmentController> _logger;
+    private readonly ILogger<AppointmentController> _logger; // Logger for logging errors and information
     private readonly IAppointmentService _service; // Service layer 
 
     public AppointmentController (IAppointmentService service, ILogger<AppointmentController> logger)
@@ -32,78 +32,80 @@ public class AppointmentController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var (role, authUserId) = UserContext(); // Get role and AuthUserId
         try
         {
-            var appointments = await _service.GetAll();
+            var appointments = await _service.GetAll(); // Get all appointments from service layer
             return Ok(appointments);
         }
-        catch (Exception ex)
+        catch (Exception ex) // Handles general exceptions
         {
-            _logger.LogError(ex, "[AppointmentController] Error AppointmentList");
+            _logger.LogError(ex, "[AppointmentController] Error GetAll");
             return StatusCode(500, "A problem occurred while fetching the appointment list."); // Returns 500 at general exceptions 
         }
     }
 
     [Authorize(Roles = "Client")]
     [HttpGet("client")]
-    public async Task<IActionResult> GetAppointmentsByClient()
+    public async Task<IActionResult> GetAppointmentsByClient() // Get appointments for the logged in client
     {
         var (_, authUserId) = UserContext(); // Get role and AuthUserId
         try
         {
-            var appointments = await _service.GetAppointmentsByClientId(authUserId: authUserId);
+            var appointments = await _service.GetAppointmentsByClientId(authUserId: authUserId); 
             return Ok(appointments);
         }
         catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
         {
-            return Forbid();
+            _logger.LogWarning("[AppointmentController] User is not authorized to view appointments for clients {Id:0000}", authUserId);
+            return Forbid(); // If unauthorized return Forbid
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[AppointmentController] Error GetAppointmentsByClientAuthUserId");
+            _logger.LogError(ex, "[AppointmentController] Error GetAppointmentsByClient");
             return StatusCode(500, "A problem occurred while fetching the appointment list."); // Returns 500 at general exceptions 
         }
     }
 
     [Authorize(Roles = "HealthcareWorker")]     
     [HttpGet("worker")]
-    public async Task<IActionResult> GetAppointmentsByHealthcareWorker()
+    public async Task<IActionResult> GetAppointmentsByHealthcareWorker() // Get appointments for the logged in healthcare worker
     {
         var (_, authUserId) = UserContext(); // Get role and AuthUserId
         try
         {
-            var appointments = await _service.GetAppointmentsByHealthcareWorkerId(authUserId: authUserId);
+            var appointments = await _service.GetAppointmentsByHealthcareWorkerId(authUserId: authUserId); // Uses service layer for all business logic
             return Ok(appointments);
         }
         catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
         {
-            return Forbid();
+            _logger.LogWarning("[AppointmentController] User is not authorized to view appointments for healthcare worker {Id:0000}", authUserId);
+            return Forbid(); // If unauthorized return Forbid
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[AppointmentController] Error GetAppointmentsByHealthcareWorkerAuthUserId");
+            _logger.LogError(ex, "[AppointmentController] Error GetAppointmentsByHealthcareWorker");
             return StatusCode(500, "A problem occurred while fetching the appointment list."); // Returns 500 at general exceptions 
         }      
     }
 
     [Authorize(Roles = "Client,Admin,HealthcareWorker")] 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(int id) // Get appointment by id
     {
         var (role, authUserId) = UserContext(); // Get role and AuthUserId
         try
         {
             var appointmentDto = await _service.GetById(id, role: role, authUserId: authUserId); // Uses service layer for all business logic 
-            if (appointmentDto is null)
+            if (appointmentDto is null) // If service returns null appointment Not Found
             {
-                _logger.LogError("[AppointmentController] appointment not found while executing _appointmentRepository.GetById() for AppointmentId {AppointmentId:0000}", id);
+                _logger.LogWarning("[AppointmentController] appointment not found while executing _service.GetById() for AppointmentId {AppointmentId:0000}", id);
                 return NotFound("Appointment not found");
             }
             return Ok(appointmentDto);
         }
         catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to view appointment {Id:0000}", id);
             return Forbid();
         }
         catch (Exception ex)
@@ -115,14 +117,13 @@ public class AppointmentController : ControllerBase
 
     [Authorize(Roles = "Admin,Client")] // Only Admin and Clients are allow to create Appointments 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] AppointmentDto appointmentDto)
+    public async Task<IActionResult> Create([FromBody] AppointmentDto appointmentDto) 
     {
         var (role, authUserId) = UserContext(); // Get role and AuthUserId
 
         // Handles input validation for at least one Appointment Task 
         appointmentDto.AppointmentTasks = (appointmentDto.AppointmentTasks ?? new()).Where(t => !string.IsNullOrWhiteSpace(t.Description)).ToList();
-        if (appointmentDto.AppointmentTasks.Count == 0) return BadRequest("Enter at least one task.");
-        // if (appointmentDto.AvailableSlotId is null) return BadRequest("Please choose an available slot."); // Might remove if we validate through Dto
+        if (appointmentDto.AppointmentTasks.Count == 0) return BadRequest("Enter at least one task."); // If no tasks return BadRequest
 
         try
         {
@@ -131,22 +132,22 @@ public class AppointmentController : ControllerBase
         }
         catch (UnauthorizedAccessException) // Handles Unauthorized access
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to create appointment");
             return Forbid();
         }
         catch (ArgumentException e) // Handles bad input exceptions 
         {
+            _logger.LogWarning(e, "[AppointmentController] Bad request during Create");
             return BadRequest(e.Message);
         }
-
-        catch (InvalidOperationException e)  // Handles operation exceptions 
+        catch (InvalidOperationException)  // Handles operation exceptions 
         {
-            _logger.LogWarning(e, "[AppointmentController] Create failed");
-            return StatusCode(500, "Could not create appointment. Please try again.");
+            return StatusCode(500, "Internal error creating the appointment"); // Returns 500 at operation exceptions
         }
         catch (Exception ex) // Handles general exceptions 
         {
             _logger.LogError(ex, "[AppointmentController] Unexpected error during Create");
-            return StatusCode(500, "Unexpected error.");
+            return StatusCode(500, "Unexpected error."); // Returns 500 at general exceptions
         }
 
     }
@@ -164,30 +165,31 @@ public class AppointmentController : ControllerBase
             if (!ok) return NotFound("Appointment not found"); // If service return null Controller returns Not Found 
             return NoContent(); // Controller returns NoContent() if updated went fine
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException) // Handles unauthorized access
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to update appointment {Id:0000}", id);
             return Forbid();
         }
-        catch (ArgumentException e)
+        catch (ArgumentException e) // Handles bad input exceptions
         {
+            _logger.LogWarning(e, "[AppointmentController] Bad request {Id:0000}", id);
             return BadRequest(e.Message);
         }
-        catch (InvalidOperationException e)
+        catch (InvalidOperationException) // Handles operation exceptions
         {
-            _logger.LogWarning(e, "[AppointmentController] Update failed {Id:0000}", id);
-            return StatusCode(500, "Internal error updating the appointment");
+            return StatusCode(500, "Internal error updating the appointment"); // Returns 500 at operation exceptions
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[AppointmentController] Unexpected error updating {Id:0000}", id);
-            return StatusCode(500, "Unexpected error.");
+            return StatusCode(500, "Unexpected error."); // Returns 500 at general exceptions
         }
     }
 
 
     [Authorize(Roles = "Client,Admin,HealthcareWorker")]
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id) // Delete appointment by id
     {
 
         var (role, authUserId) = UserContext();
@@ -197,14 +199,14 @@ public class AppointmentController : ControllerBase
             if (!ok) return NotFound("Appointment not found"); // If service return null Controller returns Not Found 
             return NoContent(); // Controller returns NoContent() if deletion went fine 
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException) // Handles unauthorized access
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to delete appointment {Id:0000}", id);
             return Forbid();
         }
 
-        catch (InvalidOperationException e)
+        catch (InvalidOperationException) // Handles operation exceptions
         {
-            _logger.LogWarning(e, "[AppointmentController] Delete failed {Id:0000}", id);
             return StatusCode(500, "Appointment deletion failed");
         }
         catch (Exception ex)
@@ -217,7 +219,7 @@ public class AppointmentController : ControllerBase
 
     [Authorize(Roles = "Client,Admin,HealthcareWorker")] 
     [HttpGet("{id:int}/changelog")]
-    public async Task<IActionResult> ChangeLog(int id)
+    public async Task<IActionResult> ChangeLog(int id) // Get changelog for appointment by id
     {
 
         var (role, authUserId) = UserContext();
@@ -225,11 +227,11 @@ public class AppointmentController : ControllerBase
         try
         {
             var logs = await _service.GetChangeLog(id, role: role, authUserId: authUserId); // Calls Service to get changelog
-            if (!logs.Any()) return NotFound("Change log not found"); 
             return Ok(logs);
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException) // Handles unauthorized access
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to view appointments changelog {Id:0000}", id);
             return Forbid();
         }
         catch (Exception ex)

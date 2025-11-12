@@ -3,21 +3,16 @@ import { AppointmentView } from "../types/appointment";
 import { Badge, Card, Col, Container, Row, Table } from "react-bootstrap";
 import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
 
+// Props for ViewAppointmentCard component
 interface ViewAppointmentCard {
   initialData: AppointmentView;
-  // serverError?: string | null;
   isAdmin?: boolean;
   isClient?: boolean;
   isWorker?: boolean;
 }
 
-const ViewAppointmentCard: React.FC<ViewAppointmentCard> = ({
-  initialData,
-  // serverError = null,
-  isAdmin,
-  isClient,
-  isWorker,
-}) => {
+const ViewAppointmentCard: React.FC<ViewAppointmentCard> = ({ initialData, isAdmin, isClient, isWorker }) => {
+  // Render appointment details in a card layout. If user is admin, show client and worker names. If client, show worker name. If worker, show client name.
   return (
     <Container style={{ maxWidth: "35rem" }}>
       <Card className="mb-3 border-0">
@@ -81,7 +76,7 @@ const ViewAppointmentCard: React.FC<ViewAppointmentCard> = ({
               </div>
             </>
           )}
-
+          {/* Show tasks if any exist */}
           {initialData.appointmentTasks.length > 0 && (
             <>
               <hr className="my-4" />
@@ -94,6 +89,7 @@ const ViewAppointmentCard: React.FC<ViewAppointmentCard> = ({
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Show badge based on completion status. Map appointment tasks to table rows */}
                   {initialData.appointmentTasks.map((t, idx) => {
                     return (
                       <tr key={`${t.description}-${idx}`}>

@@ -31,6 +31,8 @@ import TeamPage from "./dummypages/TeamPage";
 import HomePage from "./home/HomePage";
 import Footer from "./shared/Footer";
 import NavMenu from "./shared/NavMenu";
+import AppointmentChangeLogPage from "./appointment/AppointmentChangeLogPage";
+import AvailableSlotPage from "./availableslot/AvailableslotPage";
 
 function App() {
   return (
@@ -40,6 +42,7 @@ function App() {
           <NavMenu />
           <div className="page-container">
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<HomePage />} />
               <Route path="/footer" element={<Footer />} />
               <Route path="/team" element={<TeamPage />} />
@@ -48,26 +51,31 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route element={<RequireRole roles={["Admin"]} />}>
+                  {/* Admin Only Routes: */}
                   <Route path="/admin/register" element={<RegisterAdmin />} />
                   <Route path="/clients" element={<ClientPage />} />
                   <Route path="/healthcareworkers" element={<HealthcareWorkerPage />} />
                   <Route path="/healthcareworker/:id/details" element={<HealthcareWorkerDetailsPage />} />
                   <Route path="/client/:id/details" element={<ClientDetailsPage/>} />
                 </Route>
+                {/* HealthcareWorker and Admin Routes: */}
                 <Route element={<RequireRole roles={["Admin", "HealthcareWorker"]} />}>
                   <Route path="/availableslot" element={<AvailableSlotPage />} />
                   <Route path="/availableslot/create" element={<AvailableSlotCreatePage />} />
                   <Route path="/availableslot/:slotId" element={<AvailableSlotUpdatePage />} />
                   <Route path="/healthcareworker/:id/update" element={<HealthcareWorkerUpdate />} />
                 </Route>
+                {/* Admin and Client Routes: */}
                 <Route element={<RequireRole roles={["Admin", "Client"]} />}>
                   <Route path="/appointment/create" element={<AppointmentCreatePage />} />
                   <Route path="/client/:id/update" element={<ClientUpdate />} />
                 </Route>
+                {/* Admin, HealthcareWorker and Client Routes: */}
                 <Route element={<RequireRole roles={["Admin", "HealthcareWorker", "Client"]} />}>
                   <Route path="/appointment/:id/update" element={<AppointmentUpdatePage />} />
                   <Route path="/appointment" element={<AppointmentPage />} />
                   <Route path="/appointment/:id" element={<AppointmentDetailsPage />} />
+                  <Route path="/appointment/:id/changelog" element={<AppointmentChangeLogPage />} />
                 </Route>
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/services" element={<ServicesPage />} />
