@@ -1,5 +1,5 @@
 import React, { useRef, useState} from "react";
-import { UpdateClientDto } from "../types/client";
+import { UpdateUserDto } from "../types/user";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Col, Container, Form, InputGroup, Row, Table } from "react-bootstrap";
 import { Alert } from "react-bootstrap";
@@ -8,8 +8,8 @@ import { updateClient } from "./clientService";
 
 
 interface UpdateClientFormProps {
-    client: UpdateClientDto
-    onClientUpdated: (updated: UpdateClientDto) => void;
+    client: UpdateUserDto
+    onClientUpdated: (updated: UpdateUserDto) => void;
     serverError?: string | null;
 }
 const UpdateClientForm: React.FC<UpdateClientFormProps> = ({
@@ -28,7 +28,7 @@ const UpdateClientForm: React.FC<UpdateClientFormProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const updatedClient: UpdateClientDto = {
+    const updatedClient: UpdateUserDto = {
         name: name || initialData.name,
         email: email || initialData.email,
         password: password,

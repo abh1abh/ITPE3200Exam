@@ -1,6 +1,6 @@
 import { HealthcareWorker } from "../types/healthcareWorker";
 import { API_URL, getAuthHeaders, handleResponse } from "../shared/http";
-import { UpdateWorkerDto } from "../types/healthcareWorker";
+import { UpdateUserDto } from "../types/user";
 
 export const fetchAllWorkers = async () => {
   const response = await fetch(`${API_URL}/api/HealthcareWorker/`, {
@@ -17,15 +17,15 @@ export const fetchWorker = async (id: number) => {
   });
   return handleResponse(response);
 };
-export const fetchWorkerByAuthId = async (authId: string) => {
-  const response = await fetch(`${API_URL}/api/HealthcareWorker/workerauth/${authId}`, {
+export const fetchWorkerBySelf = async () => {
+  const response = await fetch(`${API_URL}/api/HealthcareWorker/workerauth`, {
     method: "GET",
     headers: getAuthHeaders(),
   });
   return handleResponse(response);
 }
-export const updateWorker = async (id: number, worker: UpdateWorkerDto) => {
-  const response = await fetch(`${API_URL}/api/HealthcareWorker/${id}`, {
+export const updateWorker = async (id: number, worker: UpdateUserDto) => {
+  const response = await fetch(`${API_URL}/api/auth/worker/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(worker),

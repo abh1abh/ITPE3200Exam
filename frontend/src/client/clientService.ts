@@ -1,4 +1,5 @@
-import { Client, UpdateClientDto } from "../types/client";
+import { Client } from "../types/client";
+import { UpdateUserDto } from "../types/user";
 import { API_URL, getAuthHeaders, handleResponse } from "../shared/http";
 
 export const fetchAllClients = async () => {
@@ -17,8 +18,8 @@ export const fetchClient = async (id: number) => {
   return handleResponse(response);
 };
 
-export const updateClient = async (id: number, client: UpdateClientDto) => {
-  const response = await fetch(`${API_URL}/api/client/${id}`, {
+export const updateClient = async (id: number, client: UpdateUserDto) => {
+  const response = await fetch(`${API_URL}/api/auth/client/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(client),
@@ -26,8 +27,8 @@ export const updateClient = async (id: number, client: UpdateClientDto) => {
   return handleResponse(response);
 };
 
-export const fetchClientByAuthId = async (authId: string) => {
-  const response = await fetch(`${API_URL}/api/Client/clientauth/${authId}`, {
+export const fetchClientBySelf = async () => {
+  const response = await fetch(`${API_URL}/api/Client/clientauth`, {
     method: "GET",
     headers: getAuthHeaders(),
   });

@@ -1,5 +1,3 @@
-
-
 using api.DAL;
 using api.DTO;
 using api.Models;
@@ -10,13 +8,11 @@ public class HealthcareWorkerService: IHealthcareWorkerService
 {
     private readonly IHealthcareWorkerRepository _repository;
     private readonly ILogger<HealthcareWorkerService> _logger;
-    private readonly IAuthService _authService;
 
     public HealthcareWorkerService(IHealthcareWorkerRepository repository, ILogger<HealthcareWorkerService> logger)
     {
         _repository = repository;
         _logger = logger;
-        _authService = _authService;
     }
     
     public async Task<IEnumerable<HealthcareWorkerDto>> GetAll()
@@ -113,18 +109,19 @@ public class HealthcareWorkerService: IHealthcareWorkerService
 
         return createdDto;
     }
-    public async Task<bool> Update(int id, UpdateWorkerDto workerDto)
+    public async Task<bool> Update(UpdateUserDto userDto)
     {
+        var id = userDto.Id;
         var existingWorker = await _repository.GetById(id);
         if (existingWorker == null)
         {
             return false;
         }
 
-        existingWorker.Name = workerDto.Name;
-        existingWorker.Address = workerDto.Address;
-        existingWorker.Phone = workerDto.Phone;
-        existingWorker.Email = workerDto.Email;
+        existingWorker.Name = userDto.Name;
+        existingWorker.Address = userDto.Address;
+        existingWorker.Phone = userDto.Phone;
+        existingWorker.Email = userDto.Email;
 
         bool updated = await _repository.Update(existingWorker);
         if (!updated)

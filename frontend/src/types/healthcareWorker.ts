@@ -5,12 +5,3 @@ export interface HealthcareWorker {
   phone: string;
   email: string;
 }
-
-export interface UpdateWorkerDto{
-  name: string;
-  phone: string;
-  address: string;
-  email: string;
-  password?: string;
-  id: number;
-}

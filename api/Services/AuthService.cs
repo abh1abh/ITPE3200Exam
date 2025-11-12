@@ -109,9 +109,9 @@ public class AuthService: IAuthService{
                     Address = registerDto.Address,
                     Email = registerDto.Email,
                 };
-                var createWorker =  await _healthcareWorkerService.Create(worker); //use HealthcareWorkerService to create healthcare worker
+                var createWorker = await _healthcareWorkerService.Create(worker); //use HealthcareWorkerService to create healthcare worker
                 var result = await _userManager.CreateAsync(user, registerDto.Password); //create user in AspNetUsers table
-                if(!result.Succeeded) //check if user creation succeeded
+                if (!result.Succeeded) //check if user creation succeeded
                 {
                     // If user creation failed, delete the created healthcare worker to maintain data consistency
                     await _healthcareWorkerService.Delete(createWorker.Id);
@@ -191,41 +191,123 @@ public class AuthService: IAuthService{
             _logger.LogWarning("[AuthService] delete user failed for {Username}: {Errors}", username, result.Errors); //log deletion failure
             return false;
         }
-    public async Task<bool> UpdateUserAsync(string userId, string? email, string? password)
-    { //method to update user email and/or password
-        var user = await _userManager.FindByIdAsync(userId); //find user by userId
-        if (user == null) //log user not found
+    public async Task<bool> UpdateClientAsync(UpdateUserDto userDto)
+    {
+        var client = await _clientService.GetById(userDto.Id);
+        var authId = client?.AuthUserId;
+        if (string.IsNullOrEmpty(authId)) // check if authId is null or empty
         {
-            _logger.LogWarning("[AuthService] update user failed for {UserId}: user not found", userId);
+            _logger.LogWarning("[AuthService] update user failed: authId is null or empty");
             return false;
         }
-
-        if (!string.IsNullOrEmpty(email) && email != user.Email) //update email if provided and different
+        var user = await _userManager.FindByIdAsync(authId); //find user by userId
+        if (user == null) //log user not found
         {
-            user.Email = email;
-            user.UserName = email; //assuming username is same as email
-                    var updateResult = await _userManager.UpdateAsync(user); //update user details
-            if (!updateResult.Succeeded) //log update failure
-            {
-                _logger.LogWarning("[AuthService] update user failed for {UserId}: {Errors}", userId, updateResult.Errors);
-                return false;
-            }
+            _logger.LogWarning("[AuthService] update user failed for {UserId}: user not found", authId);
+            return false;
         }
-        if (!string.IsNullOrEmpty(password)) //update password if provided
+        try
         {
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var passwordResult = await _userManager.ResetPasswordAsync(user, token, password);
-            if (!passwordResult.Succeeded) //log password update failure
-            {
-                _logger.LogWarning("[AuthService] password update failed for {UserId}: {Errors}", userId, passwordResult.Errors);
-                return false;
-            }
+            var updateClient = await _clientService.Update(userDto); //update client details
         }
-
-        _logger.LogInformation("[AuthService] user updated successfully for {UserId}", userId); //log successful update
+        catch (Exception ex) //log any errors during client update
+        {
+            _logger.LogError(ex, "[AuthService] Error updating Client for {UserId}", authId);
+            return false;
+        }
+        try
+        {
+           if (!string.IsNullOrEmpty(userDto.Email) && userDto.Email != user.Email) //update email if provided and different
+            {
+                user.Email = userDto.Email;
+                user.UserName = userDto.Email; //assuming username is same as email
+                var updateResult = await _userManager.UpdateAsync(user); //update user details
+                if (!updateResult.Succeeded) //log update failure
+                {
+                    _logger.LogWarning("[AuthService] update user failed for {UserId}: {Errors}", authId, updateResult.Errors);
+                    return false;
+                }
+            }
+            if (!string.IsNullOrEmpty(userDto.Password)) //update password if provided
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var passwordResult = await _userManager.ResetPasswordAsync(user, token, userDto.Password);
+                if (!passwordResult.Succeeded) //log password update failure
+                {
+                    _logger.LogWarning("[AuthService] password update failed for {UserId}: {Errors}", authId, passwordResult.Errors);
+                    return false;
+                }
+            } 
+        }
+        catch (Exception ex) //log any errors during user update
+        {
+            _logger.LogError(ex, "[AuthService] Error updating User for {UserId}", authId);
+            return false;
+        }
+        
+        _logger.LogInformation("[AuthService] user updated successfully for {UserId}", authId); //log successful update
         return true;
     }
-        public async Task<bool> DeleteUserAdminAsync(string username) //method to delete user by admin
+
+    public async Task<bool> UpdateHealthcareWorkerAsync(UpdateUserDto userDto)
+    {
+        var worker = await _healthcareWorkerService.GetById(userDto.Id);
+        var authId = worker?.AuthUserId;
+        if (string.IsNullOrEmpty(authId)) // check if authId is null or empty
+        {
+            _logger.LogWarning("[AuthService] update user failed: authId is null or empty");
+            return false;
+        }
+        var user = await _userManager.FindByIdAsync(authId); //find user by userId
+        if (user == null) //log user not found
+        {
+            _logger.LogWarning("[AuthService] update user failed for {UserId}: user not found", authId);
+            return false;
+        }
+        try
+        {
+            var updateWorker = await _healthcareWorkerService.Update(userDto); //update client details
+        }
+        catch (Exception ex) //log any errors during client update
+        {
+            _logger.LogError(ex, "[AuthService] Error updating Healthcare worker for {UserId}", authId);
+            return false;
+        }
+        try
+        {
+           if (!string.IsNullOrEmpty(userDto.Email) && userDto.Email != user.Email) //update email if provided and different
+            {
+                user.Email = userDto.Email;
+                user.UserName = userDto.Email; //assuming username is same as email
+                var updateResult = await _userManager.UpdateAsync(user); //update user details
+                if (!updateResult.Succeeded) //log update failure
+                {
+                    _logger.LogWarning("[AuthService] update user failed for {UserId}: {Errors}", authId, updateResult.Errors);
+                    return false;
+                }
+            }
+            if (!string.IsNullOrEmpty(userDto.Password)) //update password if provided
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var passwordResult = await _userManager.ResetPasswordAsync(user, token, userDto.Password);
+                if (!passwordResult.Succeeded) //log password update failure
+                {
+                    _logger.LogWarning("[AuthService] password update failed for {UserId}: {Errors}", authId, passwordResult.Errors);
+                    return false;
+                }
+            } 
+        }
+        catch (Exception ex) //log any errors during user update
+        {
+            _logger.LogError(ex, "[AuthService] Error updating User for {UserId}", authId);
+            return false;
+        }
+        
+        _logger.LogInformation("[AuthService] user updated successfully for {UserId}", authId); //log successful update
+        return true;
+    }
+
+    public async Task<bool> DeleteUserAdminAsync(string username) //method to delete user by admin
     {
         var user = await _userManager.FindByNameAsync(username); //find user by username
         if (user == null) //log user not found

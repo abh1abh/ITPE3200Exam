@@ -4,8 +4,8 @@ import * as ClientService from "./clientService";
 import { Alert, Badge, Button, Container, Spinner, Table } from "react-bootstrap";
 import Loading from "../shared/Loading";
 import { Client } from "../types/client";
-import ClientTable from "./ClientTable";
-import ClientDeleteModal from "./ClientDeleteModal";
+import UserTable from "../shared/UserTable";
+import UserDeleteModal from "../shared/UserDeleteModal";
 
 const ClientPage: React.FC = () => {
     const {hasRole} = useAuth();
@@ -14,6 +14,8 @@ const ClientPage: React.FC = () => {
     const [clients, setClients] = useState<Client[]>([]);
     const [toDelete, setToDelete] = useState<Client | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [success, setSuccess] = useState<string | null>(null);
+    
 
     const fetchClientData = async () => {
         setLoading(true);
@@ -40,6 +42,7 @@ const ClientPage: React.FC = () => {
         try {
         await ClientService.deleteClient(toDelete.id);
         fetchClientData();
+        setSuccess("Client deleted successfully.");
         setToDelete(null);
         } catch (error) {
         console.error("Error deleting Client: ", error);
@@ -53,20 +56,23 @@ const ClientPage: React.FC = () => {
     
     return (
         <div>
+            <h2>Clients</h2>
             <Button onClick={fetchClientData} className="btn btn-primary mb-3 me-2" disabled={loading}>
                     {loading ? "Loading..." : "Refresh clients"}
                   </Button>
-            <h2>Clients</h2>
             {!loading && error && <Alert variant="danger">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
+            
             {!loading && !error && (
                 <>
-                <ClientTable
-                    clients={clients}
+                <UserTable
+                    users={clients}
+                    isHealthcareWorker={false}
                     isAdmin={hasRole("Admin")}
                     onDeleteClick={(setToDelete)} />
                 {toDelete && (
-                    <ClientDeleteModal 
-                        client = {toDelete}
+                    <UserDeleteModal 
+                        user = {toDelete}
                         onCancel={() => setToDelete(null)}
                         onConfirm={confirmDelete}
                         isDeleting={isDeleting}

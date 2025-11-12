@@ -5,8 +5,8 @@ import * as HealthcareWorkerService from "../healtcareWorker/healthcareWorkerSer
 import { Alert, Badge, Button, Container, Spinner, Table } from "react-bootstrap";
 import Loading from "../shared/Loading";
 import { HealthcareWorker } from "../types/healthcareWorker";
-import HealthcareWorkerTable from "./HealthcareWorkerTable";
-import HealthcareWorkerDeleteModal from "./HealthcareWorkerDeleteModal";
+import UserTable from "../shared/UserTable";
+import UserDeleteModal from "../shared/UserDeleteModal";
 
 const HealthcareWorkerPage: React.FC = () => {
     const {hasRole} = useAuth();
@@ -15,6 +15,7 @@ const HealthcareWorkerPage: React.FC = () => {
     const [workers, setClients] = useState<HealthcareWorker[]>([]);
     const [toDelete, setToDelete] = useState<HealthcareWorker | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [success, setSuccess] = useState<string | null>(null);
 
     const fetchWorkerData = async () => {
         setLoading(true);
@@ -41,6 +42,7 @@ const HealthcareWorkerPage: React.FC = () => {
         try {
         await HealthcareWorkerService.deleteWorker(toDelete.id);
         fetchWorkerData();
+        setSuccess("Worker deleted successfully.");
         setToDelete(null);
         } catch (error) {
         console.error("Error deleting Worker: ", error);
@@ -54,20 +56,22 @@ const HealthcareWorkerPage: React.FC = () => {
     
     return (
         <div>
-            <Button onClick={fetchWorkerData} className="btn btn-primary mb-3 me-2" disabled={loading}>
-                    {loading ? "Loading..." : "Refresh workers"}
-                  </Button>
             <h2>Healthcare Workers</h2>
+            <Button onClick={fetchWorkerData} className="btn btn-primary mb-3 me-2" disabled={loading}>
+                {loading ? "Loading..." : "Refresh workers"}
+            </Button>
             {!loading && error && <Alert variant="danger">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
             {!loading && !error && (
                 <>
-                <HealthcareWorkerTable
-                    workers={workers}
+                <UserTable
+                    users={workers}
+                    isHealthcareWorker={true}
                     isAdmin={hasRole("Admin")}
                     onDeleteClick={(setToDelete)} />
                 {toDelete && (
-                    <HealthcareWorkerDeleteModal 
-                        worker = {toDelete}
+                    <UserDeleteModal 
+                        user = {toDelete}
                         onCancel={() => setToDelete(null)}
                         onConfirm={confirmDelete}
                         isDeleting={isDeleting}

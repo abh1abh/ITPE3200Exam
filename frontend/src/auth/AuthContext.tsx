@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const decodedUser: User = jwtDecode(token);
         // Check if the token is expired
         if (decodedUser.exp * 1000 > Date.now()) {
-          setUser({ ...decodedUser, role: extractRole(decodedUser), nameid: extractAuthId(decodedUser) });
+          setUser({ ...decodedUser, role: extractRole(decodedUser)});
         } else {
           // Token is expired, clear it
           console.warn("Token expired");

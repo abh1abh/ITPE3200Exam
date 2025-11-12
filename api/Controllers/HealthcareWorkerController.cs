@@ -2,6 +2,7 @@ using api.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using api.Services;
+using System.Security.Claims;
 
 namespace api.Controllers;
 
@@ -19,6 +20,13 @@ public class HealthcareWorkerController : ControllerBase
         _service = service;
         _logger = logger;
         _authService = authService;
+    }
+
+    private (string? role, string? authUserId) UserContext()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
+        var role = User.FindFirstValue(ClaimTypes.Role); // Specified Role when creating the JWT token
+        return (role, userId);
     }
 
     [HttpGet]
@@ -45,16 +53,24 @@ public class HealthcareWorkerController : ControllerBase
         return Ok(worker);
     }
 
-    [HttpGet("workerauth/{authUserId}")]
-    public async Task<IActionResult> GetByAuthUserId(string authUserId)
+    [HttpGet("workerauth")]
+    public async Task<IActionResult> GetBySelf()
     {
-        var worker = await _service.GetByAuthUserId(authUserId);
-        if (worker == null)
+        var (_, authUserId) = UserContext(); // Get role and AuthUserId
+        try
         {
-            _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
-            return NotFound("Healthcare worker not found");
+            var worker = await _service.GetByAuthUserId(authUserId!);
+            if (worker == null)
+            {
+                _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
+                return NotFound("Healthcare worker not found");
+            }
+            return Ok(worker);
         }
-        return Ok(worker);
+        catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
+        {
+            return Forbid();
+        }
     }
 
     [HttpPost]
@@ -71,46 +87,6 @@ public class HealthcareWorkerController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update([FromBody] UpdateWorkerDto workerDto)
-    {
-        int id = workerDto.Id;
-        HealthcareWorkerDto? worker = await _service.GetById(id);
-        if (worker == null)
-        {
-            return NotFound("Healthcare worker not found");
-        }
-        if (id != workerDto.Id)
-        {
-            return BadRequest("ID mismatch");
-        }
-        try
-        {
-            var existingWorker = await _service.Update(id, workerDto);
-            var authWorkerUpdate = await _authService.UpdateUserAsync(worker.AuthUserId, workerDto.Email!, workerDto.Password!);
-            if (!existingWorker)
-            {
-                return NotFound("Healthcare worker not found");
-            }
-            if (!authWorkerUpdate)
-            {
-                _logger.LogError("[HealthcareWorkerController] Worker update failed for AuthUserId {userId}, {@worker}", worker.AuthUserId, workerDto);
-                return StatusCode(500, "Failed to update associated user.");
-            }
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogError(ex, "[HealthcareWorkerController] Worker update failed for Id {Id:0000}, {@worker}", id, workerDto);
-            return StatusCode(500, "Failed to update worker.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[HealthcareWorkerController] Worker update failed for Id {Id:0000}, {@worker}", id, workerDto);
-            return StatusCode(500, "A problem happened while updating the worker.");
-        }        
     }
 
     [HttpDelete("{id}")]
