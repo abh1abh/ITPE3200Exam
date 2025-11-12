@@ -16,7 +16,6 @@ import ClientPage from "./client/ClientPage";
 import ClientUpdate from "./client/ClientUpdate";
 import HealthcareWorkerPage from "./healtcareWorker/HealthcareWorkerPage";
 import HealthcareWorkerUpdate from "./healtcareWorker/HealthcareWorkerUpdate";
-import AvailableSlotPage from "./availableslot/AvailableSlotPage";
 import AvailableSlotUpdatePage from "./availableslot/AvailableSlotUpdatePage";
 import AboutPage from "./dummypages/AboutPage";
 import BlogPage from "./dummypages/BlogPage";
@@ -30,6 +29,7 @@ import HomePage from "./home/HomePage";
 import Footer from "./shared/Footer";
 import NavMenu from "./shared/NavMenu";
 import AppointmentChangeLogPage from "./appointment/AppointmentChangeLogPage";
+import AvailableSlotPage from "./availableslot/AvailableslotPage";
 
 function App() {
   return (
