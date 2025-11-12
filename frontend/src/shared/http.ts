@@ -2,7 +2,6 @@ export const API_URL = import.meta.env.VITE_API_URL;
 
 export const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
-  if (!token) throw new Error("No token found. Please log in again.");
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
