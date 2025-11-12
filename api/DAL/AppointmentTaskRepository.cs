@@ -1,5 +1,4 @@
 using api.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace api.DAL;
 
@@ -49,7 +48,10 @@ public class AppointmentTaskRepository : IAppointmentTaskRepository
         try
         {
             var appointmentTask = await _db.AppointmentTasks.FindAsync(id);
-            if (appointmentTask == null) return false; 
+            if (appointmentTask == null) {
+                _logger.LogWarning("[AppointmentTaskRepository] Delete() attempted for non-existent AppointmentTaskId {AppointmentTaskId:0000}", id);
+                return false;
+            }
 
             _db.AppointmentTasks.Remove(appointmentTask); // Remove the client
             await _db.SaveChangesAsync(); // Save changes to the database

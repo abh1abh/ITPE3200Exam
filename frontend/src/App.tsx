@@ -29,6 +29,7 @@ import TeamPage from "./dummypages/TeamPage";
 import HomePage from "./home/HomePage";
 import Footer from "./shared/Footer";
 import NavMenu from "./shared/NavMenu";
+import AppointmentChangeLogPage from "./appointment/AppointmentChangeLogPage";
 
 function App() {
   return (
@@ -72,6 +73,7 @@ function App() {
                   <Route path="/appointment/:id/update" element={<AppointmentUpdatePage />} />
                   <Route path="/appointment" element={<AppointmentPage />} />
                   <Route path="/appointment/:id" element={<AppointmentDetailsPage />} />
+                  <Route path="/appointment/:id/changelog" element={<AppointmentChangeLogPage />} />
                 </Route>
               </Route>
             </Routes>

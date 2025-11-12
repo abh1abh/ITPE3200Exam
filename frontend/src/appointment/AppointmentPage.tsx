@@ -12,16 +12,21 @@ const AppointmentPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Get user and roles
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("Admin");
   const isClient = hasRole("Client");
   const isWorker = hasRole("HealthcareWorker");
   const navigate = useNavigate();
 
+  // Deleting state
   const [toDelete, setToDelete] = useState<AppointmentView | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Fetch appointments based on role
   const fetchAppointments = async () => {
+    // Start loading and clear previous errors
     setLoading(true);
     setError(null);
     try {
@@ -36,12 +41,16 @@ const AppointmentPage: React.FC = () => {
       setAppointments(data);
       console.log("Appointments fetched:", data);
     } catch (error: any) {
-      console.error("Error fetching ", error);
+      // if error occurs during fetch
+      console.error("Error fetching appointments: ", error);
       setError("Failed to fetch appointments.");
     } finally {
+      // Set loading to false in both success and error cases
       setLoading(false);
     }
   };
+
+  // Initial fetch, only once on mount (because of empty dependency array)
   useEffect(() => {
     fetchAppointments();
   }, []);
@@ -52,23 +61,29 @@ const AppointmentPage: React.FC = () => {
     [appointments]
   );
 
+  // Confirm delete appointment
   const confirmDelete = async () => {
+    // If no appointment to delete, return
     if (!toDelete?.id) return;
+    // Start loading and clear previous errors
     setError(null);
     setIsDeleting(true);
     try {
+      // Call deleteAppointment service
       await appointmentService.deleteAppointment(toDelete.id);
       fetchAppointments();
       setToDelete(null);
     } catch (error) {
+      // If error occurs during delete
       console.error("Error deleting appointment: ", error);
       setError("Error deleting appointment");
       setToDelete(null);
     } finally {
-      setIsDeleting(false);
+      setIsDeleting(false); // Stop loading delete state
     }
   };
-
+  // Here we render the component. If loading, show loading spinner. If error, show error alert.
+  // Otherwise show the appointment table with data and delete modal if needed.
   return (
     <div>
       <h1>Appointments</h1>
@@ -93,6 +108,7 @@ const AppointmentPage: React.FC = () => {
             isClient={isClient}
           />
 
+          {/* Delete confirmation modal */}
           {toDelete && (
             <AppointmentDeleteModal
               appointment={toDelete}
@@ -103,7 +119,6 @@ const AppointmentPage: React.FC = () => {
           )}
         </>
       )}
-      {/* Dont href with buttons */}
     </div>
   );
 };

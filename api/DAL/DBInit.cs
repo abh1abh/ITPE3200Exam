@@ -1,6 +1,4 @@
-using System.Security.Claims;
 using api.Models;
-// using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.DAL;
@@ -12,21 +10,18 @@ public static class DBInit
     {
         var appDbContext = sp.GetRequiredService<AppDbContext>(); // Get the database context
 
-        // For dev, resets db each time
-        // context.Database.EnsureDeleted(); 
-        // context.Database.EnsureCreated();
-
+        // Init of Clients with IdentityUser link and claim
         if (await appDbContext.Clients.AnyAsync()) return;
 
 
         var clients = new[]
         {
-            new Client { Name="John Doe",  Address="123 Main St",  Phone="555-1234", Email="john@homecare.local", AuthUserId = authSeed.UserIds["Client"]  }
+            new Client { Name="John Doe",  Address="123 Main St",  Phone="555-1234", Email="client@homecare.local", AuthUserId = authSeed.UserIds["Client"] },
+            new Client { Name="Jane Smith",Address="456 Oak Ave", Phone="555-5678", Email="client2@homecare.local", AuthUserId = authSeed.UserIds["Client2"] }
         };
 
         appDbContext.Clients.AddRange(clients);
         await appDbContext.SaveChangesAsync();
-
 
         // Init of HealthcareWorkers with IdentityUser link and claim
         var workers= new[]
@@ -35,8 +30,14 @@ public static class DBInit
                 Name="Alice Brown",
                 Address="12 Health St",
                 Phone="555-1111",
-                Email="alice@homecare.local",
+                Email="worker@homecare.local",
                 AuthUserId=authSeed.UserIds["HealthcareWorker"] },
+            new HealthcareWorker {
+                Name="Bob Johnson",
+                Address="34 Health St",
+                Phone="555-2222",
+                Email="worker2@homecare.local",
+                AuthUserId=authSeed.UserIds["HealthcareWorker2"] }
         };
 
         appDbContext.HealthcareWorkers.AddRange(workers);
@@ -85,7 +86,7 @@ public static class DBInit
         appDbContext.Appointments.AddRange(appts); // Add appointments to context
         await appDbContext.SaveChangesAsync(); // Save to get IDs
 
-        // Mark the linked slots as booked (optional convenience flag)
+        // Mark the linked slots as booked 
         slots[0].IsBooked = false;
         slots[1].IsBooked = true;
         await appDbContext.SaveChangesAsync();

@@ -58,3 +58,11 @@ export const deleteAppointment = async (id: number) => {
   });
   return handleResponse(response);
 };
+
+// Fetch ChangeLogs
+export const fetchChangeLog = async (id: number) => {
+  const response = await fetch(`${API_URL}/api/appointment/${id}/changelog`, {
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(response);
+};
