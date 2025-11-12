@@ -39,6 +39,7 @@ function App() {
           <NavMenu />
           <div className="page-container">
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<HomePage />} />
               <Route path="/footer" element={<Footer />} />
               <Route path="/team" element={<TeamPage />} />
@@ -51,24 +52,28 @@ function App() {
               <Route path="/careers" element={<CareersPage />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route path="/about" element={<AboutPage />} />
-
+              {/* Protected routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<ProfileForm />} />
                 <Route element={<RequireRole roles={["Admin"]} />}>
+                  {/* Admin Only Routes: */}
                   <Route path="/admin/register" element={<RegisterAdmin />} />
                   <Route path="/clients" element={<ClientPage />} />
                   <Route path="/client/:id/update" element={<ClientUpdate />} />
                   <Route path="/healthcareworkers" element={<HealthcareWorkerPage />} />
                   <Route path="/healthcareworker/:id/update" element={<HealthcareWorkerUpdate />} />
                 </Route>
+                {/* HealthcareWorker and Admin Routes: */}
                 <Route element={<RequireRole roles={["Admin", "HealthcareWorker"]} />}>
                   <Route path="/availableslot" element={<AvailableSlotPage />} />
                   <Route path="/availableslot/create" element={<AvailableSlotCreatePage />} />
                   <Route path="/availableslot/:slotId" element={<AvailableSlotUpdatePage />} />
                 </Route>
+                {/* Admin and Client Routes: */}
                 <Route element={<RequireRole roles={["Admin", "Client"]} />}>
                   <Route path="/appointment/create" element={<AppointmentCreatePage />} />
                 </Route>
+                {/* Admin, HealthcareWorker and Client Routes: */}
                 <Route element={<RequireRole roles={["Admin", "HealthcareWorker", "Client"]} />}>
                   <Route path="/appointment/:id/update" element={<AppointmentUpdatePage />} />
                   <Route path="/appointment" element={<AppointmentPage />} />

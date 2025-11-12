@@ -1,19 +1,21 @@
 import { Alert, Button, Modal } from "react-bootstrap";
 import { AvailableSlot } from "../types/availableSlot";
 
-type DeleteDialogProps = {
+// Props for the DeleteAvailableSlotModal component
+type DeleteAvailableSlotModalProps = {
   availableSlot: AvailableSlot;
   onConfirm: () => void;
   onCancel: () => void;
   isDeleting: boolean;
 };
 
-const DeleteAvailableSlotModal: React.FC<DeleteDialogProps> = ({
+const DeleteAvailableSlotModal: React.FC<DeleteAvailableSlotModalProps> = ({
   availableSlot,
   onConfirm,
   onCancel,
   isDeleting,
 }) => (
+  // Render modal to confirm deletion of available slot
   <Modal show onHide={onCancel}>
     <Modal.Header closeButton>Delete available slot?</Modal.Header>
     <Modal.Body>

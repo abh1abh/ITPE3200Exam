@@ -1,8 +1,8 @@
 import React from "react";
 import { Carousel, Image } from "react-bootstrap";
 const API_URL = import.meta.env.VITE_API_URL;
-console.log(API_URL);
 
+// Home page component displaying a carousel of images. Fetch images from API_URL.
 const HomePage: React.FC = () => {
   return (
     <div className="text-center">
