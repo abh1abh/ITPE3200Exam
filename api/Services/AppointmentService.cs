@@ -252,7 +252,10 @@ public class AppointmentService: IAppointmentService
         slot.IsBooked = true; 
         var booked = await _availableSlotRepository.Update(slot);
         if (!booked)
-            throw new InvalidOperationException("Could not book the selected slot."); // If the slot is not booked it throws an InvalidOperationException
+        {
+            _logger.LogWarning("[AppointmentService] Could not book slot {SlotId} for Appointment creation", slot.Id);
+            throw new InvalidOperationException("Could not book the selected slot."); // If the slot is not booked it throws an InvalidOperationException            
+        }
 
 
         // Create the appointment object from the dto and the booked slot
@@ -269,8 +272,13 @@ public class AppointmentService: IAppointmentService
         try
         {
             var created = await _appointmentRepository.Create(appointment); // Call the AppointmentRepository to create the appointment 
-            if (!created) throw new InvalidOperationException("Could not create appointment."); // If creation fails it throws an InvalidOperationException
 
+            if (!created)
+            {
+                _logger.LogWarning("[AppointmentService] Create failed for Appointment (ClientId {ClientId}, SlotId {SlotId}, Start {Start:u}, End {End:u})",
+                    appointment.ClientId, appointment.AvailableSlotId, appointment.Start, appointment.End);
+                throw new InvalidOperationException("Could not create appointment."); // If creation fails it throws an InvalidOperationException
+            } 
             foreach (var t in dto.AppointmentTasks!) // Service loops through the Appointment task and creates each one
             {
                 var ok = await _appointmentTaskRepository.Create(new AppointmentTask
@@ -279,7 +287,12 @@ public class AppointmentService: IAppointmentService
                     Description = t.Description!,
                     IsCompleted = t.IsCompleted
                 });
-                if (!ok) throw new InvalidOperationException("Could not create appointment task."); // If one of the task fail, it throws an InvalidOperationException
+                if (!ok)
+                {
+                    // If one of the task fail, it throws an InvalidOperationException
+                    _logger.LogWarning("[AppointmentService] Create failed for AppointmentTask {TaskId} for Appointment {AppointmentId}", t.Id, appointment.Id);
+                    throw new InvalidOperationException("Could not create appointment task."); 
+                } 
             }
 
             // To get the full appointment, call the db, then convert to dto
@@ -309,10 +322,12 @@ public class AppointmentService: IAppointmentService
                     ChangeDescription = cl.ChangeDescription
                 }).ToList()
             };
+            _logger.LogInformation("[AppointmentService] Appointment created {AppointmentId}", appointment.Id);
             return appointmentDto;
         } 
         catch // If the try fails, we unbook the slot, and propagate the exception to the controller.  
         {
+            _logger.LogWarning("[AppointmentService] Create failed; rolling back slot {SlotId}", slot.Id);
             slot.IsBooked = false;
             await _availableSlotRepository.Update(slot);
             throw;
@@ -405,6 +420,8 @@ public class AppointmentService: IAppointmentService
             throw new InvalidOperationException("Internal error updating the appointment.");
         }
 
+        _logger.LogInformation("[AppointmentService] Appointment updated {AppointmentId}", existing.Id);
+
         var description = string.Join("; ", changes); // Combine changes into single description
         if (description.Length > 500) description = description[..500]; // Truncate if too long
 
@@ -422,8 +439,10 @@ public class AppointmentService: IAppointmentService
         if (!logged)
         {
             // If logging fails, log warning
-            _logger.LogWarning("[AppointmentService] failed to create change log for AppointmentId {AppointmentId:0000}. Description: {Description}", appointmentDto.Id, description);
+            _logger.LogWarning("[AppointmentService] failed to create change log for AppointmentId {AppointmentId:0000}.", appointmentDto.Id);
         }
+        _logger.LogInformation("[AppointmentService] Added Change log for AppointmentId {AppointmentId:0000}", existing.Id);
+
         return true;
     }
     
@@ -446,22 +465,24 @@ public class AppointmentService: IAppointmentService
             _logger.LogError("[AppointmentService] appointment deletion failed for AppointmentId {AppointmentId:0000}", appointment.Id);
             throw new InvalidOperationException("Appointment deletion failed.");
         }
+        _logger.LogInformation("[AppointmentService] Appointment deleted {AppointmentId}", appointment.Id);
 
         // Free slot first 
         if (appointment.AvailableSlotId.HasValue)
         {
             var slot = await _availableSlotRepository.GetById(appointment.AvailableSlotId.Value); // Get the slot
-            if (slot is not null) 
+            if (slot is not null)
             {
                 slot.IsBooked = false; // Free up the slot
                 var slotOk = await _availableSlotRepository.Update(slot); // Update slot to free it up
-                if (!slotOk) 
+                if (!slotOk)
                 {
-                    // TODO: Maybe should we throw an exception? 
                     _logger.LogWarning("[AppointmentService] failed to free up slot for AppointmentId {AppointmentId:0000}", id); // Log warning if freeing slot fails
                 }
+                _logger.LogInformation("[AppointmentService] Appointment freed up slot {SlotId}", slot.Id);
             }
         }
+        
 
         // Create changelog 
         bool logged = await _changeLogRepository.Create(new ChangeLog
@@ -477,6 +498,7 @@ public class AppointmentService: IAppointmentService
         {
             _logger.LogWarning("[AppointmentService] failed to create change log for deleted AppointmentId {AppointmentId:0000}", appointment.Id);
         }
+        _logger.LogInformation("[AppointmentService] Added Change log for deleted AppointmentId {AppointmentId:0000}", appointment.Id);
 
         return true;
     }

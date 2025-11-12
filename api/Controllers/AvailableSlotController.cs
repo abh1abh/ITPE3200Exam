@@ -96,7 +96,11 @@ public class AvailableSlotController : ControllerBase
         catch (UnauthorizedAccessException) // Handles unauthorized access
         {
             _logger.LogWarning("[AvailableSlotController] User is not authorized to create available slot");
-            return Forbid(); 
+            return Forbid();
+        }
+        catch (InvalidOperationException)  // Handles operation exceptions
+        {
+            return StatusCode(500, "Internal error creating the available slot"); // Returns 500 at operation exceptions
         }
         catch (Exception ex)
         {
@@ -120,14 +124,18 @@ public class AvailableSlotController : ControllerBase
         }
         catch (UnauthorizedAccessException) // Handles unauthorized access
         {
-            _logger.LogError("[AvailableSlotController] User is not authorized to access available slot");
-            return Forbid(); 
+            _logger.LogWarning("[AvailableSlotController] User is not authorized to access available slot");
+            return Forbid();
         }
         catch (ArgumentException e) // Handles bad input exceptions
         {
-            
+
             _logger.LogError(e, "[AvailableSlotController] Arguments missing");
-            return BadRequest(e.Message); 
+            return BadRequest(e.Message);
+        }
+        catch (InvalidOperationException) // Handles operation exceptions
+        {
+            return StatusCode(500, "Internal error updating the available slot.");
         }
         catch (Exception ex)
         {
@@ -149,7 +157,7 @@ public class AvailableSlotController : ControllerBase
             // If delete failed return 500 Internal Server Error
             if (!ok) 
             {
-                _logger.LogError("[AvailableSlotController] Delete operation failed for available slot id {ID:0000}", id); 
+                _logger.LogWarning("[AvailableSlotController] Delete operation failed for available slot id {ID:0000}", id); 
                 return StatusCode(500, "Failed to delete slot.");
             }
             return NoContent(); // Returns 204 No Content if delete is successful
@@ -163,7 +171,7 @@ public class AvailableSlotController : ControllerBase
         catch (ArgumentException e) // Handles bad input exceptions
         {
 
-            _logger.LogError(e, "[AvailableSlotController] Arguments missing");
+            _logger.LogWarning("[AvailableSlotController] Arguments missing");
             return BadRequest(e.Message);
         }
         catch (Exception ex) // Handles general exceptions
