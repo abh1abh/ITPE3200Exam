@@ -56,6 +56,7 @@ public class AppointmentController : ControllerBase
         }
         catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to view appointments for clients {Id:0000}", authUserId);
             return Forbid(); // If unauthorized return Forbid
         }
         catch (Exception ex)
@@ -77,6 +78,7 @@ public class AppointmentController : ControllerBase
         }
         catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to view appointments for healthcare worker {Id:0000}", authUserId);
             return Forbid(); // If unauthorized return Forbid
         }
         catch (Exception ex)
@@ -96,13 +98,14 @@ public class AppointmentController : ControllerBase
             var appointmentDto = await _service.GetById(id, role: role, authUserId: authUserId); // Uses service layer for all business logic 
             if (appointmentDto is null) // If service returns null appointment Not Found
             {
-                _logger.LogError("[AppointmentController] appointment not found while executing _service.GetById() for AppointmentId {AppointmentId:0000}", id);
+                _logger.LogWarning("[AppointmentController] appointment not found while executing _service.GetById() for AppointmentId {AppointmentId:0000}", id);
                 return NotFound("Appointment not found");
             }
             return Ok(appointmentDto);
         }
         catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to view appointment {Id:0000}", id);
             return Forbid();
         }
         catch (Exception ex)
@@ -129,15 +132,16 @@ public class AppointmentController : ControllerBase
         }
         catch (UnauthorizedAccessException) // Handles Unauthorized access
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to create appointment");
             return Forbid();
         }
         catch (ArgumentException e) // Handles bad input exceptions 
         {
+            _logger.LogWarning(e, "[AppointmentController] Bad request during Create");
             return BadRequest(e.Message);
         }
-        catch (InvalidOperationException e)  // Handles operation exceptions 
+        catch (InvalidOperationException)  // Handles operation exceptions 
         {
-            _logger.LogWarning(e, "[AppointmentController] Create failed");
             return StatusCode(500, "Internal error creating the appointment"); // Returns 500 at operation exceptions
         }
         catch (Exception ex) // Handles general exceptions 
@@ -163,15 +167,16 @@ public class AppointmentController : ControllerBase
         }
         catch (UnauthorizedAccessException) // Handles unauthorized access
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to update appointment {Id:0000}", id);
             return Forbid();
         }
         catch (ArgumentException e) // Handles bad input exceptions
         {
+            _logger.LogWarning(e, "[AppointmentController] Bad request {Id:0000}", id);
             return BadRequest(e.Message);
         }
-        catch (InvalidOperationException e) // Handles operation exceptions
+        catch (InvalidOperationException) // Handles operation exceptions
         {
-            _logger.LogWarning(e, "[AppointmentController] Update failed {Id:0000}", id);
             return StatusCode(500, "Internal error updating the appointment"); // Returns 500 at operation exceptions
         }
         catch (Exception ex)
@@ -196,12 +201,12 @@ public class AppointmentController : ControllerBase
         }
         catch (UnauthorizedAccessException) // Handles unauthorized access
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to delete appointment {Id:0000}", id);
             return Forbid();
         }
 
-        catch (InvalidOperationException e) // Handles operation exceptions
+        catch (InvalidOperationException) // Handles operation exceptions
         {
-            _logger.LogWarning(e, "[AppointmentController] Delete failed {Id:0000}", id);
             return StatusCode(500, "Appointment deletion failed");
         }
         catch (Exception ex)
@@ -226,6 +231,7 @@ public class AppointmentController : ControllerBase
         }
         catch (UnauthorizedAccessException) // Handles unauthorized access
         {
+            _logger.LogWarning("[AppointmentController] User is not authorized to view appointments changelog {Id:0000}", id);
             return Forbid();
         }
         catch (Exception ex)

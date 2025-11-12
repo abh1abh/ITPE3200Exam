@@ -114,7 +114,7 @@ public class AvailableSlotService: IAvailableSlotService
         var ok = await _availableSlotRepository.Create(slot); // Calls repository to create slot
         if (!ok) // If creation failed, log error and throw invalid operation exception
         {
-            _logger.LogError("[AvailableSlotService] create failed {@slot}", slot);
+            _logger.LogWarning("[AvailableSlotService] create failed {Id:0000}", slot.Id);
             throw new InvalidOperationException("Failed to create slot.");
         }
 
@@ -128,6 +128,7 @@ public class AvailableSlotService: IAvailableSlotService
             IsBooked = slot.IsBooked
         };
 
+        _logger.LogInformation("[AvailableSlotService] Created available slot {Id:0000}", slot.Id);
         return createdSlotDto;
     }
 
@@ -160,8 +161,11 @@ public class AvailableSlotService: IAvailableSlotService
         // If update failed, log error, handle by controller by using 500 Internal Server Error
         if (!updated)
         {
-            _logger.LogError("[AvailableSlotService] update failed {@slot}", existing);
+            _logger.LogWarning("[AvailableSlotService] update failed {id:0000}", existing.Id);
+            throw new InvalidOperationException("Failed to update slot.");
         }
+
+        _logger.LogInformation("[AvailableSlotService] Updated available slot {Id:0000}", existing.Id);
         return updated;
 
     }
@@ -179,10 +183,11 @@ public class AvailableSlotService: IAvailableSlotService
         var deleted = await _availableSlotRepository.Delete(id);
 
         // If delete failed, log error, handle by controller by using 500 Internal Server Error
-        if (!deleted) 
+        if (!deleted)
         {
-            _logger.LogError("[AvailableSlotService] delete failed for {Id:0000}", id);
+            _logger.LogWarning("[AvailableSlotService] Delete failed for {Id:0000}", id);
         }
+        _logger.LogInformation("[AvailableSlotService] Deleted available slot Id {Id:0000}", id);
         return deleted;
 
     }
