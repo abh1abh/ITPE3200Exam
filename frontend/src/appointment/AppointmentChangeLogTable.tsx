@@ -2,11 +2,13 @@ import React from "react";
 import { Table } from "react-bootstrap";
 import { ChangeLog } from "../types/appointment";
 
+// Props for AppointmentChangeLogTable component
 interface AppointmentChangeLogTableProps {
   changeLogs: ChangeLog[];
 }
 
 const AppointmentChangeLogTable: React.FC<AppointmentChangeLogTableProps> = ({ changeLogs }) => {
+  // Render table of change logs
   return (
     <Table striped bordered hover size="sm" className="mt-3">
       <thead>
