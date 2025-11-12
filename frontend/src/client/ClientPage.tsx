@@ -56,17 +56,18 @@ const ClientPage: React.FC = () => {
     
     return (
         <div>
+            <h2>Clients</h2>
             <Button onClick={fetchClientData} className="btn btn-primary mb-3 me-2" disabled={loading}>
                     {loading ? "Loading..." : "Refresh clients"}
                   </Button>
-            <h2>Clients</h2>
             {!loading && error && <Alert variant="danger">{error}</Alert>}
             {success && <Alert variant="success">{success}</Alert>}
             
             {!loading && !error && (
                 <>
                 <UserTable
-                    user={clients}
+                    users={clients}
+                    isHealthcareWorker={false}
                     isAdmin={hasRole("Admin")}
                     onDeleteClick={(setToDelete)} />
                 {toDelete && (

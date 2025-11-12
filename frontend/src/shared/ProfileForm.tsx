@@ -23,17 +23,18 @@ const ProfileForm: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
+            if(user?.role === "Admin"){
+                
+            }
             if (user?.role === "HealthcareWorker") {
-                const workerId = user.nameid;
-                const worker = await HealthcareWorkerService.fetchWorkerByAuthId(workerId);
+                const worker = await HealthcareWorkerService.fetchWorkerBySelf();
                 data.email = worker.email;
                 data.name = worker.name;
                 data.number = worker.phone;
                 data.address = worker.address;
             }
             else if (user?.role === "Client") {
-                const clientId = user.nameid;
-                const client = await ClientService.fetchClientByAuthId(clientId);
+                const client = await ClientService.fetchClientBySelf();
                 data.email = client.email;
                 data.name = client.name;
                 data.number = client.phone;

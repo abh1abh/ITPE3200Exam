@@ -4,9 +4,10 @@ import * as healthcareWorkerService from "./healthcareWorkerService";
 import { HealthcareWorker } from "../types/healthcareWorker";
 import UserUpdateForm from "../shared/UserUpdateForm";
 import { useAuth } from "../auth/AuthContext";
+import { jwtDecode } from "jwt-decode";
 import Loading from "../shared/Loading";
 import { Alert } from "react-bootstrap";
-import { UpdateUserDto, User } from "../types/user";
+import { UpdateUserDto } from "../types/user";
 
 const HealthcareWorkerUpdatePage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -15,29 +16,26 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
     const { hasRole, user } = useAuth();
     
     const isAdmin = hasRole("Admin");
+    const isWorker = hasRole("HealthcareWorker");
     
     const [isSelf, setIsSelf] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
     
     useEffect(() => {
         const fetchWorker = async () => {
         try {
-            const data = await healthcareWorkerService.fetchWorker(Number(id));
-                setWorker(data);
-
             // If not admin, check if this is user's own worker profile
             if (!isAdmin && hasRole("HealthcareWorker")) {
-                if (user?.nameid) {
-                    // Match logged-in AuthUserId to HealthcareWorker
-                    const me = await healthcareWorkerService.fetchWorkerByAuthId(user.nameid);
-                    if (me?.id === data.id) {
-                        setIsSelf(true);
-                    } else {
-                        setIsSelf(false);
-                    }
-                }
+                const data = await healthcareWorkerService.fetchWorkerBySelf();
+                setWorker(data);
+                setIsSelf(true);
+            }
+            else{
+                const data = await healthcareWorkerService.fetchWorker(Number(id));
+                setWorker(data);
             }
         } catch (error) {
             console.error("Error fetching worker:", error);
@@ -54,12 +52,12 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
     const handleWorkerUpdated = async (updated: UpdateUserDto) => {
         try {
             await healthcareWorkerService.updateWorker(Number(id), updated);
-            console.log("Updated successfully");
+            setSuccess("Update successful!");
             if(isAdmin){
-                navigate("/healthcareworkers");
+                setTimeout(() => navigate("/healthcareworkers"), 2000);
             }
-            else{
-                navigate("/profile");
+            else if(isWorker){
+                setTimeout(() => navigate("/profile"), 2000);
             }
         } catch (error) {
             console.error("error update worker:", error);
@@ -73,22 +71,24 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
             </Alert>
         );
     }
+    else{
     return (
         <div>
             <h2>Update Healthcare Worker</h2>
+            {success && <Alert variant="success">{success}</Alert>}
             {loading ? (
                 <Loading />
             ) : !worker ? (
                 <Alert variant="warning" className="mt-3">
                     No healthcare worker found.
                 </Alert>
-            ) : fetchError ? (
+            ) :fetchError ? (
                 <Alert variant="danger" className="mt-3">
                     {fetchError}
                 </Alert>
             ) : (
                 <UserUpdateForm
-                    user={worker}
+                    profileUser={worker}
                     role="HealthcareWorker"
                     onUserChanged={handleWorkerUpdated}
                     serverError={submitError}
@@ -96,5 +96,6 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
             )}
         </div>
     );
+}
 }
 export default HealthcareWorkerUpdatePage;

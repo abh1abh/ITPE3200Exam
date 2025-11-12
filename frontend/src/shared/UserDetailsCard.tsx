@@ -3,13 +3,18 @@ import { Client } from "../types/client";
 import { HealthcareWorker } from "../types/healthcareWorker";
 import { Badge, Card, Col, Container, Row, Table, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
 interface UserDetailsCardProps {
     user: Client | HealthcareWorker;
     onDeleteClick: (user: Client | HealthcareWorker) => void;
+    isHealthcareWorker?: boolean;
 }
 
-const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user, onDeleteClick }) => {
+const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user, isHealthcareWorker, onDeleteClick }) => {
+  const { hasRole } = useAuth();
+  if (hasRole("Client")) {isHealthcareWorker = false;}
+  if (hasRole("HealthcareWorker")) {isHealthcareWorker = true;}
     return (
         <Container style={{ maxWidth: "35rem" }}>
               <Card className="mb-3 border-0">
@@ -39,7 +44,7 @@ const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user, onDeleteClick }
                     </Col>
                 </Row>
                 <Link
-                  to={`/healthcareworker/${user.id}/update`}
+                  to={`/${isHealthcareWorker ? "healthcareworker" : "client"}/${user.id}/update`}
                   className="btn btn-sm btn-primary me-2"
                 >
                   Update

@@ -19,7 +19,7 @@ export const fetchClient = async (id: number) => {
 };
 
 export const updateClient = async (id: number, client: UpdateUserDto) => {
-  const response = await fetch(`${API_URL}/api/client/${id}`, {
+  const response = await fetch(`${API_URL}/api/auth/client/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(client),
@@ -27,8 +27,8 @@ export const updateClient = async (id: number, client: UpdateUserDto) => {
   return handleResponse(response);
 };
 
-export const fetchClientByAuthId = async (authId: string) => {
-  const response = await fetch(`${API_URL}/api/Client/clientauth/${authId}`, {
+export const fetchClientBySelf = async () => {
+  const response = await fetch(`${API_URL}/api/Client/clientauth`, {
     method: "GET",
     headers: getAuthHeaders(),
   });

@@ -56,16 +56,17 @@ const HealthcareWorkerPage: React.FC = () => {
     
     return (
         <div>
-            <Button onClick={fetchWorkerData} className="btn btn-primary mb-3 me-2" disabled={loading}>
-                    {loading ? "Loading..." : "Refresh workers"}
-                  </Button>
             <h2>Healthcare Workers</h2>
+            <Button onClick={fetchWorkerData} className="btn btn-primary mb-3 me-2" disabled={loading}>
+                {loading ? "Loading..." : "Refresh workers"}
+            </Button>
             {!loading && error && <Alert variant="danger">{error}</Alert>}
             {success && <Alert variant="success">{success}</Alert>}
             {!loading && !error && (
                 <>
                 <UserTable
-                    user={workers}
+                    users={workers}
+                    isHealthcareWorker={true}
                     isAdmin={hasRole("Admin")}
                     onDeleteClick={(setToDelete)} />
                 {toDelete && (

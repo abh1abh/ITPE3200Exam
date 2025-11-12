@@ -2,6 +2,8 @@ using api.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using api.Services;
+using System.Security.Claims;
+
 
 namespace api.Controllers;
 
@@ -20,6 +22,14 @@ public class ClientController : ControllerBase
         _logger = logger;
         _authService = authService;
     }
+
+    private (string? role, string? authUserId) UserContext()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
+        var role = User.FindFirstValue(ClaimTypes.Role); // Specified Role when creating the JWT token
+        return (role, userId);
+    }
+
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -45,16 +55,24 @@ public class ClientController : ControllerBase
         return Ok(client);
     }
 
-    [HttpGet("clientauth/{authUserId}")]
-    public async Task<IActionResult> GetByAuthUserId(string authUserId)
+    [HttpGet("clientauth")]
+    public async Task<IActionResult> GetBySelf()
     {
-        var client = await _service.GetByAuthUserId(authUserId);
-        if (client == null)
+        var (_, authUserId) = UserContext(); // Get role and AuthUserId
+        try
         {
-            _logger.LogError("[ClientController] Client not found for AuthUserId {AuthUserId}", authUserId);
-            return NotFound("Client not found");
+            var client = await _service.GetByAuthUserId(authUserId!);
+            if (client == null)
+            {
+                _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
+                return NotFound("Healthcare worker not found");
+            }
+            return Ok(client);
         }
-        return Ok(client);
+        catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
+        {
+            return Forbid();
+        }
     }
 
     [HttpPost]
@@ -74,52 +92,16 @@ public class ClientController : ControllerBase
             return BadRequest(e.Message);
         } 
     }
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update([FromBody] UpdateClientDto clientDto)
-    {
-        int id = clientDto.Id;
-        ClientDto? client = await _service.GetById(id);
-        if (client == null)
-        {
-            return NotFound("Healthcare worker not found");
-        }
-        if (id != clientDto.Id)
-        {
-            return BadRequest("ID mismatch");
-        }
-        try
-        {
-            var existingClient = await _service.Update(id, clientDto);
-            var authClientUpdate = await _authService.UpdateUserAsync(client.AuthUserId, clientDto.Email!, clientDto.Password!);
-            if (!existingClient)
-            {
-                return NotFound("Client not found");
-            }
-            if (!authClientUpdate)
-            {
-                _logger.LogError("[ClientController] Worker update failed for AuthUserId {userId}, {@client}", client.AuthUserId, clientDto);
-                return StatusCode(500, "Failed to update associated user.");
-            }
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogError(ex, "[ClientController] Worker update failed for ClientId {id:0000}, {@client}", id, clientDto);
-            return StatusCode(500, "Failed to update client.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[ClientController] Client update failed for ClientId {id:0000}, {@client}", id, clientDto);
-            return StatusCode(500, "A problem happened while updating the Client.");
-        }
-    }   
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         try
         {
+            ClientDto user = await _service.GetById(id);
+            string username = user.Email;
             bool deleted = await _service.Delete(id);
+            bool authDeleted = await _authService.DeleteUserAsync(username);
             if (!deleted)
             {
                 return NotFound("Client not found");

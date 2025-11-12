@@ -106,18 +106,19 @@ public class ClientService : IClientService
 
         return createdDto;
     }
-    public async Task<bool> Update(int id, UpdateClientDto clientDto)
+    public async Task<bool> Update(UpdateUserDto userDto)
     {
+        var id = userDto.Id;
         var existingClient = await _repository.GetClientById(id);
         if (existingClient == null)
         {
             return false;
         }
 
-        existingClient.Name = clientDto.Name;
-        existingClient.Address = clientDto.Address;
-        existingClient.Phone = clientDto.Phone;
-        existingClient.Email = clientDto.Email;
+        existingClient.Name = userDto.Name;
+        existingClient.Address = userDto.Address;
+        existingClient.Phone = userDto.Phone;
+        existingClient.Email = userDto.Email;
 
         bool updated = await _repository.Update(existingClient);
         if (!updated)

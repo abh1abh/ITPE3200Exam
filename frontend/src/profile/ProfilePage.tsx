@@ -24,12 +24,10 @@ const ProfilePage: React.FC = () => {
         setError(null);
         try {
             if (user?.role === "HealthcareWorker") {
-                const workerId = user.nameid;
-                const worker = await HealthcareWorkerService.fetchWorkerByAuthId(workerId);
+                const worker = await HealthcareWorkerService.fetchWorkerBySelf();
                 setProfileData(worker);
             } else if (user?.role === "Client") {
-                const clientId = user.nameid;
-                const client = await ClientService.fetchClientByAuthId(clientId);
+                const client = await ClientService.fetchClientBySelf();
                 setProfileData(client);
             } else {
                 setError("Unknown user role");

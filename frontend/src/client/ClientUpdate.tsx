@@ -15,10 +15,12 @@ const ClientUpdatePage: React.FC = () => {
     const { hasRole } = useAuth();
     
     const isAdmin = hasRole("Admin");
+    const isClient = hasRole("Client");
     
     const [loading, setLoading] = useState<boolean>(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
     
     useEffect(() => {
         const fetchClient = async () => {
@@ -38,16 +40,22 @@ const ClientUpdatePage: React.FC = () => {
     const handleClientUpdated = async (updated: UpdateUserDto) => {
         try {
             await clientService.updateClient(Number(id), updated);
-            console.log("Updated successfully");
-            navigate("/clients");
+            setSuccess("Update successful!");
+            if(isAdmin){
+                setTimeout(() => navigate("/clients"), 2000);
+            }
+            else if(isClient){
+                setTimeout(() => navigate("/profile"), 2000);            
+            }
         } catch (error) {
             console.error("error update client:", error);
-            setSubmitError("Failed to update worker.");
+            setSubmitError("Failed to update client.");
         }
     };
     return (
         <div>
             <h2>Update Client</h2>
+            {success && <Alert variant="success">{success}</Alert>}
             {loading ? (
                 <Loading />
             ) : !client ? (
@@ -60,7 +68,7 @@ const ClientUpdatePage: React.FC = () => {
                 </Alert>
             ) : (
                 <UserUpdateForm
-                    user={client}
+                    profileUser={client}
                     onUserChanged={handleClientUpdated}
                     role="Client"
                     serverError={submitError}

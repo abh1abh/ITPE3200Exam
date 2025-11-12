@@ -23,6 +23,7 @@ const LoginPage: React.FC = () => {
     };
 
     return (
+        <div style={{maxWidth: "500px", margin: "0 auto", padding: "20px"}}>
         <Container className="mt-5">
             <h2>Login</h2>
             {error && <Alert variant="danger">{error}</Alert>}
@@ -33,6 +34,7 @@ const LoginPage: React.FC = () => {
                         type="text"
                         placeholder="Enter email"
                         value={username}
+                        pattern='^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
                         onChange={(e) => setUsername(e.target.value)}
                         required/>
                 </Form.Group>
@@ -43,12 +45,14 @@ const LoginPage: React.FC = () => {
                         type="password"
                         placeholder="Password"
                         value={password}
+                        pattern='^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$'
                         onChange={(e) => setPassword(e.target.value)}
                         required/>
                 </Form.Group>
                 <Button variant="primary" type="submit">Login</Button>
             </Form>
         </Container>
+        </div>
     );
 };
 

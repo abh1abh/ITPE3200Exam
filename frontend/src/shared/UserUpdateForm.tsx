@@ -1,18 +1,19 @@
-import React, { useRef, useState } from "react";
+import React, { use, useRef, useState } from "react";
 import { Client } from "../types/client";
 import { HealthcareWorker } from "../types/healthcareWorker";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Col, Container, Form, InputGroup, Row, Table } from "react-bootstrap";
 import { UpdateUserDto } from "../types/user";
+import { useAuth } from "../auth/AuthContext"; 
 
 interface UserUpdateFormProps {
-    user: Client | HealthcareWorker;
+    profileUser: Client | HealthcareWorker;
     role: "Client" | "HealthcareWorker";
     onUserChanged: (updated: Client | HealthcareWorker) => void;
     serverError?: string | null;
 }
 const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
-    user,
+    profileUser,
     role,
     onUserChanged,
     serverError = null,
@@ -20,10 +21,10 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
     const navigate = useNavigate();
     const onCancel = () => navigate(-1);
 
-    const [name, setName] = useState<string>(user.name);
-    const [email, setEmail] = useState<string>(user.email);
-    const [phone, setPhone] = useState<string>(user.phone);
-    const [address, setAddress] = useState<string>(user.address);
+    const [name, setName] = useState<string>(profileUser.name);
+    const [email, setEmail] = useState<string>(profileUser.email);
+    const [phone, setPhone] = useState<string>(profileUser.phone);
+    const [address, setAddress] = useState<string>(profileUser.address);
     const [password, setPassword] = useState<string>("");
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -34,7 +35,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
             phone,
             address,
             password: password ? password : undefined,
-            id: (user as any).id,
+            id: (profileUser as any).id,
         };
         onUserChanged(updatedUser as Client | HealthcareWorker);
     };
@@ -50,6 +51,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
                             <Form.Control
                                 type="text"
                                 value={name}
+                                pattern="/^[\p{L} '-]{1,100}$/u´"
                                 onChange={(e) => setName(e.target.value)}
                                 required
                             />
@@ -58,6 +60,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
                             <Form.Label>Email</Form.Label>
                             <Form.Control
                                 type="email"
+                                pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -67,6 +70,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
                             <Form.Label>Phone Number</Form.Label>
                             <Form.Control
                                 type="text"
+                                pattern="^(\+?\d{1,3}[- ]?)?(\(?\d{1,4}\)?[- ]?)?\d{1,4}([- ]?\d{1,9})$"
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
                                 required
@@ -76,6 +80,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
                             <Form.Label>Address</Form.Label>
                             <Form.Control
                                 type="text"
+                                pattern="^[A-Za-z0-9#.,'\/\-\s]{3,200}$"
                                 value={address}
                                 onChange={(e) => setAddress(e.target.value)}
                                 required
@@ -85,6 +90,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
                             <Form.Label>Password (leave blank to keep current password)</Form.Label>
                             <Form.Control
                                 type="password"
+                                pattern="^(|(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,})$"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />

@@ -14,8 +14,10 @@ import AvailableSlotCreatePage from "./availableslot/AvailableSlotCreatePage";
 import ProfilePage from "./profile/ProfilePage";
 import ClientPage from "./client/ClientPage";
 import ClientUpdate from "./client/ClientUpdate";
+import ClientDetailsPage from "./client/ClientDetailsPage";
 import HealthcareWorkerPage from "./healtcareWorker/HealthcareWorkerPage";
 import HealthcareWorkerUpdate from "./healtcareWorker/HealthcareWorkerUpdate";
+import HealthcareWorkerDetailsPage from "./healtcareWorker/HealthcareWorkerDetailsPage";
 import AvailableSlotPage from "./availableslot/AvailableslotPage";
 import AvailableSlotUpdatePage from "./availableslot/AvailableSlotUpdatePage";
 import AboutPage from "./dummypages/AboutPage";
@@ -49,6 +51,8 @@ function App() {
                   <Route path="/admin/register" element={<RegisterAdmin />} />
                   <Route path="/clients" element={<ClientPage />} />
                   <Route path="/healthcareworkers" element={<HealthcareWorkerPage />} />
+                  <Route path="/healthcareworker/:id/details" element={<HealthcareWorkerDetailsPage />} />
+                  <Route path="/client/:id/details" element={<ClientDetailsPage/>} />
                 </Route>
                 <Route element={<RequireRole roles={["Admin", "HealthcareWorker"]} />}>
                   <Route path="/availableslot" element={<AvailableSlotPage />} />
