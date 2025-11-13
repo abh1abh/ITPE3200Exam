@@ -2,7 +2,7 @@ import React from "react";
 import { Container } from "react-bootstrap";
 const ContactPage: React.FC = () => {
     return (
-        <Container className="py-5 text-center p-3 shadow-sm">
+        <Container className="py-5 text-center p-3">
             <h1 className="mb-4">Contact Us</h1>
                 <p className="text-muted mb-4">
                 Feel free to reach out to us at any time!</p>

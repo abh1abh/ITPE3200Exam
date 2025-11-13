@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
-import * as HealthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
-import { HealthcareWorker } from "../types/healthcareWorker";
-import { Client } from "../types/client";
-import { useNavigate } from "react-router-dom";
-import * as ClientService from "../client/clientService";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthContext";
-
+import * as ClientService from "../client/clientService";
+import * as HealthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
+//Shared profileform.
+//Display profile information.
+//Placed in the 'shared' since all the users (logged in) can use it.
 const ProfileForm: React.FC = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState<boolean>(true);
