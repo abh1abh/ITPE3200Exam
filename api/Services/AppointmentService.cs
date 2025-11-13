@@ -361,10 +361,11 @@ public class AppointmentService: IAppointmentService
         {
             if (existingTaskById != null && existingTaskById.TryGetValue(appointmentTask.Id, out var t)) // If task exists in DB
             {
-                if (
+                if
+                (
                     !string.Equals(t.Description, appointmentTask.Description, StringComparison.Ordinal) || // Check for description change
                     t.IsCompleted != appointmentTask.IsCompleted // Or completion status change
-                ) 
+                )
                 {
                     // Add change description
                     changes.Add($"Task #{t.Id}: \"{t.Description}\"/{t.IsCompleted} → \"{appointmentTask.Description}\"/{appointmentTask.IsCompleted}");
@@ -441,7 +442,10 @@ public class AppointmentService: IAppointmentService
             // If logging fails, log warning
             _logger.LogWarning("[AppointmentService] failed to create change log for AppointmentId {AppointmentId:0000}.", appointmentDto.Id);
         }
-        _logger.LogInformation("[AppointmentService] Added Change log for AppointmentId {AppointmentId:0000}", existing.Id);
+        else
+        {
+            _logger.LogInformation("[AppointmentService] Added Change log for AppointmentId {AppointmentId:0000}", existing.Id);  
+        }
 
         return true;
     }
@@ -451,7 +455,7 @@ public class AppointmentService: IAppointmentService
         var appointment = await _appointmentRepository.GetById(id); // Get appointment by ID
         if (appointment == null) // If not found, log error and return false
         {
-            _logger.LogError("[AppointmentService] appointment not found when deleting for AppointmentId {AppointmentId:0000}", id);
+            _logger.LogWarning("[AppointmentService] appointment not found when deleting for AppointmentId {AppointmentId:0000}", id);
             return false;
         }
 
@@ -462,7 +466,7 @@ public class AppointmentService: IAppointmentService
         bool returnOk = await _appointmentRepository.Delete(appointment.Id); // Delete appointment
         if (!returnOk) // If deletion fails, log error and throw InvalidOperationException
         {
-            _logger.LogError("[AppointmentService] appointment deletion failed for AppointmentId {AppointmentId:0000}", appointment.Id);
+            _logger.LogWarning("[AppointmentService] appointment deletion failed for AppointmentId {AppointmentId:0000}", appointment.Id);
             throw new InvalidOperationException("Appointment deletion failed.");
         }
         _logger.LogInformation("[AppointmentService] Appointment deleted {AppointmentId}", appointment.Id);
@@ -479,11 +483,13 @@ public class AppointmentService: IAppointmentService
                 {
                     _logger.LogWarning("[AppointmentService] failed to free up slot for AppointmentId {AppointmentId:0000}", id); // Log warning if freeing slot fails
                 }
-                _logger.LogInformation("[AppointmentService] Appointment freed up slot {SlotId}", slot.Id);
+                else
+                {
+                    _logger.LogInformation("[AppointmentService] Appointment freed up slot {SlotId}", slot.Id);  
+                }
             }
         }
         
-
         // Create changelog 
         bool logged = await _changeLogRepository.Create(new ChangeLog
         {
@@ -498,7 +504,10 @@ public class AppointmentService: IAppointmentService
         {
             _logger.LogWarning("[AppointmentService] failed to create change log for deleted AppointmentId {AppointmentId:0000}", appointment.Id);
         }
-        _logger.LogInformation("[AppointmentService] Added Change log for deleted AppointmentId {AppointmentId:0000}", appointment.Id);
+        else
+        {
+            _logger.LogInformation("[AppointmentService] Added Change log for deleted AppointmentId {AppointmentId:0000}", appointment.Id);
+        }
 
         return true;
     }

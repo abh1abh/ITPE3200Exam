@@ -186,6 +186,7 @@ public class AvailableSlotService: IAvailableSlotService
         if (!deleted)
         {
             _logger.LogWarning("[AvailableSlotService] Delete failed for {Id:0000}", id);
+            return deleted;
         }
         _logger.LogInformation("[AvailableSlotService] Deleted available slot Id {Id:0000}", id);
         return deleted;
