@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Form, Row, Col, Container, Spinner } from "react-bootstrap";
 import { AvailableSlot } from "../types/availableSlot";
 import { useNavigate } from "react-router-dom";
-import Loading from "../shared/Loading";
 import { HealthcareWorker } from "../types/healthcareWorker";
+import { addMinutes, combineDateTime, pad, quarterOptions, toDateInput } from "../shared/timeUtils";
 
+// Props for the AvailableSlotForm component
 interface AvailableSlotFormProps {
   onAvailableSlotChanged: (slot: AvailableSlot) => void;
   isUpdating?: boolean;
@@ -16,29 +17,7 @@ interface AvailableSlotFormProps {
   isSubmitting?: boolean;
 }
 
-// Helper function for date and time
-const pad = (n: number) => String(n).padStart(2, "0");
-
-const toDateInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-const addMinutes = (d: Date, mins: number) => {
-  const copy = new Date(d);
-  copy.setMinutes(copy.getMinutes() + mins);
-  return copy;
-};
-
-const quarterOptions = Array.from({ length: 24 * 4 }, (_, i) => {
-  const h = Math.floor(i / 4);
-  const m = (i % 4) * 15;
-  return `${pad(h)}:${pad(m)}`;
-});
-
-const combineDateTime = (dateStr: string, timeStr: string) => {
-  const [y, mo, d] = dateStr.split("-").map(Number);
-  const [h, mi] = timeStr.split(":").map(Number);
-  return new Date(y, mo - 1, d, h, mi, 0, 0);
-};
-
+// Shared Form Component for creating and updating available slots
 const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
   onAvailableSlotChanged,
   isUpdating = false,
@@ -49,25 +28,27 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
   serverError = null,
   isSubmitting,
 }) => {
+  // State for date and time inputs
   const [dateStr, setDateStr] = useState<string>("");
   const [timeStr, setTimeStr] = useState<string>("");
-  // For admin to select worker
+
+  // State for admin to select worker
   const [selectedWorkerId, setSelectedWorkerId] = useState<number | null>(null);
 
   // Handling error and loading
   const [error, setError] = useState<string | null>(null);
-  // const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  // Init selectedWorker
+  // Set default selected worker for admin when creating
   useEffect(() => {
     if (isAdmin && !isUpdating && workers.length > 0 && selectedWorkerId === null) {
       setSelectedWorkerId(workers[0].id);
     }
   }, [workers, isAdmin, isUpdating, selectedWorkerId]);
 
-  // Init date
+  // Initialize date and time fields
   useEffect(() => {
+    // Function to round current time to next quarter-hour
     const nowRounded = () => {
       // Round "now" to the next 15-min mark
       const now = new Date();
@@ -77,38 +58,43 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
       return now;
     };
 
+    // If updating, use initial data, otherwise use rounded now. Changes when isUpdating or initialData changes.
     const base =
       isUpdating && initialData
         ? new Date(initialData.start) // ISO string from object to Date object
         : nowRounded();
 
+    // Set date and time strings
     setDateStr(toDateInput(base));
     setTimeStr(`${pad(base.getHours())}:${pad(Math.floor(base.getMinutes() / 15) * 15)}`); // Set to nearest quarter
   }, [isUpdating, initialData]);
 
-  console.log(selectedWorkerId);
-
-  // Compute end
+  // Calculate end time based on start time
   const startDate = combineDateTime(dateStr, timeStr);
   const endDate = addMinutes(startDate, 60);
   const endTimeStr = `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
 
+  // Handle start time change
   const handleStartTimeChange = (value: string) => {
     setTimeStr(value);
   };
 
+  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
+    // Prevent default form submission
     e.preventDefault();
+
+    // Clear previous errors
     setError(null);
 
     // Admin must select a worker when creating
     const effectiveWorkerId: number | null = isAdmin
       ? isUpdating
-        ? initialData?.healthcareWorkerId ?? null // admin updating: keep existing id
-        : selectedWorkerId // admin creating: must pick
+        ? initialData?.healthcareWorkerId ?? null // If admin updating: keep existing id
+        : selectedWorkerId // If admin creating: must pick worker id
       : isUpdating
-      ? initialData?.healthcareWorkerId ?? null // worker updating: keep existing id
-      : null;
+      ? initialData?.healthcareWorkerId ?? null // If worker updating: keep existing id
+      : null; // If worker creating: will be set server-side
 
     // Admin must select a worker only when creating a new slot
     if (isAdmin && !isUpdating && !selectedWorkerId) {
@@ -116,18 +102,22 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
       return;
     }
 
+    // Validate start and end times
     if (!startDate || !endDate) {
       setError("Start and end are required.");
       return;
     }
+
+    // Ensure end is after start
     if (endDate <= startDate) {
       setError("End must be after start.");
       return;
     }
 
+    // Construct available slot object
     const availableSlot: AvailableSlot = {
       id: availableSlotId,
-      healthcareWorkerId: effectiveWorkerId ?? 0, // TODO:
+      healthcareWorkerId: effectiveWorkerId ?? 0, // Will be set server-side if null
       start: startDate.toISOString(),
       end: endDate.toISOString(),
       isBooked: false,
@@ -137,11 +127,12 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
 
   const onCancel = () => navigate(-1);
 
+  // Render the form
   return (
     <Form onSubmit={handleSubmit}>
       <Row className="mb-3 justify-content-center">
         <Col md={4}>
-          {/* Admin-only: pick worker */}
+          {/* If admin and creating show healthcare worker selection */}
           {isAdmin && !isUpdating && (
             <Form.Group controlId="slotWorker" className="mb-3">
               <Form.Label>Healthcare worker</Form.Label>
@@ -160,7 +151,7 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
             </Form.Group>
           )}
 
-          {/* Admin + UPDATE read read-only ID */}
+          {/* If admin and updating show read-only healthcare worker ID */}
           {isAdmin && isUpdating && (
             <Form.Group controlId="slotWorkerReadonly" className="mb-3">
               <Form.Label>Healthcare worker</Form.Label>
@@ -196,11 +187,14 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
         </Col>
       </Row>
 
+      {/* Display errors if any */}
       {error && <div className="text-danger mb-3">{error}</div>}
       {serverError && <div className="text-danger mb-3">{serverError}</div>}
 
+      {/* Form buttons */}
       <Container className="my-4">
         <Button variant="primary" type="submit" className="me-2" disabled={isSubmitting}>
+          {/* When submitting, show spinner */}
           {isSubmitting ? (
             <>
               <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />

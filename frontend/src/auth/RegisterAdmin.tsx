@@ -12,7 +12,7 @@ const RegisterAdmin: React.FC = () => {
     email: "",
     password: "",
     name: "",
-    number: "", // should not be capital letter. Not a good naming convention
+    number: "",
     address: "",
     role: "",
   });
@@ -31,11 +31,11 @@ const RegisterAdmin: React.FC = () => {
     setError(null);
     setSuccess(null);
     try {
-      await authService.registerAdmin({
+      await authService.registerAdmin({ //registerAdmin function from authService
         ...formData,
       });
-      setSuccess("Registration successful! You can now log in.");
-      setTimeout(() => navigate("/login"), 2000); // Redirect after 2 seconds
+      setSuccess("Registration successful!");
+      setTimeout(() => navigate("/"), 2000); // Redirect after 2 seconds
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -47,6 +47,7 @@ const RegisterAdmin: React.FC = () => {
   };
 
   return (
+    <div style={{maxWidth: "500px", margin: "0 auto", padding: "20px"}}>
     <Container className="mt-5">
       <h2>Register</h2>
       {error && <Alert variant="danger">{error}</Alert>}
@@ -54,7 +55,13 @@ const RegisterAdmin: React.FC = () => {
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
           <Form.Label>Email</Form.Label>
-          <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} required />
+          <Form.Control 
+          type="email" 
+          name="email" 
+          value={formData.email} 
+          pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$" 
+          onChange={handleChange} 
+          required />
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -63,6 +70,7 @@ const RegisterAdmin: React.FC = () => {
             type="password"
             name="password"
             value={formData.password}
+            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"
             onChange={handleChange}
             required
           />
@@ -70,21 +78,43 @@ const RegisterAdmin: React.FC = () => {
 
         <Form.Group className="mb-3">
           <Form.Label>Name</Form.Label>
-          <Form.Control type="text" name="name" value={formData.name} onChange={handleChange} required />
+          <Form.Control 
+          type="text" 
+          name="name" 
+          value={formData.name} 
+          pattern="/^[\p{L} '-]{1,100}$/u´" 
+          onChange={handleChange} 
+          required />
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>Number</Form.Label>
-          <Form.Control type="text" name="Number" value={formData.number} onChange={handleChange} required />
+          <Form.Control 
+          type="text" 
+          name="number" 
+          pattern="^(\+?\d{1,3}[- ]?)?(\(?\d{1,4}\)?[- ]?)?\d{1,4}([- ]?\d{1,9})$" 
+          value={formData.number} 
+          onChange={handleChange} 
+          required />
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>Address</Form.Label>
-          <Form.Control type="text" name="Address" value={formData.address} onChange={handleChange} required />
+          <Form.Control 
+          type="text" 
+          name="address" 
+          pattern="^[A-Za-z0-9#.,'\/\-\s]{3,200}$"
+          value={formData.address} 
+          onChange={handleChange} 
+          required />
         </Form.Group>
         <Form.Group className="mb-3">
           <Form.Label>Role</Form.Label>
-          <Form.Select name="role" value={formData.role} onChange={handleChange} required>
+          <Form.Select 
+          name="role" 
+          value={formData.role} 
+          onChange={handleChange} 
+          required>
             <option value="">Select a role</option>*<option value="Admin">Admin</option>
             <option value="HealthcareWorker">HealthcareWorker</option>
             <option value="Client">Client</option>
@@ -95,6 +125,7 @@ const RegisterAdmin: React.FC = () => {
         </Button>
       </Form>
     </Container>
+    </div>
   );
 };
 

@@ -1,19 +1,20 @@
 import { Alert, Button, Modal } from "react-bootstrap";
 import { Client } from "../types/client";
+import { HealthcareWorker } from "../types/healthcareWorker";
 
 type Props = {
-    client: Client;
+    user: Client | HealthcareWorker;
     onConfirm: () => void;
     onCancel: () => void;
     isDeleting?: boolean;
 };
 
-const ClientDeleteModal: React.FC<Props> = ({ client, onConfirm, onCancel, isDeleting }) => (
+const UserDeleteModal: React.FC<Props> = ({ user, onConfirm, onCancel, isDeleting }) => ( // Delete confirmation modal component
     <Modal show onHide={onCancel}>
         <Modal.Header closeButton>Delete Client?</Modal.Header>
         <Modal.Body>
             <p>
-                Are you sure you want to delete the client? <strong>{client.name}</strong>?
+                Are you sure you want to delete the user? <strong>{user.name}</strong>?
             </p>
             <Alert variant="danger" className="mt-3">
                 This action cannot be undone.
@@ -29,4 +30,4 @@ const ClientDeleteModal: React.FC<Props> = ({ client, onConfirm, onCancel, isDel
         </Modal.Footer>
     </Modal>
 );
-export default ClientDeleteModal;
+export default UserDeleteModal;

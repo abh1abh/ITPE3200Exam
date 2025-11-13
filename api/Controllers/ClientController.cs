@@ -2,6 +2,8 @@ using api.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using api.Services;
+using System.Security.Claims;
+
 
 namespace api.Controllers;
 
@@ -21,8 +23,16 @@ public class ClientController : ControllerBase
         _authService = authService;
     }
 
+    private (string? role, string? authUserId) UserContext() // Get role and AuthUserId from JWT token
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
+        var role = User.FindFirstValue(ClaimTypes.Role); // Specified Role when creating the JWT token
+        return (role, userId);
+    }
+
+
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll() // Get all clients
     {
         var clients = await _service.GetAll();
         if (!clients.Any())
@@ -34,7 +44,7 @@ public class ClientController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(int id) // Get client by Id
     {
         var client = await _service.GetById(id);
         if (client == null)
@@ -45,25 +55,33 @@ public class ClientController : ControllerBase
         return Ok(client);
     }
 
-    [HttpGet("clientauth/{authUserId}")]
-    public async Task<IActionResult> GetByAuthUserId(string authUserId)
+    [HttpGet("clientauth")]
+    public async Task<IActionResult> GetBySelf() // Get client by AuthUserId from JWT token
     {
-        var client = await _service.GetByAuthUserId(authUserId);
-        if (client == null)
+        var (_, authUserId) = UserContext(); // Get role and AuthUserId
+        try
         {
-            _logger.LogError("[ClientController] Client not found for AuthUserId {AuthUserId}", authUserId);
-            return NotFound("Client not found");
+            var client = await _service.GetByAuthUserId(authUserId!);
+            if (client == null)
+            {
+                _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
+                return NotFound("Healthcare worker not found");
+            }
+            return Ok(client);
         }
-        return Ok(client);
+        catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
+        {
+            return Forbid();
+        }
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ClientDto clientDto)
+    public async Task<IActionResult> Create([FromBody] ClientDto clientDto) // Create new client
     {
         try
         {
-            var created = await _service.Create(clientDto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            var created = await _service.Create(clientDto);                 // Create client in App Database
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created); // Return 201 Created with location header
         }
         catch (InvalidOperationException)
         {
@@ -72,54 +90,18 @@ public class ClientController : ControllerBase
         catch (ArgumentException e)
         {
             return BadRequest(e.Message);
-        } 
+        }
     }
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update([FromBody] UpdateClientDto clientDto)
-    {
-        int id = clientDto.Id;
-        ClientDto? client = await _service.GetById(id);
-        if (client == null)
-        {
-            return NotFound("Healthcare worker not found");
-        }
-        if (id != clientDto.Id)
-        {
-            return BadRequest("ID mismatch");
-        }
-        try
-        {
-            var existingClient = await _service.Update(id, clientDto);
-            var authClientUpdate = await _authService.UpdateUserAsync(client.AuthUserId, clientDto.Email!, clientDto.Password!);
-            if (!existingClient)
-            {
-                return NotFound("Client not found");
-            }
-            if (!authClientUpdate)
-            {
-                _logger.LogError("[ClientController] Worker update failed for AuthUserId {userId}, {@client}", client.AuthUserId, clientDto);
-                return StatusCode(500, "Failed to update associated user.");
-            }
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogError(ex, "[ClientController] Worker update failed for ClientId {id:0000}, {@client}", id, clientDto);
-            return StatusCode(500, "Failed to update client.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[ClientController] Client update failed for ClientId {id:0000}, {@client}", id, clientDto);
-            return StatusCode(500, "A problem happened while updating the Client.");
-        }
-    }   
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id) // Delete client by Id
     {
         try
         {
-            bool deleted = await _service.Delete(id);
+            ClientDto user = await _service.GetById(id); //Find client in App Database
+            string username = user.Email;               //Get username to delete from Auth Database
+            bool deleted = await _service.Delete(id);   //Delete client from App Database
+            bool authDeleted = await _authService.DeleteUserAsync(username); //Delete client from Auth Database
             if (!deleted)
             {
                 return NotFound("Client not found");

@@ -5,7 +5,7 @@ namespace api.DAL
 {
     public static class AuthDbInit
     {
-        public static async Task<SeedResult> SeedAsync(IServiceProvider sp) // Seed method to initialize the database
+        public static async Task<SeedResult> SeedAsync(IServiceProvider sp) // Seed method to initialize the Auth database
         {
 
             var roleMgr = sp.GetRequiredService<RoleManager<IdentityRole>>();
@@ -18,21 +18,27 @@ namespace api.DAL
 
             var result = new SeedResult();
 
-            // admin
+            // Admin
             var admin = await EnsureUserInRole(userMgr, "admin@homecare.local", "Admin123!", "Admin");
 
             result.UserIds["Admin"] = admin.Id;
 
-            // client
+            // Client   
             var client = await EnsureUserInRole(userMgr, "client@homecare.local", "Client123!", "Client");
             result.UserIds["Client"] = client.Id;
+            var client2 = await EnsureUserInRole(userMgr, "client2@homecare.local", "Client123!", "Client");
+            result.UserIds["Client2"] = client2.Id;
 
-            // worker (different email than client)
+            // Worker 
             var worker = await EnsureUserInRole(userMgr, "worker@homecare.local", "Worker123!", "HealthcareWorker");
             result.UserIds["HealthcareWorker"] = worker.Id;
+            var worker2 = await EnsureUserInRole(userMgr, "worker2@homecare.local", "Worker123!", "HealthcareWorker");
+            result.UserIds["HealthcareWorker2"] = worker2.Id;
 
             return result;
         }
+
+        // Private helper method to ensure a user exists and is assigned to a role
         private static async Task<AuthUser> EnsureUserInRole(UserManager<AuthUser> userMgr, string email, string password, string role)
         {
             var user = await userMgr.FindByEmailAsync(email);

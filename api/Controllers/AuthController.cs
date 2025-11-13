@@ -1,11 +1,5 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using api.DTO;
-using api.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
 
@@ -17,13 +11,19 @@ namespace api.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
+        private readonly IClientService _clientService;
+        private readonly IHealthcareWorkerService _healthcareWorkerService;
 
         public AuthController(
             IAuthService authService,
-            ILogger<AuthController> logger)
+            ILogger<AuthController> logger,
+            IClientService clientService,
+            IHealthcareWorkerService healthcareWorkerService)
         {
             _authService = authService;
             _logger = logger;
+            _clientService = clientService;
+            _healthcareWorkerService = healthcareWorkerService;
         }
 
         [HttpPost("register")]
@@ -80,6 +80,65 @@ namespace api.Controllers
         {
             var token = await _authService.GenerateJwtTokenAsync(user);
             return token;
-        }        
+        }
+        [HttpPut("client/{id}")]
+        public async Task<IActionResult> UpdateClient([FromBody] UpdateUserDto updateUserDto) //Update client information in Auth and client Db
+        {
+            int id = updateUserDto.Id;
+            ClientDto? client = await _clientService.GetById(id); //Find client in App Database
+            if (client == null)
+            {
+                return NotFound("Client not found");
+            }
+            if (id != updateUserDto.Id)
+            {
+                return BadRequest("ID mismatch");
+            }
+            try
+            {
+                var authClientUpdate = await _authService.UpdateClientAsync(updateUserDto);
+                return Ok(authClientUpdate);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "[AuthController] Client update failed for ClientId {id:0000}, {@client}", id, updateUserDto);
+                return StatusCode(500, "Failed to update client.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[AuthController] Client update failed for ClientId {id:0000}, {@client}", id, updateUserDto);
+                return StatusCode(500, "A problem happened while updating the Client.");
+            }
+        }  
+
+        [HttpPut("worker/{id}")]
+        public async Task<IActionResult> UpdateWorker([FromBody] UpdateUserDto updateUserDto) //Update healthcare worker information in Auth and worker Db
+        {
+            int id = updateUserDto.Id;
+            HealthcareWorkerDto? worker = await _healthcareWorkerService.GetById(id); //Find healthcare worker in App Database
+            if (worker == null)
+            {
+                return NotFound("HealthcareWorker not found");
+            }
+            if (id != updateUserDto.Id)
+            {
+                return BadRequest("ID mismatch");
+            }
+            try
+            {   
+                var authWorkerUpdate = await _authService.UpdateHealthcareWorkerAsync(updateUserDto); //Update healthcare worker in Auth Database
+                return Ok(authWorkerUpdate);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "[AuthController] Worker update failed for HealthcareWorkerId {id:0000}, {@worker}", id, updateUserDto);
+                return StatusCode(500, "Failed to update healthcare worker.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[AuthController] Healthcare Worker update failed for Healthcare Worker {id:0000}, {@worker}", id, updateUserDto);
+                return StatusCode(500, "A problem happened while updating the Healthcare Worker.");
+            }
+        }    
     }
 }

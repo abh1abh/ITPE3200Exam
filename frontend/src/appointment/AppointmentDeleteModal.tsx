@@ -2,14 +2,21 @@ import { Alert, Button, Modal, Spinner } from "react-bootstrap";
 import { AppointmentView } from "../types/appointment";
 import { formatDateOnly, formatTimeOnly } from "../shared/timeUtils";
 
-type Props = {
+// Props for AppointmentDeleteModal component
+type AppointmentDeleteModalProps = {
   appointment: AppointmentView;
   onConfirm: () => void;
   onCancel: () => void;
   isDeleting?: boolean;
 };
 
-const AppointmentDeleteModal: React.FC<Props> = ({ appointment, onConfirm, onCancel, isDeleting }) => (
+const AppointmentDeleteModal: React.FC<AppointmentDeleteModalProps> = ({
+  appointment,
+  onConfirm,
+  onCancel,
+  isDeleting,
+}) => (
+  // Modal for confirming appointment deletion
   <Modal show onHide={onCancel}>
     <Modal.Header closeButton>Cancel appointment?</Modal.Header>
     <Modal.Body>
@@ -29,6 +36,7 @@ const AppointmentDeleteModal: React.FC<Props> = ({ appointment, onConfirm, onCan
         This action cannot be undone.
       </Alert>
     </Modal.Body>
+    {/* Buttons for confirming or cancelling deletion */}
     <Modal.Footer>
       <Button variant="secondary" onClick={onCancel} disabled={isDeleting}>
         Cancel

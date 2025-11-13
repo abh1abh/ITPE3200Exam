@@ -15,16 +15,16 @@ const RegisterPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => { // Handling input changes
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => { // Handling form submission
+    e.preventDefault(); // Prevent default form submission behavior
     setError(null);
     setSuccess(null);
     try {
-      await authService.register({
+      await authService.register({ //register function from authService
         ...formData,
       });
       setSuccess("Registration successful! You can now log in.");
@@ -40,6 +40,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
+    <div style={{maxWidth: "500px", margin: "0 auto", padding: "20px"}}>
     <Container className="mt-5">
       <h2>Register</h2>
       {error && <Alert variant="danger">{error}</Alert>}
@@ -47,7 +48,12 @@ const RegisterPage: React.FC = () => {
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
           <Form.Label>Email</Form.Label>
-          <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} required />
+          <Form.Control 
+          type="email" 
+          name="email" 
+          value={formData.email} 
+          onChange={handleChange} 
+          required />
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -55,6 +61,7 @@ const RegisterPage: React.FC = () => {
           <Form.Control
             type="password"
             name="password"
+            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"
             value={formData.password}
             onChange={handleChange}
             required
@@ -63,17 +70,35 @@ const RegisterPage: React.FC = () => {
 
         <Form.Group className="mb-3">
           <Form.Label>Name</Form.Label>
-          <Form.Control type="text" name="name" value={formData.name} onChange={handleChange} required />
+          <Form.Control 
+          type="text" 
+          name="name" 
+          pattern="/^[\p{L} '-]{1,100}$/u´"
+          value={formData.name} 
+          onChange={handleChange} 
+          required />
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>Number</Form.Label>
-          <Form.Control type="text" name="number" value={formData.number} onChange={handleChange} required />
+          <Form.Control 
+          type="text" 
+          name="number" 
+          pattern="^(\+?\d{1,3}[- ]?)?(\(?\d{1,4}\)?[- ]?)?\d{1,4}([- ]?\d{1,9})$"
+          value={formData.number} 
+          onChange={handleChange} 
+          required />
         </Form.Group>
 
         <Form.Group className="mb-3">
           <Form.Label>Address</Form.Label>
-          <Form.Control type="text" name="address" value={formData.address} onChange={handleChange} required />
+          <Form.Control 
+          type="text" 
+          name="address" 
+          pattern="^[A-Za-z0-9#.,'\/\-\s]{3,200}$"
+          value={formData.address} 
+          onChange={handleChange} 
+          required />
         </Form.Group>
 
         <Button variant="primary" type="submit">
@@ -81,6 +106,7 @@ const RegisterPage: React.FC = () => {
         </Button>
       </Form>
     </Container>
+    </div>
   );
 };
 

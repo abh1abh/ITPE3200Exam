@@ -10,29 +10,30 @@ const ProfileForm: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [data, setdata] = useState({
+    const [data, setdata] = useState({ // Form data state with default values
         email: "",
         name: "",
         number: "",
         address: ""
     });
     console.log(user);
-    //Fetch data based on role, "Client" or "HealthcareWorker".
-    const fetchUserData = async () => {
+    
+    const fetchUserData = async () => { // Fetch profile data based on user role
         setLoading(true);
         setError(null);
         try {
-            if (user?.role === "HealthcareWorker") {
-                const workerId = user.nameid;
-                const worker = await HealthcareWorkerService.fetchWorkerByAuthId(workerId);
-                data.email = worker.email;
+            if(user?.role === "Admin"){
+                
+            }
+            if (user?.role === "HealthcareWorker") { // Fetch healthcare worker data if user is a worker
+                const worker = await HealthcareWorkerService.fetchWorkerBySelf(); // Fetch worker data using the service
+                data.email = worker.email;                                        // Set form data
                 data.name = worker.name;
                 data.number = worker.phone;
                 data.address = worker.address;
             }
-            else if (user?.role === "Client") {
-                const clientId = user.nameid;
-                const client = await ClientService.fetchClientByAuthId(clientId);
+            else if (user?.role === "Client") { // Fetch client data if user is a client
+                const client = await ClientService.fetchClientBySelf(); // Fetch client data using the service
                 data.email = client.email;
                 data.name = client.name;
                 data.number = client.phone;

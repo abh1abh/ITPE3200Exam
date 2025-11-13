@@ -10,29 +10,37 @@ import * as healthcareWorkerService from "../healtcareWorker/healthcareWorkerSer
 import { Alert } from "react-bootstrap";
 
 const AvailableSlotCreatePage: React.FC = () => {
+  // Navigation hook
   const navigate = useNavigate();
+  // Get user role
   const { hasRole } = useAuth();
-  const [workers, setWorkers] = useState<HealthcareWorker[]>([]);
+  const isAdmin: boolean = hasRole("Admin");
 
+  // State for healthcare workers, loading, and errors
+  const [workers, setWorkers] = useState<HealthcareWorker[]>([]);
   const [isFetching, setIsFetching] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
+  // State for submission
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const isAdmin: boolean = hasRole("Admin");
-
+  // Handle available slot creation
   const handleAvailableSlotCreated = async (availableSlot: AvailableSlot) => {
+    // Reset submission state and errors
     setSubmitError(null);
     setIsSubmitting(true);
     try {
+      // Call service to create available slot
       const data = await availableSlotService.createAvailableSlot(availableSlot);
       console.log("Available slot created:", data);
       navigate("/availableslot"); // Navigate back to the item list page after creation
     } catch (error: any) {
+      // Log and set error message if creation fails
       console.error("Error creating available slot:", error);
       setSubmitError("Failed to create available slot. Try again later");
     } finally {
+      // Reset submission state
       setIsSubmitting(false);
     }
   };
@@ -40,21 +48,28 @@ const AvailableSlotCreatePage: React.FC = () => {
   // Fetch workers if admin
   useEffect(() => {
     const fetchWorkers = async () => {
+      // Check if user is admin
       if (!isAdmin) return;
+      // Start fetching and reset errors
+      setFetchError(null);
       setIsFetching(true);
       try {
+        // Fetch all healthcare workers
         const list = await healthcareWorkerService.fetchAllWorkers();
         setWorkers(list);
       } catch (error) {
+        // Log and set error message if fetching fails
         console.error(error);
         setFetchError("Failed to load healthcare workers. Try again later.");
       } finally {
+        // Stop fetching
         setIsFetching(false);
       }
     };
     fetchWorkers();
   }, [isAdmin]);
 
+  // Render component. If fetching, show loading. If fetch error, show error. Otherwise show create form.
   return (
     <div>
       <h2>Create Available Slot</h2>
