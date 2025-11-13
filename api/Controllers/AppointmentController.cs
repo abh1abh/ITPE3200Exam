@@ -48,7 +48,7 @@ public class AppointmentController : ControllerBase
     [HttpGet("client")]
     public async Task<IActionResult> GetAppointmentsByClient() // Get appointments for the logged in client
     {
-        var (_, authUserId) = UserContext(); // Get role and AuthUserId
+        var (_, authUserId) = UserContext(); // Get AuthUserId
         try
         {
             var appointments = await _service.GetAppointmentsByClientId(authUserId: authUserId); 
@@ -70,7 +70,7 @@ public class AppointmentController : ControllerBase
     [HttpGet("worker")]
     public async Task<IActionResult> GetAppointmentsByHealthcareWorker() // Get appointments for the logged in healthcare worker
     {
-        var (_, authUserId) = UserContext(); // Get role and AuthUserId
+        var (_, authUserId) = UserContext(); // Get AuthUserId
         try
         {
             var appointments = await _service.GetAppointmentsByHealthcareWorkerId(authUserId: authUserId); // Uses service layer for all business logic
