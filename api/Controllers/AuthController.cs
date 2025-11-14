@@ -30,7 +30,7 @@ namespace api.Controllers
 
         private (string? role, string? authUserId) UserContext() // Get role and AuthUserId from JWT token
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // AuthUserId when creating the JWT token
             var role = User.FindFirstValue(ClaimTypes.Role); // Specified Role when creating the JWT token
             return (role, userId);
         }
@@ -39,19 +39,19 @@ namespace api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto) //User registration
         {
-            var (role, _) = UserContext();
-            bool isAdmin = role == "Admin";
+            var (role, _) = UserContext(); // Get role from JWT token
+            bool isAdmin = role == "Admin"; // Check if the user is an Admin
             try
             {
                 await _authService.RegisterAdminAsync(registerDto, isAdmin); //Call the auth service to register user
             }
-            catch (Exception ex)
+            catch (Exception ex) //Log any errors during registration
             {
                 _logger.LogError(ex, "[AuthAPIController] error during registration for {Username}", registerDto.Email);
-                return StatusCode(500, "A problem happened while handling your request.");
+                return StatusCode(500, "A problem happened while handling your request."); //Internal Server Error
             }
             _logger.LogInformation("[AuthAPIController] user registered successfully for {Username}", registerDto.Email);
-            return Ok(new { Message = "User registered successfully" });
+            return Ok(new { Message = "User registered successfully" }); //Return success message
         }
 
         [HttpPost("login")]
@@ -63,9 +63,8 @@ namespace api.Controllers
                 _logger.LogInformation("[AuthAPIController] user logged in successfully for {Username}", loginDto.Username);
                 return Ok(new { Token = token, Message = "User logged in successfully" });
             }
-            _logger.LogWarning("[AuthAPIController] login failed for {Username}: invalid password", loginDto.Username);
-            //Log failed login
-            return Unauthorized(new { Message = "Invalid username or password" });
+            _logger.LogWarning("[AuthAPIController] login failed for {Username}: invalid password", loginDto.Username); //Log failed login
+            return Unauthorized(new { Message = "Invalid username or password" }); //Return unauthorized message
         }
 
         [HttpPost("logout")]

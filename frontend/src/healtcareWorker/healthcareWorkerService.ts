@@ -1,4 +1,3 @@
-import { HealthcareWorker } from "../types/healthcareWorker";
 import { API_URL, getAuthHeaders, handleResponse } from "../shared/http";
 import { UpdateUserDto } from "../types/user";
 

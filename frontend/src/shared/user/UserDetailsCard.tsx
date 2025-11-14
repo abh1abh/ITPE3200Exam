@@ -1,9 +1,9 @@
 import React from "react";
-import { Client } from "../types/client";
-import { HealthcareWorker } from "../types/healthcareWorker";
-import { Badge, Card, Col, Container, Row, Table, Button } from "react-bootstrap";
+import { Client } from "../../types/client";
+import { HealthcareWorker } from "../../types/healthcareWorker";
+import { Card, Col, Container, Row, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../../auth/AuthContext";
 
 interface UserDetailsCardProps {
   user: Client | HealthcareWorker;
@@ -14,9 +14,11 @@ interface UserDetailsCardProps {
 const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user, isHealthcareWorker, onDeleteClick }) => {
   const { hasRole } = useAuth(); //Handles roles
   if (hasRole("Client")) {
+    // If user is a client
     isHealthcareWorker = false;
   }
   if (hasRole("HealthcareWorker")) {
+    // If user is a healthcare worker
     isHealthcareWorker = true;
   }
   return (
@@ -48,7 +50,9 @@ const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user, isHealthcareWor
             </Col>
           </Row>
           <Link
-            to={`/${isHealthcareWorker ? "healthcareworker" : "client"}/${user.id}/update`}
+            to={
+              `/${isHealthcareWorker ? "healthcareworker" : "client"}/${user.id}/update` // Navigate to update page based on user role
+            }
             className="btn btn-sm btn-primary me-2">
             Update
           </Link>

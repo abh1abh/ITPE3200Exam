@@ -16,15 +16,15 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         _logger = logger;
     }
 
-    private bool IsAuthorized(HealthcareWorker worker, string? authUserId, string? role)
+    private bool IsAuthorized(HealthcareWorker worker, string? authUserId, string? role) // Check if user is authorized
     {
         if (string.IsNullOrEmpty(authUserId)) return false;
 
-        if (role == "Admin") return true;
+        if (role == "Admin") return true; // Admins are always authorized
 
         var ok = false;
 
-        if (role == "HealthcareWorker" && worker.AuthUserId== authUserId)
+        if (role == "HealthcareWorker" && worker.AuthUserId== authUserId) // HealthcareWorkers can access their own data
         {
             ok = true;
         }
@@ -36,14 +36,14 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         if (!isAdmin) // If not admin, return empty
         {
             _logger.LogWarning("[HealthcareWorkerService] Unauthorized access attempt to get all healthcare workers by non-admin user.");
-            return Enumerable.Empty<HealthcareWorkerDto>();
+            return Enumerable.Empty<HealthcareWorkerDto>(); // return empty enumerable
 
         }
         var healthcareWorkers = await _repository.GetAll(); // Get all healthcare workers from repository
         if (healthcareWorkers == null || !healthcareWorkers.Any())
         {
             _logger.LogWarning("[HealthcareWorkerService] No healthcare workers found.");
-            return Enumerable.Empty<HealthcareWorkerDto>();
+            return Enumerable.Empty<HealthcareWorkerDto>(); // return empty enumerable
         }
 
         var workerDtos = healthcareWorkers.Select(w => new HealthcareWorkerDto // Map HealthcareWorker to HealthcareWorkerDto
@@ -92,7 +92,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
             _logger.LogError("[HealthcareWorkerService] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
             return null;
         }
-        if(!IsAuthorized(worker, authId, role))
+        if(!IsAuthorized(worker, authId, role)) // Check if user is authorized
         {
             _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete HealthcareWorkerId {HealthcareWorkerId:0000}", authId, worker.Id);
             throw new UnauthorizedAccessException("You are not authorized to delete this client.");
@@ -111,7 +111,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
     }
     public async Task<HealthcareWorkerDto> Create(RegisterDto dto, string authId, bool isAdmin) // Create new healthcare worker
     {
-        if (!isAdmin)
+        if (!isAdmin) // Only admins can create healthcare workers
         {
             _logger.LogWarning("[HealthcareWorkerService] Unauthorized creation attempt. Only Admins can create healthcare workers. AuthUserId: {AuthUserId}", authId);
             throw new UnauthorizedAccessException("Only Admins can create healthcare workers.");
@@ -153,7 +153,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         {
             return false;
         }
-        if(!IsAuthorized(existingWorker, authUserId, role))
+        if(!IsAuthorized(existingWorker, authUserId, role)) // Check if user is authorized
         {
             _logger.LogWarning("[HealthcareWorkerService] Unauthorized access attempt by AuthUserId {AuthUserId} to update HealthcareWorkerId {HealthcareWorkerId:0000}", authUserId, id);
             throw new UnauthorizedAccessException("You are not authorized to update this Healthcare Worker.");
@@ -180,7 +180,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
             _logger.LogError("[HealthcareWorkerService] Healthcare worker not found for Id {Id:0000}", id);
             return false;
         }
-        if(!IsAuthorized(worker, authUserId, role))
+        if(!IsAuthorized(worker, authUserId, role)) // Check if user is authorized
         {
             _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete HealthcareWorkerId {HealthcareWorkerId:0000}", authUserId, id);
             throw new UnauthorizedAccessException("You are not authorized to delete this Healthcare Worker.");

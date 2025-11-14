@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { AvailableSlot } from "../types/availableSlot";
 import { useAuth } from "../auth/AuthContext";
 import * as HealthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
-import { Alert, Badge, Button, Container, Spinner, Table } from "react-bootstrap";
-import Loading from "../shared/Loading";
+import { Alert, Button } from "react-bootstrap";
 import { HealthcareWorker } from "../types/healthcareWorker";
-import UserTable from "../shared/UserTable";
-import UserDeleteModal from "../shared/UserDeleteModal";
+import UserTable from "../shared/user/UserTable";
+import UserDeleteModal from "../shared/user/UserDeleteModal";
 
 const HealthcareWorkerPage: React.FC = () => {
   const { hasRole } = useAuth();
@@ -43,7 +41,7 @@ const HealthcareWorkerPage: React.FC = () => {
     setIsDeleting(true); // Deletion in progress
     try {
       await HealthcareWorkerService.deleteWorker(toDelete.id); // Call delete service
-      fetchWorkerData();
+      fetchWorkerData(); // Refresh worker list after deletion
       setSuccess("Worker deleted successfully.");
       setToDelete(null);
     } catch (error) {
@@ -56,6 +54,7 @@ const HealthcareWorkerPage: React.FC = () => {
   };
 
   return (
+    // Render the table component
     <div>
       <h2>Healthcare Workers</h2>
       <Button onClick={fetchWorkerData} className="btn btn-primary mb-3 me-2" disabled={loading}>
@@ -65,14 +64,14 @@ const HealthcareWorkerPage: React.FC = () => {
       {success && <Alert variant="success">{success}</Alert>}
       {!loading && !error && (
         <>
-          <UserTable
+          <UserTable // Reusable user table component
             users={workers}
             isHealthcareWorker={true}
             isAdmin={hasRole("Admin")}
             onDeleteClick={setToDelete}
           />
           {toDelete && (
-            <UserDeleteModal
+            <UserDeleteModal // Reusable user delete confirmation modal
               user={toDelete}
               onCancel={() => setToDelete(null)}
               onConfirm={confirmDelete}

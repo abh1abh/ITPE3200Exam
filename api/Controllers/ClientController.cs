@@ -25,7 +25,7 @@ public class ClientController : ControllerBase
 
     private (string? role, string? authUserId) UserContext() // Get role and AuthUserId from JWT token
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Get AuthUserId from JWT token
         var role = User.FindFirstValue(ClaimTypes.Role); // Specified Role when creating the JWT token
         return (role, userId);
     }
@@ -34,17 +34,17 @@ public class ClientController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll() // Get all clients
     {
-        var (role, _) = UserContext();
-        bool isAdmin = role == "Admin";
+        var (role, _) = UserContext(); // Get role from JWT token
+        bool isAdmin = role == "Admin"; // Check if user is Admin
         try
         {
             var clients = await _service.GetAll(isAdmin); // Get all clients from database through service
-            return Ok(clients);
+            return Ok(clients); // Return 200 OK with clients
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "[ClientController] Error retrieving all clients");
-            return StatusCode(500, "A problem happened while handling your request.");
+            return StatusCode(500, "A problem happened while handling your request."); // Return 500 Internal Server Error
         }
     }
 
@@ -52,15 +52,15 @@ public class ClientController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id) // Get client by Id
     {
-        var (role, authUserId) = UserContext();
-        var client = await _service.GetById(id, authUserId!, role!);
-        if (client == null)
+        var (role, authUserId) = UserContext(); // Get role and AuthUserId from JWT token
+        var client = await _service.GetById(id, authUserId!, role!); // Get client from database through service
+        if (client == null) //Check if client exists
         {
             _logger.LogError("[ClientController] Client not found for Id {ClientId:0000}", id);
-            return NotFound("Client not found");
+            return NotFound("Client not found"); // Return 404 if client Not Found
         }
-        return Ok(client);
-    }
+        return Ok(client); // Return 200 OK with client
+    } 
 
     [Authorize(Roles = "Client")]
     [HttpGet("me")]
@@ -69,11 +69,11 @@ public class ClientController : ControllerBase
         var (role, authUserId) = UserContext(); // Get role and AuthUserId
         try
         {
-            var client = await _service.GetByAuthUserId(authUserId!, authUserId!, role!);
+            var client = await _service.GetByAuthUserId(authUserId!, authUserId!, role!); // Get client from database through service
             if (client == null)
             {
                 _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
-                return NotFound("Healthcare worker not found");
+                return NotFound("Healthcare worker not found"); // Return 404 if client Not Found
             }
             return Ok(client);
         }
@@ -86,7 +86,7 @@ public class ClientController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> RegisterClient([FromBody] RegisterDto registerDto) // Register new client
     {
-        var authUser = new AuthUser
+        var authUser = new AuthUser // Create AuthUser object for Auth Database
         {
             Email = registerDto.Email,
             UserName = registerDto.Email,
@@ -121,7 +121,7 @@ public class ClientController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id) // Delete client by Id
     {
-        var (role, authUserId) = UserContext();
+        var (role, authUserId) = UserContext(); // Get role and AuthUserId from JWT token
         var user = await _service.GetById(id, authUserId!, role!); //Find client in App Database
         if (user == null)
         {

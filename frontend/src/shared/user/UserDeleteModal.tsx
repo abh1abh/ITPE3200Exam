@@ -1,6 +1,6 @@
 import { Alert, Button, Modal } from "react-bootstrap";
-import { Client } from "../types/client";
-import { HealthcareWorker } from "../types/healthcareWorker";
+import { Client } from "../../types/client";
+import { HealthcareWorker } from "../../types/healthcareWorker";
 
 type Props = {
   user: Client | HealthcareWorker;
@@ -11,10 +11,11 @@ type Props = {
 // Delete confirmation modal component
 const UserDeleteModal: React.FC<Props> = ({ user, onConfirm, onCancel, isDeleting }) => (
   <Modal show onHide={onCancel}>
-    <Modal.Header closeButton>Delete Client?</Modal.Header>
+    <Modal.Header closeButton>Delete Client?</Modal.Header> {/* Modal title */}
     <Modal.Body>
       <p>
-        Are you sure you want to delete the user? <strong>{user.name}</strong>?
+        Are you sure you want to delete the user? <strong>{user.name}</strong>?{" "}
+        {/* Confirmation message with user name */}
       </p>
       <Alert variant="danger" className="mt-3">
         This action cannot be undone.
@@ -22,9 +23,13 @@ const UserDeleteModal: React.FC<Props> = ({ user, onConfirm, onCancel, isDeletin
     </Modal.Body>
     <Modal.Footer>
       <Button variant="secondary" onClick={onCancel} disabled={isDeleting}>
+        {" "}
+        {/* Cancel button */}
         Cancel
       </Button>
       <Button variant="danger" onClick={onConfirm} disabled={isDeleting}>
+        {" "}
+        {/* Confirm delete button */}
         {isDeleting ? "Deleting..." : "Delete"}
       </Button>
     </Modal.Footer>

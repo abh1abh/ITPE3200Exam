@@ -1,24 +1,28 @@
 import { LoginDto, RegisterAdminDto, RegisterDto } from "../types/auth";
 import { API_URL, getAuthHeaders, handleResponse } from "../shared/http";
 
+// Service functions for authentication-related API calls
 export const login = async (credentials: LoginDto): Promise<{ token: string }> => {
   const response = await fetch(`${API_URL}/api/Auth/login`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(credentials),
+    //login endpoint
+    method: "POST", //POST method
+    headers: getAuthHeaders(), //set headers
+    body: JSON.stringify(credentials), //send login data as json
   });
 
-  return handleResponse(response);
+  return handleResponse(response); //handle the response
 };
 
+// Service function for user registration
 export const register = async (userData: RegisterDto): Promise<any> => {
   const response = await fetch(`${API_URL}/api/client/`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(userData),
+    //registration endpoint
+    method: "POST", //POST method
+    headers: getAuthHeaders(), //set headers
+    body: JSON.stringify(userData), //send registration data as json
   });
 
-  return handleResponse(response);
+  return handleResponse(response); //handle the response
 };
 
 export const registerAdmin = async (userData: RegisterAdminDto): Promise<any> => {
@@ -26,14 +30,16 @@ export const registerAdmin = async (userData: RegisterAdminDto): Promise<any> =>
   if (!token) {
     throw new Error("No authentication token found.");
   }
-  const role = userData.role;
+  const role = userData.role; //get role from userData
   const user: RegisterDto = {
+    //create user object to map correctly to backend
     email: userData.email,
     name: userData.name,
     number: userData.number,
     address: userData.address,
     password: userData.password,
   };
+  //register based on role to corresponding endpoint
   if (role === "Client") {
     const response = await fetch(`${API_URL}/api/client/register`, {
       method: "POST",

@@ -26,21 +26,21 @@ public class AuthService: IAuthService{
         _configuration = configuration;
         _logger = logger;
     }
-    private bool IsAuthorized(string?authUserId, string? operationAuthUserId, string? role)
+    private bool IsAuthorized(string?authUserId, string? operationAuthUserId, string? role) //method to check if user is authorized to perform operation
     {
-        if (string.IsNullOrEmpty(authUserId)) return false;
+        if (string.IsNullOrEmpty(authUserId)) return false; //if authUserId is null or empty return false
 
         var ok = false;
 
-        if (role == "Admin")
+        if (role == "Admin") //admin can read, modify and create any user
         {
             ok = true;
         }
-        else if (role == "Client" && authUserId == operationAuthUserId)
+        else if (role == "Client" && authUserId == operationAuthUserId) //client can only read and modify their own details
         {
             ok = true;
         }
-        else if (role == "HealthcareWorker" && authUserId == operationAuthUserId)
+        else if (role == "HealthcareWorker" && authUserId == operationAuthUserId) //healthcare worker can only read and modify their own details
         {
             ok = true;
         }
@@ -49,12 +49,12 @@ public class AuthService: IAuthService{
 
         public async Task<IdentityResult> RegisterAdminAsync(RegisterDto registerDto, bool isAdmin) //self registration for clients users
     {
-        var user = new AuthUser
+        var user = new AuthUser //create new AuthUser object
         {
             UserName = registerDto.Email,
             Email = registerDto.Email,
         };
-        var Password = registerDto.Password;
+        var Password = registerDto.Password; //get password from DTO
         if(!isAdmin)
         {
             _logger.LogWarning("[AuthService] unauthorized admin registration attempt for {Username}", user.Email);
@@ -67,14 +67,14 @@ public class AuthService: IAuthService{
             {
                 await _userManager.AddToRoleAsync(user, "Admin"); //assign Client role to user
                 _logger.LogInformation("[AuthService] Admin user registered successfully for {Username}", user.Email);
-                return result;
+                return result; //return result of user creation
             }
             catch (Exception ex) //log any errors during role assignment
             {
                 _logger.LogError(ex, "[AuthService] Error assigning Admin role to user {Username}", user.Email);
                 // If role assignment fails, delete the created user to maintain data consistency
-                await _userManager.DeleteAsync(user);
-                return IdentityResult.Failed(new IdentityError { Description = "Error assigning Admin role." });
+                await _userManager.DeleteAsync(user); //delete user
+                return IdentityResult.Failed(new IdentityError { Description = "Error assigning Admin role." }); //return failure
             }
         }
         catch (Exception ex) //log any errors during user creation
@@ -93,20 +93,20 @@ public class AuthService: IAuthService{
             {
                 await _userManager.AddToRoleAsync(user, "Client"); //assign Client role to user
                 _logger.LogInformation("[AuthService] Client user registered successfully for {Username}", user.Email);
-                return result;
+                return result; //return result of user creation
             }
             catch (Exception ex) //log any errors during role assignment
             {
                 _logger.LogError(ex, "[AuthService] Error assigning Client role to user {Username}", user.Email);
                 // If role assignment fails, delete the created user to maintain data consistency
-                await _userManager.DeleteAsync(user);
-                return IdentityResult.Failed(new IdentityError { Description = "Error assigning Client role." });
+                await _userManager.DeleteAsync(user); //delete user
+                return IdentityResult.Failed(new IdentityError { Description = "Error assigning Client role." }); //return failure
             }
         }
         catch (Exception ex) //log any errors during user creation
         {
             _logger.LogError(ex, "[AuthService] Error creating Client user {Username}", user.Email);
-            return IdentityResult.Failed(new IdentityError { Description = "Error creating Client user." });
+            return IdentityResult.Failed(new IdentityError { Description = "Error creating Client user." }); //return failure
         }
     }
 
@@ -120,20 +120,20 @@ public class AuthService: IAuthService{
             {
                 await _userManager.AddToRoleAsync(user, "HealthcareWorker"); //assign Client role to user
                 _logger.LogInformation("[AuthService] HealthcareWorker user registered successfully for {Username}", user.Email);
-                return result;
+                return result; //return result of user creation
             }
             catch (Exception ex) //log any errors during role assignment
             {
                 _logger.LogError(ex, "[AuthService] Error assigning HealthcareWorker role to user {Username}", user.Email);
                 // If role assignment fails, delete the created user to maintain data consistency
-                await _userManager.DeleteAsync(user);
-                return IdentityResult.Failed(new IdentityError { Description = "Error assigning HealthcareWorker role." });
+                await _userManager.DeleteAsync(user); //delete user
+                return IdentityResult.Failed(new IdentityError { Description = "Error assigning HealthcareWorker role." }); //return failure
             }
         }
         catch (Exception ex) //log any errors during user creation
         {
             _logger.LogError(ex, "[AuthService] Error creating HealthcareWorker user {Username}", user.Email);
-            return IdentityResult.Failed(new IdentityError { Description = "Error creating HealthcareWorker user." });
+            return IdentityResult.Failed(new IdentityError { Description = "Error creating HealthcareWorker user." }); //return failure
         }
     }
 
@@ -150,19 +150,19 @@ public class AuthService: IAuthService{
         if (result.Succeeded) //log successful login and generate JWT token
         {
             _logger.LogInformation("[AuthAPIController] user logged in successfully for {Username}", loginDto.Username);
-            var token = GenerateJwtTokenAsync(user);
-            return (true, await token);
+            var token = GenerateJwtTokenAsync(user); //generate JWT token
+            return (true, await token); //return success status and token
         }
 
         _logger.LogWarning("[AuthAPIController] login failed for {Username}: invalid password", loginDto.Username); //log invalid password
-        return (false, string.Empty);
+        return (false, string.Empty); //return failure status
     }
 
     public async Task<bool> Logout() //logout method
     {
-        await _signInManager.SignOutAsync();
+        await _signInManager.SignOutAsync(); //sign out user
         _logger.LogInformation("[AuthAPIController] user logged out successfully");
-        return true;
+        return true; //return success status
     }
 
     public async Task<bool> DeleteUserAsync(string authId, string operationAuthUserId, string role) //method to delete user by AuthId
@@ -171,9 +171,9 @@ public class AuthService: IAuthService{
         if (user == null) //log user not found
         {
             _logger.LogWarning("[AuthService] delete user failed for {AuthId}: user not found", authId);
-            return false;
+            return false; //return failure
         }
-        if(!IsAuthorized(authId, operationAuthUserId, role)) //check if authorized to delete user
+        if (!IsAuthorized(authId, operationAuthUserId, role)) //check if authorized to delete user
         {
             _logger.LogWarning("[AuthService] unauthorized delete attempt by {OperationAuthId} for user {AuthId}", operationAuthUserId, authId);
             throw new UnauthorizedAccessException("You are not authorized to delete this user.");
@@ -182,12 +182,12 @@ public class AuthService: IAuthService{
         if (result.Succeeded) //log successful deletion
         {
             _logger.LogInformation("[AuthService] user deleted successfully for {AuthId}", authId);
-            return true;
+            return true; //return success
         }
         else
         {
             _logger.LogWarning("[AuthService] delete user failed for {AuthId}: {Errors}",authId, result.Errors); //log deletion failure
-            return false;
+            return false; //return failure
         }
     }
     
@@ -198,26 +198,27 @@ public class AuthService: IAuthService{
         if (string.IsNullOrEmpty(authId)) // check if authId is null or empty
         {
             _logger.LogWarning("[AuthService] update user failed: authId is null or empty");
-            return false;
+            return false; //return failure
         }
         var user = await _userManager.FindByIdAsync(authId); //find user by userId
         if (user == null) //log user not found
         {
             _logger.LogWarning("[AuthService] update user failed for {UserId}: user not found", authId);
-            return false;
+            return false; //return failure
         }
         if(!IsAuthorized(authId, operationAuthUserId, role)) //check if authorized to update user
         {
             _logger.LogWarning("[AuthService] unauthorized update attempt by {OperationAuthId} for user {AuthId}", operationAuthUserId, authId);
-            throw new UnauthorizedAccessException("You are not authorized to update this user.");
+            throw new UnauthorizedAccessException("You are not authorized to update this user."); //throw unauthorized exception
         }
         try
         {
             if (!string.IsNullOrEmpty(userDto.Email) && userDto.Email != user.Email) //update email if provided and different
             {
-                user.Email = userDto.Email;
-                user.UserName = userDto.Email; //assuming username is same as email
+                user.Email = userDto.Email; //update email
+                user.UserName = userDto.Email; //username is same as email
                 var updateResult = await _userManager.UpdateAsync(user); //update user details
+
                 if (!updateResult.Succeeded) //log update failure
                 {
                     _logger.LogWarning("[AuthService] update user failed for {UserId}: {Errors}", authId, updateResult.Errors);
@@ -226,12 +227,12 @@ public class AuthService: IAuthService{
             }
             if (!string.IsNullOrEmpty(userDto.Password)) //update password if provided
             {
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var passwordResult = await _userManager.ResetPasswordAsync(user, token, userDto.Password);
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user); //generate password reset token
+                var passwordResult = await _userManager.ResetPasswordAsync(user, token, userDto.Password); //reset password
                 if (!passwordResult.Succeeded) //log password update failure
                 {
                     _logger.LogWarning("[AuthService] password update failed for {UserId}: {Errors}", authId, passwordResult.Errors);
-                    return false;
+                    return false; //return failure
                 }
             }
         }

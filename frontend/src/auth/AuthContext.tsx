@@ -14,14 +14,8 @@ interface AuthContextType {
   hasRole: (role: string) => boolean;
 }
 
+// Create the auth context for the application
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-function extractAuthId(decoded: any): string {
-  const uriAuthId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
-  if (typeof uriAuthId === "string") return uriAuthId;
-  return "";
-}
-
 
 function extractRole(decoded: any): string {
   const uriRole = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
@@ -29,6 +23,7 @@ function extractRole(decoded: any): string {
   return "";
 }
 
+// AuthProvider component to wrap the app and provide auth context
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
@@ -41,7 +36,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const decodedUser: User = jwtDecode(token);
         // Check if the token is expired
         if (decodedUser.exp * 1000 > Date.now()) {
-          setUser({ ...decodedUser, role: extractRole(decodedUser)});
+          setUser({ ...decodedUser, role: extractRole(decodedUser) });
         } else {
           // Token is expired, clear it
           console.warn("Token expired");

@@ -1,4 +1,3 @@
-import { Client } from "../types/client";
 import { UpdateUserDto } from "../types/user";
 import { API_URL, getAuthHeaders, handleResponse } from "../shared/http";
 
