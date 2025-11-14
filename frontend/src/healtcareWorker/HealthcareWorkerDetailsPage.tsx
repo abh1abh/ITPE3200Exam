@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import * as HealthcareWorkerService from "./healthcareWorkerService";;
 import { useAuth } from "../auth/AuthContext";
 import UserDetailsCard from "../shared/UserDetailsCard";
@@ -6,14 +6,14 @@ import { HealthcareWorker } from "../types/healthcareWorker";
 import Loading from "../shared/Loading";
 import UserDeleteModal from "../shared/UserDeleteModal";
 import { useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const HealthcareWorkerDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const { user, hasRole } = useAuth();
-    const [profileData, setProfileData] = React.useState<HealthcareWorker | null>(null);
-    const [loading, setLoading] = React.useState<boolean>(true);
-    const [error, setError] = React.useState<string | null>(null);
+    const [profileData, setProfileData] = useState<HealthcareWorker | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [toDelete, setToDelete] = useState<HealthcareWorker | null>(null);
     const navigate = useNavigate();
@@ -24,14 +24,7 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const workerDto = await HealthcareWorkerService.fetchWorker(Number(id)); // Fetch worker data using the service
-            const worker: HealthcareWorker = { //map WorkerDto to Worker
-                id: workerDto.id,
-                name: workerDto.name,
-                email: workerDto.email,
-                phone: workerDto.phone,
-                address: workerDto.address
-            };
+            const worker = await HealthcareWorkerService.fetchWorker(Number(id)); // Fetch worker data using the service
             setProfileData(worker); // Set the fetched data to state
         } catch (error: any) {
             console.error("Error fetching profile data:", error);
@@ -40,7 +33,7 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
             setLoading(false);
         }
     }
-    React.useEffect(() => {
+    useEffect(() => {
         fetchProfileData();
     }, []);
 

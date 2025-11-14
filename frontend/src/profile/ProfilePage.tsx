@@ -74,11 +74,11 @@ const ProfilePage: React.FC = () => {
                 logout();}
             setToDelete(null);
             } catch (error) {
-            console.error("Error deleting Client: ", error);
-            setError("Error deleting Client. Try again later.");
-            setToDelete(null);
+                console.error("Error deleting Client: ", error);
+                setError("Error deleting Client. Try again later.");
+                setToDelete(null);
             } finally {
-            setIsDeleting(false);
+                setIsDeleting(false);
             }
         };
     return(

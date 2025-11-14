@@ -42,7 +42,7 @@ public class AppointmentController : ControllerBase
             _logger.LogError(ex, "[AppointmentController] Error GetAll");
             return StatusCode(500, "A problem occurred while fetching the appointment list."); // Returns 500 at general exceptions 
         }
-    }
+    } 
 
     [Authorize(Roles = "Client")]
     [HttpGet("client")]

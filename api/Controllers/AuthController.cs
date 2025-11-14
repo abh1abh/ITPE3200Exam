@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using api.DTO;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+
 
 namespace api.Controllers
 {
@@ -26,32 +28,30 @@ namespace api.Controllers
             _healthcareWorkerService = healthcareWorkerService;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto) //self registration for clients users
+        private (string? role, string? authUserId) UserContext() // Get role and AuthUserId from JWT token
         {
-            var result = await _authService.RegisterUserAsync(registerDto); //Call the auth service to register user
-            if (result.Succeeded) //Log successful registration
-            {
-                _logger.LogInformation("[AuthAPIController] user registered successfully for {Username}", registerDto.Email);
-                return Ok(new { Message = "User registered successfully" });
-            }
-            _logger.LogError("[AuthAPIController] user registration failed for {Username}: {Errors}", registerDto.Email, result.Errors); //Log failed registration
-            return BadRequest(result.Errors);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var role = User.FindFirstValue(ClaimTypes.Role); // Specified Role when creating the JWT token
+            return (role, userId);
         }
+
         [Authorize(Roles = "Admin")]
-        [HttpPost("register-admin")]
-        public async Task<IActionResult> RegisterFromAdmin([FromBody] RegisterFromAdminDto registerDto)
-        //Registration from Admin for any role. This is to ensure only admin can create other users with elevated roles.
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto) //User registration
         {
-            var result = await _authService.RegisterUserFromAdminAsync(registerDto); //Call the auth service to register user
-            if (result.Succeeded) //Log successful registration
+            var (role, _) = UserContext();
+            bool isAdmin = role == "Admin";
+            try
             {
-                _logger.LogInformation("[AuthAPIController] admin registered user successfully for {Username}", registerDto.Email);
-                return Ok(new { Message = "User registered successfully by admin" });
+                await _authService.RegisterAdminAsync(registerDto, isAdmin); //Call the auth service to register user
             }
-            //Log failed registration
-            _logger.LogError("[AuthAPIController] admin user registration failed for {Username}: {Errors}", registerDto.Email, result.Errors);
-            return BadRequest(result.Errors);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[AuthAPIController] error during registration for {Username}", registerDto.Email);
+                return StatusCode(500, "A problem happened while handling your request.");
+            }
+            _logger.LogInformation("[AuthAPIController] user registered successfully for {Username}", registerDto.Email);
+            return Ok(new { Message = "User registered successfully" });
         }
 
         [HttpPost("login")]
@@ -75,70 +75,5 @@ namespace api.Controllers
             _logger.LogInformation("[AuthAPIController] user logged out successfully");
             return Ok(new { Message = "User logged out successfully" });
         }
-
-        private async Task<string> GenerateJwtToken(AuthUser user) //Generate JWT token for authenticated user
-        {
-            var token = await _authService.GenerateJwtTokenAsync(user);
-            return token;
-        }
-        [HttpPut("client/{id}")]
-        public async Task<IActionResult> UpdateClient([FromBody] UpdateUserDto updateUserDto) //Update client information in Auth and client Db
-        {
-            int id = updateUserDto.Id;
-            ClientDto? client = await _clientService.GetById(id); //Find client in App Database
-            if (client == null)
-            {
-                return NotFound("Client not found");
-            }
-            if (id != updateUserDto.Id)
-            {
-                return BadRequest("ID mismatch");
-            }
-            try
-            {
-                var authClientUpdate = await _authService.UpdateClientAsync(updateUserDto);
-                return Ok(authClientUpdate);
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogError(ex, "[AuthController] Client update failed for ClientId {id:0000}, {@client}", id, updateUserDto);
-                return StatusCode(500, "Failed to update client.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[AuthController] Client update failed for ClientId {id:0000}, {@client}", id, updateUserDto);
-                return StatusCode(500, "A problem happened while updating the Client.");
-            }
-        }  
-
-        [HttpPut("worker/{id}")]
-        public async Task<IActionResult> UpdateWorker([FromBody] UpdateUserDto updateUserDto) //Update healthcare worker information in Auth and worker Db
-        {
-            int id = updateUserDto.Id;
-            HealthcareWorkerDto? worker = await _healthcareWorkerService.GetById(id); //Find healthcare worker in App Database
-            if (worker == null)
-            {
-                return NotFound("HealthcareWorker not found");
-            }
-            if (id != updateUserDto.Id)
-            {
-                return BadRequest("ID mismatch");
-            }
-            try
-            {   
-                var authWorkerUpdate = await _authService.UpdateHealthcareWorkerAsync(updateUserDto); //Update healthcare worker in Auth Database
-                return Ok(authWorkerUpdate);
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogError(ex, "[AuthController] Worker update failed for HealthcareWorkerId {id:0000}, {@worker}", id, updateUserDto);
-                return StatusCode(500, "Failed to update healthcare worker.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[AuthController] Healthcare Worker update failed for Healthcare Worker {id:0000}, {@worker}", id, updateUserDto);
-                return StatusCode(500, "A problem happened while updating the Healthcare Worker.");
-            }
-        }    
     }
 }

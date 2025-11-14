@@ -1,4 +1,4 @@
-import { LoginDto, RegisterDto, RegisterFromAdminDto } from "../types/auth";
+import { LoginDto, RegisterAdminDto, RegisterDto } from "../types/auth";
 import { API_URL, getAuthHeaders, handleResponse } from "../shared/http";
 
 export const login = async (credentials: LoginDto): Promise<{ token: string }> => {
@@ -12,7 +12,7 @@ export const login = async (credentials: LoginDto): Promise<{ token: string }> =
 };
 
 export const register = async (userData: RegisterDto): Promise<any> => {
-  const response = await fetch(`${API_URL}/api/Auth/register`, {
+  const response = await fetch(`${API_URL}/api/client/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(userData),
@@ -21,15 +21,39 @@ export const register = async (userData: RegisterDto): Promise<any> => {
   return handleResponse(response);
 };
 
-export const registerAdmin = async (userData: RegisterFromAdminDto): Promise<any> => {
+export const registerAdmin = async (userData: RegisterAdminDto): Promise<any> => {
   const token = localStorage.getItem("token");
   if (!token) {
     throw new Error("No authentication token found.");
   }
-  const response = await fetch(`${API_URL}/api/Auth/register-admin`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(userData),
-  });
-  return handleResponse(response);
+  const role = userData.role;
+  const user: RegisterDto = {
+    email: userData.email,
+    name: userData.name,
+    number: userData.number,
+    address: userData.address,
+    password: userData.password,
+  };
+  if (role === "Client") {
+    const response = await fetch(`${API_URL}/api/client/register`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(user),
+    });
+    return handleResponse(response);
+  } else if (role === "HealthcareWorker") {
+    const response = await fetch(`${API_URL}/api/healthcareworker/register`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(user),
+    });
+    return handleResponse(response);
+  } else if (role === "Admin") {
+    const response = await fetch(`${API_URL}/api/Auth/register`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(user),
+    });
+    return handleResponse(response);
+  }
 };

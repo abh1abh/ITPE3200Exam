@@ -15,7 +15,7 @@ namespace api.DTO
         public string Name { get; set; } = string.Empty;
         [Required]
         [Phone(ErrorMessage = "Please enter a valid phone number.")]
-        public string Number { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
         [Required]
         [StringLength(200, ErrorMessage = "Address must be at most {1} characters.")]
         public string Address { get; set; } = string.Empty;

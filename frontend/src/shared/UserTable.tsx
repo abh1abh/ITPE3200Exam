@@ -10,8 +10,8 @@ interface Props {
   isAdmin: boolean;
   onDeleteClick: (user: HealthcareWorker | Client) => void;
 }
-
-const UserTable: React.FC<Props> = ({ users, isHealthcareWorker, onDeleteClick }) => { // User table component. Displays a list of users with actions to view details, update, or delete, based on user type.
+// User table component. Displays a list of users with actions to view details, update, or delete, based on user type.
+const UserTable: React.FC<Props> = ({ users, isHealthcareWorker, onDeleteClick }) => {
   return (
     <Table striped bordered hover responsive>
       <thead>
@@ -40,21 +40,15 @@ const UserTable: React.FC<Props> = ({ users, isHealthcareWorker, onDeleteClick }
               <td>
                 <Link
                   to={`/${isHealthcareWorker ? "healthcareworker" : "client"}/${user.id}/details`}
-                  className="btn btn-sm btn-primary me-2"
-                >
+                  className="btn btn-sm btn-primary me-2">
                   Details
                 </Link>
                 <Link
                   to={`/${isHealthcareWorker ? "healthcareworker" : "client"}/${user.id}/update`}
-                  className="btn btn-sm btn-primary me-2"
-                >
+                  className="btn btn-sm btn-primary me-2">
                   Update
                 </Link>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => onDeleteClick(user)}
-                >
+                <Button variant="danger" size="sm" onClick={() => onDeleteClick(user)}>
                   Delete
                 </Button>
               </td>

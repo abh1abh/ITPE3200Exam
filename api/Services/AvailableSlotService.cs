@@ -33,7 +33,7 @@ public class AvailableSlotService: IAvailableSlotService
         var currentWorkerId = await ResolveWorkerIdAsync(authUserId);
         return currentWorkerId.HasValue && slot.HealthcareWorkerId == currentWorkerId.Value;
     }
-
+    
     public async Task<IEnumerable<AvailableSlotDto>> GetAll(bool isAdmin) // Admin can see all slots
     {
         if (!isAdmin) // If not admin, return empty
