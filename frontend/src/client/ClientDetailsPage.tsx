@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import * as ClientService from "./clientService";
 import { useAuth } from "../auth/AuthContext";
 import UserDetailsCard from "../shared/user/UserDetailsCard";
@@ -9,11 +9,13 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 const ClientDetailsPage: React.FC = () => {
+  // Get client ID from URL params
   const { id } = useParams<{ id: string }>();
-  const { hasRole } = useAuth();
-  const [profileData, setProfileData] = React.useState<Client | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(true);
-  const [error, setError] = React.useState<string | null>(null);
+
+  // States for profile data, loading, errors, and deletion
+  const [profileData, setProfileData] = useState<Client | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toDelete, setToDelete] = useState<Client | null>(null);
 
@@ -23,7 +25,7 @@ const ClientDetailsPage: React.FC = () => {
     setError(null); // Clear previous errors
     try {
       const clientDto = await ClientService.fetchClient(Number(id)); // Fetch client data using the service
-      const worker: Client = {
+      const client: Client = {
         //map ClientDto to Client
         id: clientDto.id,
         name: clientDto.name,
@@ -31,7 +33,7 @@ const ClientDetailsPage: React.FC = () => {
         phone: clientDto.phone,
         address: clientDto.address,
       };
-      setProfileData(worker); // Set the fetched data to state
+      setProfileData(client); // Set the fetched data to state
     } catch (error: any) {
       console.error("Error fetching profile data:", error);
       setError("Failed to fetch profile data");
@@ -39,14 +41,14 @@ const ClientDetailsPage: React.FC = () => {
       setLoading(false); // Set loading to false after fetch attempt
     }
   };
-  React.useEffect(() => {
-    // On component mount
+
+  // On component mount
+  useEffect(() => {
     fetchProfileData();
   }, []);
 
-  const confirmDeleteClient = async (
-    user: Client // Confirm deletion of client
-  ) => {
+  // Confirm deletion of client
+  const confirmDeleteClient = async (user: Client) => {
     if (!toDelete?.id) return; // No client to delete
     setError(null); // Clear previous errors
     setIsDeleting(true); // Set deleting state
@@ -78,7 +80,7 @@ const ClientDetailsPage: React.FC = () => {
             <UserDeleteModal
               user={toDelete}
               onCancel={() => setToDelete(null)}
-              onConfirm={() => confirmDeleteClient(toDelete as Client)}
+              onConfirm={() => confirmDeleteClient(toDelete)}
               isDeleting={isDeleting}
             />
           )}

@@ -4,7 +4,6 @@ using api.DTO;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Http.HttpResults;
 namespace api.Services;
 
 public class AuthService: IAuthService{
@@ -26,25 +25,20 @@ public class AuthService: IAuthService{
         _configuration = configuration;
         _logger = logger;
     }
-    private bool IsAuthorized(string?authUserId, string? operationAuthUserId, string? role) //method to check if user is authorized to perform operation
+    // Helper function to check if user is authorized to perform operations on user data
+    private bool IsAuthorized(string?authUserId, string? operationAuthUserId, string? role) 
     {
         if (string.IsNullOrEmpty(authUserId)) return false; //if authUserId is null or empty return false
 
-        var ok = false;
-
         if (role == "Admin") //admin can read, modify and create any user
         {
-            ok = true;
+            return true;
         }
-        else if (role == "Client" && authUserId == operationAuthUserId) //client can only read and modify their own details
+        else if (authUserId == operationAuthUserId) // users can read and modify their own data
         {
-            ok = true;
+            return true;
         }
-        else if (role == "HealthcareWorker" && authUserId == operationAuthUserId) //healthcare worker can only read and modify their own details
-        {
-            ok = true;
-        }
-        return ok;
+        return false;
     }
 
         public async Task<IdentityResult> RegisterAdminAsync(RegisterDto registerDto, bool isAdmin) //self registration for clients users
@@ -57,8 +51,7 @@ public class AuthService: IAuthService{
         var Password = registerDto.Password; //get password from DTO
         if(!isAdmin)
         {
-            _logger.LogWarning("[AuthService] unauthorized admin registration attempt for {Username}", user.Email);
-            throw new UnauthorizedAccessException("Only Admin users can register new Admin users.");
+            throw new UnauthorizedAccessException();
         }
         try
         {
@@ -167,32 +160,27 @@ public class AuthService: IAuthService{
 
     public async Task<bool> DeleteUserAsync(string authId, string operationAuthUserId, string role) //method to delete user by AuthId
     {
-        var user = await _userManager.FindByIdAsync(authId); //find user by AuthId
-        if (user == null) //log user not found
+        var user = await _userManager.FindByIdAsync(authId); // Find user by AuthId
+        if (user == null) // Log user not found
         {
             _logger.LogWarning("[AuthService] delete user failed for {AuthId}: user not found", authId);
-            return false; //return failure
+            return false; // Return failure
         }
-        if (!IsAuthorized(authId, operationAuthUserId, role)) //check if authorized to delete user
+        if (!IsAuthorized(authId, operationAuthUserId, role)) // Check if authorized to delete user
         {
-            _logger.LogWarning("[AuthService] unauthorized delete attempt by {OperationAuthId} for user {AuthId}", operationAuthUserId, authId);
-            throw new UnauthorizedAccessException("You are not authorized to delete this user.");
+            throw new UnauthorizedAccessException();
         }
         var result = await _userManager.DeleteAsync(user); //delete user
-        if (result.Succeeded) //log successful deletion
+        if (!result.Succeeded) // If deletion fails, log error and throw exception
         {
-            _logger.LogInformation("[AuthService] user deleted successfully for {AuthId}", authId);
-            return true; //return success
+            _logger.LogWarning("[AuthService] delete user failed for {AuthId}: {Errors}",authId, result.Errors); 
+            throw new InvalidOperationException($"Failed to delete user {authId}.");
         }
-        else
-        {
-            _logger.LogWarning("[AuthService] delete user failed for {AuthId}: {Errors}",authId, result.Errors); //log deletion failure
-            return false; //return failure
-        }
+        _logger.LogInformation("[AuthService] user deleted successfully for {AuthId}", authId);
+        return true; //return success
     }
     
-//Authorize update methods to ensure only authorized users can update their details.
-
+    // Authorize update methods to ensure only authorized users can update their details.
     public async Task<bool> UpdateUserAsync(UpdateUserDto userDto, string authId, string operationAuthUserId, string role) //method to update user details
     {
         if (string.IsNullOrEmpty(authId)) // check if authId is null or empty
@@ -208,8 +196,7 @@ public class AuthService: IAuthService{
         }
         if(!IsAuthorized(authId, operationAuthUserId, role)) //check if authorized to update user
         {
-            _logger.LogWarning("[AuthService] unauthorized update attempt by {OperationAuthId} for user {AuthId}", operationAuthUserId, authId);
-            throw new UnauthorizedAccessException("You are not authorized to update this user."); //throw unauthorized exception
+            throw new UnauthorizedAccessException(); //throw unauthorized exception
         }
         try
         {

@@ -2,14 +2,15 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Container, Alert } from "react-bootstrap";
 import * as authService from "./authService";
+import { RegisterDto } from "../types/auth";
 
 const RegisterPage: React.FC = () => {
   // State to hold form data
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterDto>({
     email: "",
     password: "",
     name: "",
-    number: "",
+    phone: "",
     address: "",
   });
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +47,7 @@ const RegisterPage: React.FC = () => {
   return (
     <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
       <Container className="mt-5">
-        <h2>Register</h2>
+        <h2>Register as Client</h2>
         {error && <Alert variant="danger">{error}</Alert>}
         {success && <Alert variant="success">{success}</Alert>}
         <Form onSubmit={handleSubmit}>
@@ -83,9 +84,9 @@ const RegisterPage: React.FC = () => {
             <Form.Label>Number</Form.Label>
             <Form.Control
               type="text"
-              name="number"
+              name="phone"
               pattern="^(\+?\d{1,3}[- ]?)?(\(?\d{1,4}\)?[- ]?)?\d{1,4}([- ]?\d{1,9})$"
-              value={formData.number}
+              value={formData.phone}
               onChange={handleChange}
               required
             />

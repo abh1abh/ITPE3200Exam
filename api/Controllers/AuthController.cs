@@ -45,6 +45,11 @@ namespace api.Controllers
             {
                 await _authService.RegisterAdminAsync(registerDto, isAdmin); //Call the auth service to register user
             }
+            catch (UnauthorizedAccessException) //Handle unauthorized access
+            {
+                _logger.LogWarning("[AuthAPIController] unauthorized admin registration attempt for {Username}", registerDto.Email);
+                return Forbid(); //Return 403 Forbidden
+            }
             catch (Exception ex) //Log any errors during registration
             {
                 _logger.LogError(ex, "[AuthAPIController] error during registration for {Username}", registerDto.Email);

@@ -16,19 +16,20 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         _logger = logger;
     }
 
-    private bool IsAuthorized(HealthcareWorker worker, string? authUserId, string? role) // Check if user is authorized
+    // Helper function to check if user is authorized to access the healthcare worker data
+    private bool IsAuthorized(HealthcareWorker worker, string? authUserId, string? role) 
     {
         if (string.IsNullOrEmpty(authUserId)) return false;
 
         if (role == "Admin") return true; // Admins are always authorized
-
-        var ok = false;
-
-        if (role == "HealthcareWorker" && worker.AuthUserId== authUserId) // HealthcareWorkers can access their own data
+    
+        if (role == "HealthcareWorker" && worker.AuthUserId == authUserId) // HealthcareWorkers can access their own data
         {
-            ok = true;
+            return true;
         }
-        return ok;
+
+        return false;
+       
     }
     
     public async Task<IEnumerable<HealthcareWorkerDto>> GetAll(bool isAdmin) // Get all healthcare workers
@@ -68,8 +69,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         }
         if(!IsAuthorized(worker, authUserId, role))
         {
-            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete HealthcareWorkerId {HealthcareWorkerId:0000}", authUserId, id);
-            throw new UnauthorizedAccessException("You are not authorized to delete this client.");
+            throw new UnauthorizedAccessException();
         }
 
         var workerDto = new HealthcareWorkerDto // Map HealthcareWorker to HealthcareWorkerDto
@@ -94,8 +94,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
         }
         if(!IsAuthorized(worker, authId, role)) // Check if user is authorized
         {
-            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete HealthcareWorkerId {HealthcareWorkerId:0000}", authId, worker.Id);
-            throw new UnauthorizedAccessException("You are not authorized to delete this client.");
+            throw new UnauthorizedAccessException();
         }
         var workerDto = new HealthcareWorkerDto // Map HealthcareWorker to HealthcareWorkerDto
         {
@@ -113,8 +112,7 @@ public class HealthcareWorkerService: IHealthcareWorkerService
     {
         if (!isAdmin) // Only admins can create healthcare workers
         {
-            _logger.LogWarning("[HealthcareWorkerService] Unauthorized creation attempt. Only Admins can create healthcare workers. AuthUserId: {AuthUserId}", authId);
-            throw new UnauthorizedAccessException("Only Admins can create healthcare workers.");
+            throw new UnauthorizedAccessException();
         }
         var worker = new HealthcareWorker // Map HealthcareWorkerDto to HealthcareWorker
         {
@@ -145,18 +143,17 @@ public class HealthcareWorkerService: IHealthcareWorkerService
 
         return createdDto; // return created healthcare worker dto
     }
-    public async Task<bool> Update(UpdateUserDto userDto, string authUserId, string role) // Update healthcare worker
+    public async Task<string?> Update(UpdateUserDto userDto, string authUserId, string role) // Update healthcare worker
     {
         var id = userDto.Id; 
         var existingWorker = await _repository.GetById(id); // Get existing healthcare worker from repository
         if (existingWorker == null)
         {
-            return false;
+            return null;
         }
         if(!IsAuthorized(existingWorker, authUserId, role)) // Check if user is authorized
         {
-            _logger.LogWarning("[HealthcareWorkerService] Unauthorized access attempt by AuthUserId {AuthUserId} to update HealthcareWorkerId {HealthcareWorkerId:0000}", authUserId, id);
-            throw new UnauthorizedAccessException("You are not authorized to update this Healthcare Worker.");
+            throw new UnauthorizedAccessException();
         }
 
         existingWorker.Name = userDto.Name; // Update healthcare worker properties
@@ -170,20 +167,19 @@ public class HealthcareWorkerService: IHealthcareWorkerService
             _logger.LogError("[HealthcareWorkerService] Update failed for Id {Id:0000}, {@worker}", id, existingWorker);
             throw new InvalidOperationException($"Update operation failed for Id {id}");
         }
-        return updated;
+        return existingWorker.AuthUserId; // return AuthUserId of updated healthcare worker
     }
-    public async Task<bool> Delete(int id, string authUserId, string role) // Delete healthcare worker by Id
+    public async Task<string?> Delete(int id, string authUserId, string role) // Delete healthcare worker by Id
     {
          var worker = await _repository.GetById(id); // Get existing healthcare worker from repository
         if (worker is null)
         {
             _logger.LogError("[HealthcareWorkerService] Healthcare worker not found for Id {Id:0000}", id);
-            return false;
+            return null ;
         }
         if(!IsAuthorized(worker, authUserId, role)) // Check if user is authorized
         {
-            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete HealthcareWorkerId {HealthcareWorkerId:0000}", authUserId, id);
-            throw new UnauthorizedAccessException("You are not authorized to delete this Healthcare Worker.");
+            throw new UnauthorizedAccessException();
         }
         bool deleted = await _repository.Delete(id); // Delete healthcare worker from repository
         if (!deleted)
@@ -191,6 +187,6 @@ public class HealthcareWorkerService: IHealthcareWorkerService
             _logger.LogError("[HealthcareWorkerService] Deletion failed for Id {Id:0000}", id);
             throw new InvalidOperationException($"Deletion operation failed for Id {id}");
         }
-        return deleted; // return true if deleted
+        return worker.AuthUserId; // return AuthUserId of deleted healthcare worker
     }
 }

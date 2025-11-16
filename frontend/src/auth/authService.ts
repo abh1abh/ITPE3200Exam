@@ -15,7 +15,7 @@ export const login = async (credentials: LoginDto): Promise<{ token: string }> =
 
 // Service function for user registration
 export const register = async (userData: RegisterDto): Promise<any> => {
-  const response = await fetch(`${API_URL}/api/client/`, {
+  const response = await fetch(`${API_URL}/api/client/register`, {
     //registration endpoint
     method: "POST", //POST method
     headers: getAuthHeaders(), //set headers
@@ -35,7 +35,7 @@ export const registerAdmin = async (userData: RegisterAdminDto): Promise<any> =>
     //create user object to map correctly to backend
     email: userData.email,
     name: userData.name,
-    number: userData.number,
+    phone: userData.phone,
     address: userData.address,
     password: userData.password,
   };

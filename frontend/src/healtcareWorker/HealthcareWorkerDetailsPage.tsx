@@ -9,8 +9,11 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 const HealthcareWorkerDetailsPage: React.FC = () => {
+  // Get worker ID from URL params
   const { id } = useParams<{ id: string }>();
-  const { user, hasRole } = useAuth();
+  const { hasRole } = useAuth();
+
+  // States for profile data, loading, errors, and deletion
   const [profileData, setProfileData] = useState<HealthcareWorker | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,10 +21,11 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
   const [toDelete, setToDelete] = useState<HealthcareWorker | null>(null);
   const navigate = useNavigate();
 
+  // Check if the current user is a healthcare worker
   const isHealthcareWorker = hasRole("HealthcareWorker");
 
+  // Fetch profile data
   const fetchProfileData = async () => {
-    // Fetch profile data
     setLoading(true);
     setError(null);
     try {
@@ -34,6 +38,7 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
       setLoading(false);
     }
   };
+  // On component mount
   useEffect(() => {
     fetchProfileData();
   }, []);
@@ -44,7 +49,7 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
     if (!toDelete?.id) return; // No worker to delete
     setError(null);
     setIsDeleting(true);
-    setToDelete(user as HealthcareWorker); // Set the worker to be deleted
+    setToDelete(user); // Set the worker to be deleted
     try {
       await HealthcareWorkerService.deleteWorker(toDelete.id); // Call delete service
       setToDelete(null);

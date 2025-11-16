@@ -2,16 +2,15 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Container, Alert } from "react-bootstrap";
 import * as authService from "./authService";
-
-// TODO: Missing useState type and naming convention
+import { RegisterAdminDto } from "../types/auth";
 
 const RegisterAdmin: React.FC = () => {
   // State to hold form data
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterAdminDto>({
     email: "",
     password: "",
     name: "",
-    number: "",
+    phone: "",
     address: "",
     role: "",
   });
@@ -35,7 +34,13 @@ const RegisterAdmin: React.FC = () => {
         ...formData,
       });
       setSuccess("Registration successful!");
-      setTimeout(() => navigate("/"), 2000); // Redirect after 2 seconds
+      let url;
+      if (formData.role == "Admin") {
+        url = "/";
+      } else {
+        url = `/${formData.role.toLowerCase()}s`;
+      }
+      setTimeout(() => navigate(url), 2000); // Redirect after 2 seconds
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -93,9 +98,9 @@ const RegisterAdmin: React.FC = () => {
             <Form.Label>Number</Form.Label>
             <Form.Control
               type="text"
-              name="number"
+              name="phone"
               pattern="^(\+?\d{1,3}[- ]?)?(\(?\d{1,4}\)?[- ]?)?\d{1,4}([- ]?\d{1,9})$"
-              value={formData.number}
+              value={formData.phone}
               onChange={handleChange}
               required
             />

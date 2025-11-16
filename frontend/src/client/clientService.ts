@@ -21,7 +21,7 @@ export const fetchClient = async (id: number) => {
 
 export const updateClient = async (id: number, client: UpdateUserDto) => {
   // Update client by ID
-  const response = await fetch(`${API_URL}/api/client/update/${id}`, {
+  const response = await fetch(`${API_URL}/api/client/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(client),

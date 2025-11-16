@@ -8,21 +8,23 @@ import UserDeleteModal from "../shared/user/UserDeleteModal";
 
 const HealthcareWorkerPage: React.FC = () => {
   const { hasRole } = useAuth();
+
+  // States for profile data, loading, errors, and deletion
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [workers, setClients] = useState<HealthcareWorker[]>([]);
+  const [workers, setWorkers] = useState<HealthcareWorker[]>([]);
   const [toDelete, setToDelete] = useState<HealthcareWorker | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Fetch profile data
   const fetchWorkerData = async () => {
-    // Fetch profile data
     setLoading(true);
     setError(null);
     try {
       const response = await HealthcareWorkerService.fetchAllWorkers(); // Fetch worker data using the service
-      setClients(response); // Set the fetched data to state
-    } catch (error: any) {
+      setWorkers(response); // Set the fetched data to state
+    } catch (error) {
       console.error("Error fetching profile data:", error);
       setError("Failed to fetch profile data");
     } finally {

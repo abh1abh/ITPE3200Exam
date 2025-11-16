@@ -43,7 +43,7 @@ public class HealthcareWorkerController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[HealthcareWorkerController] Error retrieving all healthcare workers");
+            _logger.LogWarning(ex, "[HealthcareWorkerController] Error retrieving all healthcare workers");
             return StatusCode(500, "A problem happened while handling your request."); // Return 500 Internal Server Error if exception occurs
         }
     }
@@ -53,13 +53,26 @@ public class HealthcareWorkerController : ControllerBase
     public async Task<IActionResult> GetById(int id) // Get healthcare worker by Id
     {
         var (role, authUserId) = UserContext(); // Get role and AuthUserId from JWT token
-        var worker = await _service.GetById(id, authUserId!, role!); // Get healthcare worker from database through service
-        if (worker == null)
+        try
         {
-            _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for Id {Id:0000}", id); 
-            return NotFound("Healthcare worker not found"); // Return 404 Not Found if healthcare worker not found
+              var worker = await _service.GetById(id, authUserId!, role!); // Get healthcare worker from database through service
+            if (worker == null)
+            {
+                _logger.LogWarning("[HealthcareWorkerController] Healthcare worker not found for Id {Id:0000}", id); 
+                return NotFound("Healthcare worker not found"); // Return 404 Not Found if healthcare worker not found
+            }
+            return Ok(worker); // Return 200 OK with healthcare worker
+        } 
+        catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
+        {
+            _logger.LogWarning("[HealthcareWorkerController] Unauthorized access attempt to get HealthcareWorkerId {HealthcareWorkerId:0000}", id);
+            return Forbid(); 
         }
-        return Ok(worker); // Return 200 OK with healthcare worker
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[HealthcareWorkerController] Error retrieving healthcare worker for Id {Id:0000}", id);
+            return StatusCode(500, "A problem happened while handling your request."); // Return 500 Internal Server Error if exception occurs
+        }
     }
 
     [Authorize(Roles = "HealthcareWorker")]
@@ -72,7 +85,7 @@ public class HealthcareWorkerController : ControllerBase
             var worker = await _service.GetByAuthUserId(authUserId!, authUserId!, role!); // Get healthcare worker from database through service
             if (worker == null)
             {
-                _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
+                _logger.LogWarning("[HealthcareWorkerController] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
                 return NotFound("Healthcare worker not found"); // Return 404 Not Found if healthcare worker not found
             }
             return Ok(worker); // Return 200 OK with healthcare worker
@@ -80,6 +93,10 @@ public class HealthcareWorkerController : ControllerBase
         catch (UnauthorizedAccessException) // Handles different exceptions like unauthorized users. 
         {
             return Forbid(); 
+        } catch (Exception ex)
+        {
+            _logger.LogError(ex, "[HealthcareWorkerController] Error retrieving healthcare worker for AuthUserId {AuthUserId}", authUserId);
+            return StatusCode(500, "A problem happened while handling your request."); // Return 500 Internal Server Error if exception occurs
         }
     }
 
@@ -95,7 +112,7 @@ public class HealthcareWorkerController : ControllerBase
         };
         try
         {
-            var authCreate = await _authService.RegisterWorkerAsync(authUser, registerDto.Password, isAdmin); // Register client in Auth Database
+            var authCreate = await _authService.RegisterWorkerAsync(authUser, registerDto.Password, isAdmin); // Register healthcare worker in Auth Database
             try
             {
                 var created = await _service.Create(registerDto, authUser.Id, isAdmin); // Create HealthcareWorker in App Database
@@ -108,6 +125,11 @@ public class HealthcareWorkerController : ControllerBase
                 throw;
             }
         }
+        catch (UnauthorizedAccessException)
+        {
+            _logger.LogWarning("[HealthcareWorkerController] Unauthorized registration attempt for {Username}", registerDto.Email);
+            return Forbid(); // Return 403 Forbidden if unauthorized
+        }
         catch (InvalidOperationException)
         {
             return StatusCode(500, "API had a problem while handling your request.");
@@ -116,27 +138,37 @@ public class HealthcareWorkerController : ControllerBase
         {
             return BadRequest(e.Message);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[HealthcareWorkerController] Unexpected error during registration.");
+            return StatusCode(500, "Unexpected error.");
+        }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id) // Delete healthcare worker by Id
     {
         var (role, authUserId) = UserContext(); // Get role and AuthUserId from JWT token
-        var user = await _service.GetById(id, authUserId!, role!); //Find HealthcareWorker in App Database
-        if (user == null)
-        {
-            return NotFound("Healthcare Worker not found");
-        }
         try
         {
-            string authId = user.AuthUserId!;               //Get username to delete from Auth Database
-            bool deleted = await _service.Delete(id, authUserId!, role!);   //Delete client from App Database
-            bool authDeleted = await _authService.DeleteUserAsync(authId, authUserId!, role!); //Delete client from Auth Database
-            if (!deleted || !authDeleted) //If either deletion fails, throw exception
+             // Get username to delete from Auth Database
+            string? deletedAuthUserId = await _service.Delete(id, authUserId!, role!); // Delete worker from App Database
+            if (deletedAuthUserId == null)
             {
-                throw new InvalidOperationException("Failed to delete Healthcare Worker.");
+                return NotFound("Healthcare Worker not found");
+            }
+
+            bool authDeleted = await _authService.DeleteUserAsync(deletedAuthUserId, authUserId!, role!); // Delete worker from Auth Database
+            if (!authDeleted) // If either deletion fails, throw exception
+            {
+                return NotFound("Healthcare Worker not found in Auth Database");
             }
             return NoContent(); // Return 204 No Content on successful deletion
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _logger.LogWarning("[HealthcareWorkerController] Unauthorized delete attempt for Healthcare Worker {Id:0000}", id);
+            return Forbid(); // Return 403 Forbidden if unauthorized
         }
         catch (InvalidOperationException ex)
         {
@@ -151,38 +183,48 @@ public class HealthcareWorkerController : ControllerBase
 
     }
 
-
     [Authorize(Roles = "Admin, HealthcareWorker")]
-    [HttpPut("update/{id}")]
-    public async Task<IActionResult> Update([FromBody] UpdateUserDto updateUserDto) // Update Healthcare Worker information
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateUserDto updateUserDto) // Update Healthcare Worker information
     {
+
         var (role, authUserId) = UserContext(); // Get role and AuthUserId from JWT token
-        int id = updateUserDto.Id;                     //Get Healthcare Worker Id from DTO
-        HealthcareWorkerDto? worker = await _service.GetById(id, authUserId!, role!); //Find Healthcare Worker in App Database
-        string authId = worker!.AuthUserId!;               //Get authId to update user in Auth Database
-        if (worker == null)
-        {
-            return NotFound("HealthcareWorker not found");
-        }
-        if (id != worker.Id)
+        // Check if the id in the route matches the id in the body
+        if (id != updateUserDto.Id)
         {
             return BadRequest("ID mismatch");
         }
         try
         {
-            var authClientUpdate = await _authService.UpdateUserAsync(updateUserDto, authId, authUserId!, role!); //Update user in Auth Database
-            var workerUpdate =  await _service.Update(updateUserDto, authUserId!, role!); //Update Healthcare Worker in App Database
-            return Ok(authClientUpdate && workerUpdate);
+            var workerUpdate =  await _service.Update(updateUserDto, authUserId!, role!); // Update Healthcare Worker in App Database
+            if(workerUpdate == null)
+            {
+                _logger.LogWarning("[HealthcareWorkerController] Healthcare Worker not found for Id {Id:0000}", id);
+                return NotFound("HealthcareWorker not found");
+            }
+            string authId = workerUpdate; // Get authId to update user in Auth Database
+            var authWorkerUpdate = await _authService.UpdateUserAsync(updateUserDto, authId, authUserId!, role!); // Update user in Auth Database
+            if(!authWorkerUpdate)
+            {
+                _logger.LogWarning("[HealthcareWorkerController] Auth User Not found for AuthId {AuthId}", authId);
+                return NotFound("Auth User not found");
+            }
+            return NoContent(); // Return 204 No Content on successful update
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _logger.LogWarning("[HealthcareWorkerController] Unauthorized update attempt for HealthcareworkerId {id:0000}, {@worker}", id, updateUserDto);
+            return Forbid(); // Return 403 Forbidden if unauthorized
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "[HealthcareWorkerController] Client update failed for HealthcareworkerId {id:0000}, {@client}", id, updateUserDto);
-            return StatusCode(500, "Failed to update client."); // Return 500 Internal Server Error if update fails
+            _logger.LogError(ex, "[HealthcareWorkerController] Worker update failed for HealthcareworkerId {id:0000}, {@worker}", id, updateUserDto);
+            return StatusCode(500, "Failed to update healthcare worker."); // Return 500 Internal Server Error if update fails
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[HealthcareWorkerController] Client update failed for HealthcareworkerId {id:0000}, {@client}", id, updateUserDto);
-            return StatusCode(500, "A problem happened while updating the Client."); // Return 500 Internal Server Error for unexpected errors
+            _logger.LogError(ex, "[HealthcareWorkerController] Worker update failed for HealthcareworkerId {id:0000}, {@worker}", id, updateUserDto);
+            return StatusCode(500, "A problem happened while updating the Healthcare Worker."); // Return 500 Internal Server Error for unexpected errors
         }
     }
 }

@@ -9,14 +9,16 @@ import { Alert } from "react-bootstrap";
 import { UpdateUserDto } from "../types/user";
 
 const ClientUpdatePage: React.FC = () => {
+  // Get client ID from URL params
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [client, setClient] = useState<Client | null>(null);
+  // Get auth context
   const { hasRole } = useAuth();
-
   const isAdmin = hasRole("Admin");
   const isClient = hasRole("Client");
 
+  // States for client data, loading, and errors
+  const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);

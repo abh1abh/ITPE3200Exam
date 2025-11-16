@@ -57,7 +57,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { token } = await authService.login(credentials);
     localStorage.setItem("token", token);
     const decodedUser: User = jwtDecode(token);
-    // console.log(token); // Debugging line to check the token
     setUser({ ...decodedUser, role: extractRole(decodedUser) });
     setToken(token);
   };
