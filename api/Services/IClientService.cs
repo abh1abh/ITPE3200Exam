@@ -5,10 +5,10 @@ namespace api.Services;
 
 public interface IClientService
 {
-    Task<IEnumerable<ClientDto>> GetAll();
-    Task<ClientDto?> GetById(int id);
-    Task<ClientDto> Create(ClientDto dto);
-    Task<bool> Update(UpdateUserDto dto);
-    Task<bool> Delete(int id);
-    Task<ClientDto?> GetByAuthUserId(string authUserId);
+    Task<IEnumerable<ClientDto>> GetAll(bool isAdmin);
+    Task<ClientDto?> GetById(int id, string authUserId, string role);
+    Task<ClientDto> Create(RegisterDto dto, string authId);
+    Task<bool> Update(UpdateUserDto dto, string authUserId, string role);
+    Task<bool> Delete(int id, string authUserId, string role);
+    Task<ClientDto?> GetByAuthUserId(string authUserId, string authId, string role);
 }

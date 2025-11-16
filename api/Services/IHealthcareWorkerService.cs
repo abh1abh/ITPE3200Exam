@@ -4,10 +4,10 @@ using api.DTO;
 namespace api.Services;
 public interface IHealthcareWorkerService
 {
-    Task<IEnumerable<HealthcareWorkerDto>> GetAll();
-    Task<HealthcareWorkerDto?> GetById(int id);
-    Task<HealthcareWorkerDto> Create(HealthcareWorkerDto workerDto);
-    Task<bool> Update(UpdateUserDto userDto);
-    Task<bool> Delete(int id);
-    Task<HealthcareWorkerDto?> GetByAuthUserId(string authUserId);
+    Task<IEnumerable<HealthcareWorkerDto>> GetAll(bool isAdmin);
+    Task<HealthcareWorkerDto?> GetById(int id, string authUserId, string role);
+    Task<HealthcareWorkerDto> Create(RegisterDto dto, string authId, bool isAdmin);
+    Task<bool> Update(UpdateUserDto userDto, string authId, string role);
+    Task<bool> Delete(int id, string authId, string role);
+    Task<HealthcareWorkerDto?> GetByAuthUserId(string authUserId, string authId, string role);
 }

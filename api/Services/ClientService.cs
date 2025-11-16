@@ -1,4 +1,5 @@
 
+using System.Diagnostics.Eventing.Reader;
 using api.DAL;
 using api.DTO;
 using api.Models;
@@ -14,13 +15,38 @@ public class ClientService : IClientService
         _repository = repository;
         _logger = logger;
     }
-
-    public async Task<IEnumerable<ClientDto>> GetAll() // Get all clients
+    private bool IsAuthorized(Client client, string? authUserId, string? role) // Check if user is authorized
     {
-        var clients = await _repository.GetAll();
-        if (clients == null || !clients.Any()) return Enumerable.Empty<ClientDto>();
+        if (string.IsNullOrEmpty(authUserId)) //Check if authUserId is null or empty
+        {
+            _logger.LogWarning("[ClientService] Authorization failed: AuthUserId is null or empty.");
+            return false;
+        } 
+        var ok = false;
 
-        var clientDtos = clients.Select(c => new ClientDto
+        if (role == "Admin") return true; // Admins are always authorized
+
+        else if (role == "Client" && client.AuthUserId == authUserId) // Clients can access their own data
+        {
+            ok = true;
+        }
+        return ok;
+    }
+    public async Task<IEnumerable<ClientDto>> GetAll(bool isAdmin) // Get all clients
+    {
+        if (!isAdmin) // If not admin, return empty
+        {
+            _logger.LogWarning("[ClientService] Unauthorized access attempt to get all clients by non-admin user.");
+            return Enumerable.Empty<ClientDto>(); // return empty enumerable
+        }
+        var clients = await _repository.GetAll(); // Get all clients from repository
+        if (clients == null || !clients.Any()) // Check if clients is null or empty
+        {
+            _logger.LogWarning("[ClientService] No clients found.");
+            return Enumerable.Empty<ClientDto>(); // return empty enumerable
+        } 
+
+        var clientDtos = clients.Select(c => new ClientDto // Map Client to ClientDto
         {
             Id = c.Id,
             Name = c.Name,
@@ -33,13 +59,18 @@ public class ClientService : IClientService
 
     }
 
-    public async Task<ClientDto?> GetByAuthUserId(string authUserId) // Get client by AuthUserId
-    {
+    public async Task<ClientDto?> GetByAuthUserId(string authUserId, string authId, string role) // Get client by AuthUserId
+    {   
         var client = await _repository.GetByAuthUserId(authUserId); // Get client from repository
-        if (client == null)
+        if (client == null) // Check if client is null
         {
             _logger.LogWarning("[ClientService] Client not found for AuthUserId {AuthUserId}", authUserId);
-            return null;
+            return null; // return empty if not found
+        }
+        if(!IsAuthorized(client, authId, role)) // Check if user is authorized
+        {
+            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete ClientId {ClientId:0000}", authId, client.Id);
+            throw new UnauthorizedAccessException("You are not authorized to delete this client."); // throw unauthorized exception
         }
 
         var clientDto = new ClientDto // Map Client to ClientDto
@@ -51,10 +82,10 @@ public class ClientService : IClientService
             Email = client.Email,
             AuthUserId = client.AuthUserId
         };
-        return clientDto; // return null if not found
+        return clientDto; // return empty if not found
     }
 
-    public async Task<ClientDto?> GetById(int id) // Get client by Id
+    public async Task<ClientDto?> GetById(int id, string authUserId, string role) // Get client by Id
     {
         var client = await _repository.GetClientById(id); // Get client from repository
         if (client == null)
@@ -62,6 +93,11 @@ public class ClientService : IClientService
             _logger.LogWarning("[ClientService] Client not found for Id {Id:0000}", id);
             return null;
         }
+        if(!IsAuthorized(client, authUserId, role)) // Check if user is authorized
+        {
+            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to get ClientId {ClientId:0000}", authUserId, id);
+            throw new UnauthorizedAccessException("You are not authorized to get this client."); // throw unauthorized exception
+        }
 
         var clientDto = new ClientDto // Map Client to ClientDto
         {
@@ -72,10 +108,10 @@ public class ClientService : IClientService
             Email = client.Email,
             AuthUserId = client.AuthUserId
         };
-        return clientDto; // return null if not found
+        return clientDto; // return empty if not found
     }
-    
-    public async Task<ClientDto> Create(ClientDto dto) // Create new client
+
+    public async Task<ClientDto> Create(RegisterDto dto, string authId) // Create new client
     {
         var client = new Client // Map ClientDto to Client
         {
@@ -83,13 +119,13 @@ public class ClientService : IClientService
             Address = dto.Address,
             Phone = dto.Phone,
             Email = dto.Email,
-            AuthUserId = dto.AuthUserId
+            AuthUserId = authId
         };
 
         bool created = await _repository.Create(client); // Create client in repository
         if (!created)
         {
-            _logger.LogError("[ClientService] Client creation failed {@client}", client);
+            _logger.LogWarning("[ClientService] Client creation failed {@client}", client);
             throw new InvalidOperationException("Create failed");
         }
 
@@ -106,13 +142,19 @@ public class ClientService : IClientService
 
         return createdDto; // return created client dto
     }
-    public async Task<bool> Update(UpdateUserDto userDto) // Update existing client
+
+    public async Task<bool> Update(UpdateUserDto userDto, string authId, string role) // Update existing client
     {
         var id = userDto.Id; // Get client Id from dto
         var existingClient = await _repository.GetClientById(id); // Get existing client from repository
         if (existingClient == null)
         {
             return false;
+        }
+        if (!IsAuthorized(existingClient, authId, role)) // Check if user is authorized
+        {
+            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete ClientId {ClientId:0000}", authId, id);
+            throw new UnauthorizedAccessException("You are not authorized to delete this client."); // throw unauthorized exception
         }
 
         existingClient.Name = userDto.Name; // Update client properties
@@ -123,27 +165,29 @@ public class ClientService : IClientService
         bool updated = await _repository.Update(existingClient); // Update client in repository
         if (!updated)
         {
-            _logger.LogError("[ClientService] Update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, existingClient);
+            _logger.LogWarning("[ClientService] Update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, existingClient);
             throw new InvalidOperationException($"Update operation failed for HealthcareWorkerId {id}");
         }
         return updated; // return true if updated
     }
-    
-    public async Task<bool> Delete(int id) // Delete client by Id
+
+    //add authorization
+    public async Task<bool> Delete(int id, string authId, string role) // Delete client by Id
     {
         var client = await _repository.GetClientById(id); // Get client from repository
         if (client is null) return false; // normal "not found"
-
+        if(!IsAuthorized(client, authId, role)) // Check if user is authorized
+        {
+            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete ClientId {ClientId:0000}", authId, id);
+            throw new UnauthorizedAccessException("You are not authorized to delete this client.");
+        }
         var ok = await _repository.Delete(id); // Delete client in repository
         if (!ok)
         {
-            _logger.LogError("[ClientService] Client deletion failed for Id {Id:0000}", id);
+            _logger.LogWarning("[ClientService] Client deletion failed for Id {Id:0000}", id);
             throw new InvalidOperationException($"Delete operation failed for client ID {id}");
 
         }
-
-        return true;
+        return true; // return true if deleted
     }
-
-
 }

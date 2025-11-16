@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, Table } from "react-bootstrap";
-import { HealthcareWorker } from "../types/healthcareWorker";
-import { Client } from "../types/client";
+import { HealthcareWorker } from "../../types/healthcareWorker";
+import { Client } from "../../types/client";
 import { Link } from "react-router-dom";
 
 interface Props {
@@ -10,8 +10,8 @@ interface Props {
   isAdmin: boolean;
   onDeleteClick: (user: HealthcareWorker | Client) => void;
 }
-
-const UserTable: React.FC<Props> = ({ users, isHealthcareWorker, onDeleteClick }) => { // User table component. Displays a list of users with actions to view details, update, or delete, based on user type.
+// User table component. Displays a list of users with actions to view details, update, or delete, based on user type.
+const UserTable: React.FC<Props> = ({ users, isHealthcareWorker, onDeleteClick }) => {
   return (
     <Table striped bordered hover responsive>
       <thead>
@@ -27,7 +27,8 @@ const UserTable: React.FC<Props> = ({ users, isHealthcareWorker, onDeleteClick }
         {users.length === 0 ? (
           <tr>
             <td colSpan={6} className="text-center text-muted">
-              No {isHealthcareWorker ? "healthcare workers" : "clients"} found.
+              No {isHealthcareWorker ? "healthcare workers" : "clients"} found.{" "}
+              {/* conditional message when no users are found based on role */}
             </td>
           </tr>
         ) : (
@@ -38,23 +39,17 @@ const UserTable: React.FC<Props> = ({ users, isHealthcareWorker, onDeleteClick }
               <td>{user.address}</td>
               <td>{user.phone}</td>
               <td>
-                <Link
+                <Link // Navigate to details page based on user role
                   to={`/${isHealthcareWorker ? "healthcareworker" : "client"}/${user.id}/details`}
-                  className="btn btn-sm btn-primary me-2"
-                >
+                  className="btn btn-sm btn-primary me-2">
                   Details
                 </Link>
-                <Link
+                <Link // Navigate to update page based on user role
                   to={`/${isHealthcareWorker ? "healthcareworker" : "client"}/${user.id}/update`}
-                  className="btn btn-sm btn-primary me-2"
-                >
+                  className="btn btn-sm btn-primary me-2">
                   Update
                 </Link>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => onDeleteClick(user)}
-                >
+                <Button variant="danger" size="sm" onClick={() => onDeleteClick(user)}>
                   Delete
                 </Button>
               </td>
