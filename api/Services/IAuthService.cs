@@ -5,13 +5,11 @@ namespace api.Services;
 
 public interface IAuthService
 {
-    Task<IdentityResult> RegisterUserAsync(RegisterDto registerDto);
-    Task<IdentityResult> RegisterUserFromAdminAsync(RegisterFromAdminDto registerFromAdminDto);
+    Task<IdentityResult> RegisterClientAsync(AuthUser authUser, string Password);
+    Task<IdentityResult> RegisterWorkerAsync(AuthUser authUser, string Password, bool isAdmin);
+    Task<IdentityResult> RegisterAdminAsync(RegisterDto registerDto, bool isAdmin);
     Task<(bool Result, string Token)> LoginAsync(LoginDto loginDto);
     Task<bool> Logout();
-    Task<bool> DeleteUserAsync(string username);
-    Task<bool> DeleteUserAdminAsync(string username);
-    Task<bool> UpdateClientAsync(UpdateUserDto updateUserDto);
-    Task<bool> UpdateHealthcareWorkerAsync(UpdateUserDto updateUserDto);
-    Task<string> GenerateJwtTokenAsync(AuthUser user);
+    Task<bool> DeleteUserAsync(string username, string operationAuthUserId, string role);
+    Task<bool> UpdateUserAsync(UpdateUserDto updateUserDto, string authId, string role, string operationAuthUserId);
 }

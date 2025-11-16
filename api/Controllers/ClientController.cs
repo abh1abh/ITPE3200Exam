@@ -7,9 +7,9 @@ using System.Security.Claims;
 
 namespace api.Controllers;
 
-[Authorize(Roles = "Admin, Client")]
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ClientController : ControllerBase
 {
     private readonly IClientService _service;
@@ -25,47 +25,55 @@ public class ClientController : ControllerBase
 
     private (string? role, string? authUserId) UserContext() // Get role and AuthUserId from JWT token
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); 
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Get AuthUserId from JWT token
         var role = User.FindFirstValue(ClaimTypes.Role); // Specified Role when creating the JWT token
         return (role, userId);
     }
 
-
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAll() // Get all clients
     {
-        var clients = await _service.GetAll();
-        if (!clients.Any())
+        var (role, _) = UserContext(); // Get role from JWT token
+        bool isAdmin = role == "Admin"; // Check if user is Admin
+        try
         {
-            _logger.LogWarning("[ClientController] No clients found.");
-            return NotFound("No clients found.");
-        }       
-        return Ok(clients);
+            var clients = await _service.GetAll(isAdmin); // Get all clients from database through service
+            return Ok(clients); // Return 200 OK with clients
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ClientController] Error retrieving all clients");
+            return StatusCode(500, "A problem happened while handling your request."); // Return 500 Internal Server Error
+        }
     }
 
+    [Authorize(Roles = "Admin,Client")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id) // Get client by Id
     {
-        var client = await _service.GetById(id);
-        if (client == null)
+        var (role, authUserId) = UserContext(); // Get role and AuthUserId from JWT token
+        var client = await _service.GetById(id, authUserId!, role!); // Get client from database through service
+        if (client == null) //Check if client exists
         {
             _logger.LogError("[ClientController] Client not found for Id {ClientId:0000}", id);
-            return NotFound("Client not found");
+            return NotFound("Client not found"); // Return 404 if client Not Found
         }
-        return Ok(client);
-    }
+        return Ok(client); // Return 200 OK with client
+    } 
 
-    [HttpGet("clientauth")]
+    [Authorize(Roles = "Client")]
+    [HttpGet("me")]
     public async Task<IActionResult> GetBySelf() // Get client by AuthUserId from JWT token
     {
-        var (_, authUserId) = UserContext(); // Get role and AuthUserId
+        var (role, authUserId) = UserContext(); // Get role and AuthUserId
         try
         {
-            var client = await _service.GetByAuthUserId(authUserId!);
+            var client = await _service.GetByAuthUserId(authUserId!, authUserId!, role!); // Get client from database through service
             if (client == null)
             {
                 _logger.LogError("[HealthcareWorkerController] Healthcare worker not found for AuthUserId {AuthUserId}", authUserId);
-                return NotFound("Healthcare worker not found");
+                return NotFound("Healthcare worker not found"); // Return 404 if client Not Found
             }
             return Ok(client);
         }
@@ -75,13 +83,28 @@ public class ClientController : ControllerBase
         }
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ClientDto clientDto) // Create new client
+    [HttpPost("register")]
+    public async Task<IActionResult> RegisterClient([FromBody] RegisterDto registerDto) // Register new client
     {
+        var authUser = new AuthUser // Create AuthUser object for Auth Database
+        {
+            Email = registerDto.Email,
+            UserName = registerDto.Email,
+        };
         try
         {
-            var created = await _service.Create(clientDto);                 // Create client in App Database
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created); // Return 201 Created with location header
+            var authCreate = await _authService.RegisterClientAsync(authUser, registerDto.Password); // Register client in Auth Database
+            try
+            {
+                var created = await _service.Create(registerDto, authUser.Id); // Create client in App Database
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created); // Return 201 Created with location header
+            }
+            catch (Exception)
+            {
+                // Rollback Auth user creation if App Database creation fails
+                await _authService.DeleteUserAsync(authUser.UserName, "Admin", "system");
+                throw;
+            }
         }
         catch (InvalidOperationException)
         {
@@ -91,20 +114,27 @@ public class ClientController : ControllerBase
         {
             return BadRequest(e.Message);
         }
+
     }
 
+    [Authorize(Roles = "Admin,Client")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id) // Delete client by Id
     {
+        var (role, authUserId) = UserContext(); // Get role and AuthUserId from JWT token
+        var user = await _service.GetById(id, authUserId!, role!); //Find client in App Database
+        if (user == null)
+        {
+            return NotFound("Client not found");
+        }
         try
         {
-            ClientDto user = await _service.GetById(id); //Find client in App Database
-            string username = user.Email;               //Get username to delete from Auth Database
-            bool deleted = await _service.Delete(id);   //Delete client from App Database
-            bool authDeleted = await _authService.DeleteUserAsync(username); //Delete client from Auth Database
-            if (!deleted)
+            string authId = user.AuthUserId!;               //Get username to delete from Auth Database
+            bool deleted = await _service.Delete(id, authUserId!, role!);   //Delete client from App Database
+            bool authDeleted = await _authService.DeleteUserAsync(authId, authUserId!, role!); //Delete client from Auth Database
+            if(!deleted || !authDeleted)
             {
-                return NotFound("Client not found");
+                throw new InvalidOperationException("Failed to delete client.");
             }
             return NoContent();
         }
@@ -119,6 +149,39 @@ public class ClientController : ControllerBase
             return StatusCode(500, "Unexpected error.");
         }
 
+    }
+    [Authorize(Roles = "Admin,Client")]
+    [HttpPut("update/{id}")]
+    public async Task<IActionResult> Update([FromBody] UpdateUserDto updateUserDto) // Update client information
+    {
+        var (role, authUserId) = UserContext();
+        int id = updateUserDto.Id;
+        ClientDto? client = await _service.GetById(id, authUserId!, role!); //Find client in App Database
+        string authId = client!.AuthUserId!;               //Get authId to update user in Auth Database
+        if (client == null)
+        {
+            return NotFound("Client not found");
+        }
+        if (id != client.Id)
+        {
+            return BadRequest("ID mismatch");
+        }
+        try
+        {
+            var clientUpdate = await _service.Update(updateUserDto, authUserId!, role!); //Update client in App Database
+            var authClientUpdate = await _authService.UpdateUserAsync(updateUserDto, authId, authUserId!, role!); //Update user in Auth Database
+            return Ok(authClientUpdate && clientUpdate);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "[ClientController] Client update failed for ClientId {id:0000}, {@client}", id, updateUserDto);
+            return StatusCode(500, "Failed to update client.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ClientController] Client update failed for ClientId {id:0000}, {@client}", id, updateUserDto);
+            return StatusCode(500, "A problem happened while updating the Client.");
+        }
     }
 }
 
