@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { ChangeLog } from "../types/appointment";
 import * as appointmentService from "./appointmentService";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Loading from "../shared/Loading";
-import { Alert } from "react-bootstrap";
+import { Alert, Button } from "react-bootstrap";
 import AppointmentChangeLogTable from "./AppointmentChangeLogTable";
 
 const AppointmentChangeLogPage: React.FC = () => {
   // Get appointment id from URL parameters
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const onBack = () => {
+    navigate(-1);
+  };
 
   // State for change logs, fetching status, and errors
   const [changeLogs, setChangeLogs] = useState<ChangeLog[]>([]);
@@ -49,6 +53,9 @@ const AppointmentChangeLogPage: React.FC = () => {
       )}
 
       {!isFetching && !error && <AppointmentChangeLogTable changeLogs={changeLogs} />}
+      <Button variant="secondary" className="mt-3" onClick={onBack}>
+        Back
+      </Button>
     </div>
   );
 };
