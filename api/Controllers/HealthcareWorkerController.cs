@@ -136,7 +136,7 @@ public class HealthcareWorkerController : ControllerBase
         }
         catch (ArgumentException e)
         {
-            return BadRequest(e.Message);
+            return BadRequest( new { message = e.Message });
         }
         catch (Exception ex)
         {
@@ -192,7 +192,7 @@ public class HealthcareWorkerController : ControllerBase
         // Check if the id in the route matches the id in the body
         if (id != updateUserDto.Id)
         {
-            return BadRequest("ID mismatch");
+            return BadRequest( new { message = "ID mismatch" });
         }
         try
         {

@@ -102,6 +102,14 @@ public class AvailableSlotService: IAvailableSlotService
             if (!currentWorkerId.HasValue) throw new UnauthorizedAccessException(); // If no worker found, throw UnauthorizedAccessException
             workerId = currentWorkerId.Value;
         }
+        // Check for overlapping slots before creating
+        var hasOverlap = await _availableSlotRepository.CheckForOverlap(workerId, dto.Start, dto.End);
+
+        // If overlap exists, throw ArgumentException
+        if (hasOverlap)
+        {
+            throw new ArgumentException("There is already an available slot for this healthcare worker in that time range.");
+        }
 
         var slot = new AvailableSlot // Create new AvailableSlot model
         {
@@ -139,6 +147,15 @@ public class AvailableSlotService: IAvailableSlotService
 
         // If not authorized, throw UnauthorizedAccessException, handle by controller by using Forbid()
         if (!await IsAuthorizedForSlot(existing, isAdmin, authUserId)) throw new UnauthorizedAccessException();
+
+        // Check for overlapping slots before updating
+        var hasOverlap = await _availableSlotRepository.CheckForOverlap(existing.HealthcareWorkerId, dto.Start, dto.End, existing.Id);
+        
+        // If overlap exists, throw ArgumentException
+        if (hasOverlap)
+        {
+            throw new ArgumentException("There is already an available slot for this healthcare worker in that time range.");
+        }
 
         // Update fields based on role
         // Admin can update all fields, Healthcare Worker cannot update booked slots

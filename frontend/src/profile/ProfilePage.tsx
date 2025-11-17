@@ -24,11 +24,11 @@ const ProfilePage: React.FC = () => {
     setError(null);
 
     try {
-      if (user?.role === "HealthcareWorker") {
+      if (hasRole("HealthcareWorker")) {
         // Fetch healthcare worker data if user is a worker
         const worker = await HealthcareWorkerService.fetchWorkerBySelf();
         setProfileData(worker);
-      } else if (user?.role === "Client") {
+      } else if (hasRole("Client")) {
         // Fetch client data if user is a client
         const client = await ClientService.fetchClientBySelf();
         setProfileData(client);

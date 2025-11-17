@@ -32,8 +32,7 @@ const AvailableSlotCreatePage: React.FC = () => {
     setIsSubmitting(true);
     try {
       // Call service to create available slot
-      const data = await availableSlotService.createAvailableSlot(availableSlot);
-      console.log("Available slot created:", data);
+      await availableSlotService.createAvailableSlot(availableSlot);
       navigate("/availableslot"); // Navigate back to the item list page after creation
     } catch (error: any) {
       // Log and set error message if creation fails

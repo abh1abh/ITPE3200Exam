@@ -17,7 +17,7 @@ export const addMinutes = (d: Date, mins: number) => {
 export const combineDateTime = (dateStr: string, timeStr: string) => {
   const [y, mo, d] = dateStr.split("-").map(Number);
   const [h, mi] = timeStr.split(":").map(Number);
-  return new Date(y, mo - 1, d, h, mi, 0, 0); // local time
+  return new Date(Date.UTC(y, mo - 1, d, h, mi, 0, 0)); // Use UTC to avoid timezone issues
 };
 
 // Round a Date object to the next quarter-hour
