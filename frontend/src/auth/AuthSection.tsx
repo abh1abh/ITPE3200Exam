@@ -51,7 +51,6 @@ const AuthSection: React.FC<AuthSectionProps> = ({ onAnyClick }) => {
     };
     fetchProfileData();
   }, [user]);
-  console.log("Rendering AuthSection, user:", user, "name:", name);
 
   return (
     //return html of the auth section of the navbar
