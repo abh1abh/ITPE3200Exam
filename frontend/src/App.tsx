@@ -31,7 +31,7 @@ import HomePage from "./home/HomePage";
 import Footer from "./shared/Footer";
 import NavMenu from "./shared/NavMenu";
 import AppointmentChangeLogPage from "./appointment/AppointmentChangeLogPage";
-import AvailableSlotPage from "./availableslot/AvailableSlotPage";
+import AvailableSlotPage from "./availableslot/AvailableslotPage";
 
 function App() {
   return (

@@ -71,17 +71,17 @@ const Footer: React.FC = () => {
             <ul className="list-unstyled">
               <li>
                 <p>
-                  <FaHome className="me-2" /> New York, NY 10012, US
+                  <FaHome className="me-2" /> Karl Johans gate 1, 0162 Oslo
                 </p>
               </li>
               <li>
                 <p>
-                  <FaEnvelope className="me-2" /> info@example.com
+                  <FaEnvelope className="me-2" /> homecare@homecare.local
                 </p>
               </li>
               <li>
                 <p>
-                  <FaPhone className="me-2" /> + 01 234 567 88
+                  <FaPhone className="me-2" /> + 47 999 99 999
                 </p>
               </li>
             </ul>
@@ -90,7 +90,7 @@ const Footer: React.FC = () => {
       </Container>
 
       <div className="text-center py-3 border-top text-muted" style={{ fontSize: "0.9rem" }}>
-        {new Date().getFullYear()} ITPE3200 Exam 2025
+        {new Date().getFullYear()} - ITPE3200 Exam 2025
       </div>
     </footer>
   );
