@@ -13,19 +13,11 @@ namespace api.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
-        private readonly IClientService _clientService;
-        private readonly IHealthcareWorkerService _healthcareWorkerService;
 
-        public AuthController(
-            IAuthService authService,
-            ILogger<AuthController> logger,
-            IClientService clientService,
-            IHealthcareWorkerService healthcareWorkerService)
+        public AuthController( IAuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
             _logger = logger;
-            _clientService = clientService;
-            _healthcareWorkerService = healthcareWorkerService;
         }
 
         private (string? role, string? authUserId) UserContext() // Get role and AuthUserId from JWT token
@@ -44,6 +36,11 @@ namespace api.Controllers
             try
             {
                 await _authService.RegisterAdminAsync(registerDto, isAdmin); //Call the auth service to register user
+            }
+            catch (UnauthorizedAccessException) //Handle unauthorized access
+            {
+                _logger.LogWarning("[AuthAPIController] unauthorized admin registration attempt for {Username}", registerDto.Email);
+                return Forbid(); //Return 403 Forbidden
             }
             catch (Exception ex) //Log any errors during registration
             {

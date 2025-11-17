@@ -13,7 +13,7 @@ const RequireRole: React.FC<RequireRoleProps> = ({ roles }) => {
   if (isLoading) return <Loading />;
 
   const allowed = roles?.some((r) => hasRole(r)) ?? false;
-  return allowed ? <Outlet /> : <Navigate to="/unauthorized" replace />;
+  return allowed ? <Outlet /> : <Navigate to="/" replace />;
 };
 
 export default RequireRole;

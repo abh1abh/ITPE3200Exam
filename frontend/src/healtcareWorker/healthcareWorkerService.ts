@@ -3,7 +3,7 @@ import { UpdateUserDto } from "../types/user";
 
 export const fetchAllWorkers = async () => {
   // Fetch all healthcare workers
-  const response = await fetch(`${API_URL}/api/HealthcareWorker/`, {
+  const response = await fetch(`${API_URL}/api/healthcareworker/`, {
     method: "GET",
     headers: getAuthHeaders(), // Authorization headers
   });
@@ -12,7 +12,7 @@ export const fetchAllWorkers = async () => {
 
 export const fetchWorker = async (id: number) => {
   // Fetch healthcare worker by ID
-  const response = await fetch(`${API_URL}/api/HealthcareWorker/${id}`, {
+  const response = await fetch(`${API_URL}/api/healthcareworker/${id}`, {
     method: "GET",
     headers: getAuthHeaders(),
   });
@@ -20,7 +20,7 @@ export const fetchWorker = async (id: number) => {
 };
 export const fetchWorkerBySelf = async () => {
   // Fetch healthcare worker data for the authenticated user
-  const response = await fetch(`${API_URL}/api/HealthcareWorker/me`, {
+  const response = await fetch(`${API_URL}/api/healthcareworker/me`, {
     method: "GET",
     headers: getAuthHeaders(),
   });
@@ -28,7 +28,7 @@ export const fetchWorkerBySelf = async () => {
 };
 export const updateWorker = async (id: number, worker: UpdateUserDto) => {
   // Update healthcare worker by ID
-  const response = await fetch(`${API_URL}/api/healthcareworker/update/${id}`, {
+  const response = await fetch(`${API_URL}/api/healthcareworker/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(worker),
@@ -38,7 +38,7 @@ export const updateWorker = async (id: number, worker: UpdateUserDto) => {
 
 export const deleteWorker = async (id: number) => {
   // Delete healthcare worker by ID
-  const response = await fetch(`${API_URL}/api/HealthcareWorker/${id}`, {
+  const response = await fetch(`${API_URL}/api/healthcareworker/${id}`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });

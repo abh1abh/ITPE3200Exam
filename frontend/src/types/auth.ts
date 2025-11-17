@@ -6,7 +6,7 @@ export interface RegisterDto {
   password: string;
   email: string;
   name: string;
-  number: string;
+  phone: string;
   address: string;
 }
 export interface RegisterAdminDto extends RegisterDto {

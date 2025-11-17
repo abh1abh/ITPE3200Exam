@@ -8,6 +8,8 @@ import UserDeleteModal from "../shared/user/UserDeleteModal";
 
 const ClientPage: React.FC = () => {
   const { hasRole } = useAuth();
+
+  // States for profile data, loading, errors, and deletion
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [clients, setClients] = useState<Client[]>([]);

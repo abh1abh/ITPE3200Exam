@@ -69,8 +69,7 @@ public class ClientService : IClientService
         }
         if(!IsAuthorized(client, authId, role)) // Check if user is authorized
         {
-            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete ClientId {ClientId:0000}", authId, client.Id);
-            throw new UnauthorizedAccessException("You are not authorized to delete this client."); // throw unauthorized exception
+            throw new UnauthorizedAccessException(); // throw unauthorized exception
         }
 
         var clientDto = new ClientDto // Map Client to ClientDto
@@ -95,8 +94,7 @@ public class ClientService : IClientService
         }
         if(!IsAuthorized(client, authUserId, role)) // Check if user is authorized
         {
-            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to get ClientId {ClientId:0000}", authUserId, id);
-            throw new UnauthorizedAccessException("You are not authorized to get this client."); // throw unauthorized exception
+            throw new UnauthorizedAccessException(); // throw unauthorized exception
         }
 
         var clientDto = new ClientDto // Map Client to ClientDto
@@ -143,18 +141,17 @@ public class ClientService : IClientService
         return createdDto; // return created client dto
     }
 
-    public async Task<bool> Update(UpdateUserDto userDto, string authId, string role) // Update existing client
+    public async Task<string?> Update(UpdateUserDto userDto, string authId, string role) // Update existing client
     {
         var id = userDto.Id; // Get client Id from dto
         var existingClient = await _repository.GetClientById(id); // Get existing client from repository
         if (existingClient == null)
         {
-            return false;
+            return null;
         }
         if (!IsAuthorized(existingClient, authId, role)) // Check if user is authorized
         {
-            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete ClientId {ClientId:0000}", authId, id);
-            throw new UnauthorizedAccessException("You are not authorized to delete this client."); // throw unauthorized exception
+            throw new UnauthorizedAccessException(); // throw unauthorized exception
         }
 
         existingClient.Name = userDto.Name; // Update client properties
@@ -168,18 +165,17 @@ public class ClientService : IClientService
             _logger.LogWarning("[ClientService] Update failed for HealthcareWorkerId {HealthcareWorkerId:0000}, {@worker}", id, existingClient);
             throw new InvalidOperationException($"Update operation failed for HealthcareWorkerId {id}");
         }
-        return updated; // return true if updated
+        return existingClient.AuthUserId; // return true if updated
     }
 
     //add authorization
-    public async Task<bool> Delete(int id, string authId, string role) // Delete client by Id
+    public async Task<string?> Delete(int id, string authId, string role) // Delete client by Id
     {
         var client = await _repository.GetClientById(id); // Get client from repository
-        if (client is null) return false; // normal "not found"
+        if (client is null) return null; // normal "not found"
         if(!IsAuthorized(client, authId, role)) // Check if user is authorized
         {
-            _logger.LogWarning("[ClientService] Unauthorized access attempt by AuthUserId {AuthUserId} to delete ClientId {ClientId:0000}", authId, id);
-            throw new UnauthorizedAccessException("You are not authorized to delete this client.");
+            throw new UnauthorizedAccessException();
         }
         var ok = await _repository.Delete(id); // Delete client in repository
         if (!ok)
@@ -188,6 +184,6 @@ public class ClientService : IClientService
             throw new InvalidOperationException($"Delete operation failed for client ID {id}");
 
         }
-        return true; // return true if deleted
+        return client.AuthUserId; // return AuthUserId if deleted
     }
 }

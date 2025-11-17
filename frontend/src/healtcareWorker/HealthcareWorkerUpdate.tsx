@@ -62,8 +62,8 @@ const HealthcareWorkerUpdatePage: React.FC = () => {
     }
   };
 
+  // Render the update form
   return (
-    // Render the update form
     <div>
       <h2>Update Healthcare Worker</h2>
       {success && <Alert variant="success">{success}</Alert>}
