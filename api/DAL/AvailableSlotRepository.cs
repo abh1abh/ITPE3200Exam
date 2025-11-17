@@ -122,4 +122,31 @@ public class AvailableSlotRepository : IAvailableSlotRepository
             return false; // Return false on failure
         }
     }
+
+    public async Task<bool> CheckForOverlap(int healthcareWorkerId, DateTime start, DateTime end, int? ignoreId = null)
+    {
+
+        try
+        {
+            // Query for overlapping slots
+            var slots = _db.AvailableSlots.Where(s => s.HealthcareWorkerId == healthcareWorkerId &&
+                                     s.Start < end &&
+                                     s.End > start);
+            // If ignoreId is provided, exclude that slot from the check
+            if (ignoreId.HasValue)
+            {
+                slots = slots.Where(s => s.Id != ignoreId.Value);
+            }
+
+            // Check if any overlapping slots exist
+            var overlapExists = await slots.AnyAsync();
+            // Return true if overlap exists, false otherwise
+            return overlapExists;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("[AvailableSlotRepository] CheckForOverlap() failed for HealthcareWorkerId {HealthcareWorkerId:0000}, error message: {e}", healthcareWorkerId, e.Message);
+            return false; // Return false on failure
+        }
+    }
 }

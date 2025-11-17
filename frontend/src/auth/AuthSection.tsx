@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { Nav, Dropdown } from "react-bootstrap";
+import * as HealthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
+import * as ClientService from "../client/clientService";
 
 interface AuthSectionProps {
   onAnyClick?: () => void;
@@ -11,6 +13,9 @@ const AuthSection: React.FC<AuthSectionProps> = ({ onAnyClick }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { hasRole } = useAuth(); // Admin, Client and Worker.
+
+  // State for user name
+  const [name, setName] = useState<string | null>(null);
 
   const handleLogout = () => {
     logout();
@@ -26,13 +31,34 @@ const AuthSection: React.FC<AuthSectionProps> = ({ onAnyClick }) => {
     navigate("/admin/register");
   };
 
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        if (hasRole("HealthcareWorker")) {
+          // Fetch healthcare worker data if user is a worker
+          const worker = await HealthcareWorkerService.fetchWorkerBySelf();
+          setName(worker.name);
+        } else if (hasRole("Client")) {
+          // Fetch client data if user is a client
+          const client = await ClientService.fetchClientBySelf();
+          setName(client.name);
+        } else {
+          setName(null);
+        }
+      } catch (error: any) {
+        console.error("Error fetching profile data:", error);
+      }
+    };
+    fetchProfileData();
+  }, [user]);
+
   return (
     //return html of the auth section of the navbar
     <Nav>
       {user ? (
         <Dropdown align="end">
           <Dropdown.Toggle as={Nav.Link} id="dropdown-user">
-            Welcome, {user.sub}
+            Welcome {name || user.sub}
           </Dropdown.Toggle>
           <Dropdown.Menu>
             <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>

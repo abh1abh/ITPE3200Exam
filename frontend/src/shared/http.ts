@@ -9,7 +9,7 @@ export const getAuthHeaders = () => {
   if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
 };
-//Handle api responses(no content res=204 and any other status=Throw an error)
+// Handle api responses.
 export const handleResponse = async (response: Response) => {
   if (response.ok) {
     if (response.status === 204) return null;

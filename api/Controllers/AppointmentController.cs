@@ -123,7 +123,7 @@ public class AppointmentController : ControllerBase
 
         // Handles input validation for at least one Appointment Task 
         appointmentDto.AppointmentTasks = (appointmentDto.AppointmentTasks ?? new()).Where(t => !string.IsNullOrWhiteSpace(t.Description)).ToList();
-        if (appointmentDto.AppointmentTasks.Count == 0) return BadRequest("Enter at least one task."); // If no tasks return BadRequest
+        if (appointmentDto.AppointmentTasks.Count == 0) return BadRequest( new { message = "Enter at least one task." }); // If no tasks return BadRequest
 
         try
         {
@@ -138,7 +138,7 @@ public class AppointmentController : ControllerBase
         catch (ArgumentException e) // Handles bad input exceptions 
         {
             _logger.LogWarning(e, "[AppointmentController] Bad request during Create");
-            return BadRequest(e.Message);
+            return BadRequest( new { message = e.Message });
         }
         catch (InvalidOperationException)  // Handles operation exceptions 
         {
@@ -157,7 +157,7 @@ public class AppointmentController : ControllerBase
     public async Task<IActionResult> Update(int id, AppointmentDto appointmentDto)
     {        
         var (role, authUserId) = UserContext();
-        if (id != appointmentDto.Id) return BadRequest("ID mismatch"); // Checks if id and appointment id the same
+        if (id != appointmentDto.Id) return BadRequest( new { message = "ID mismatch" }); // Checks if id and appointment id the same
 
         try
         {
@@ -173,7 +173,7 @@ public class AppointmentController : ControllerBase
         catch (ArgumentException e) // Handles bad input exceptions
         {
             _logger.LogWarning(e, "[AppointmentController] Bad request {Id:0000}", id);
-            return BadRequest(e.Message);
+            return BadRequest( new { message = e.Message });
         }
         catch (InvalidOperationException) // Handles operation exceptions
         {

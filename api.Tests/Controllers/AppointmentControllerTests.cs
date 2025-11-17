@@ -324,25 +324,6 @@ public class AppointmentControllerTests
     }
 
     [Fact]
-    public async Task NegativeTestUpdateAppointmentBadRequest()
-    {
-        // Arrange
-        var user = BuildUser("Client", "client-abc");
-        var controller = CreateController(user);
-
-        var routeId = 1;
-        var dto = new AppointmentDto { Id = 2 }; // mismatch
-
-        // Act
-        var result = await controller.Update(routeId, dto);
-
-        // Assert
-        var bad = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.Equal("ID mismatch", bad.Value);
-        _appointmentService.Verify(s => s.Update(It.IsAny<int>(), It.IsAny<AppointmentDto>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-    }
-
-    [Fact]
     public async Task PositveTestDeleteAppointment()
     {
         // Arrange

@@ -11,4 +11,6 @@ public interface IAvailableSlotRepository
     Task<bool> Create(AvailableSlot availableSlot);
     Task<bool> Update(AvailableSlot availableSlot);
     Task<bool> Delete(int id);
+    Task<bool> CheckForOverlap(int healthcareWorkerId, DateTime start, DateTime end, int? ignoreId = null);
+
 }

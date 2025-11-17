@@ -98,6 +98,12 @@ public class AvailableSlotController : ControllerBase
             _logger.LogWarning("[AvailableSlotController] User is not authorized to create available slot");
             return Forbid();
         }
+        catch (ArgumentException e) // Handles bad input exceptions
+        {
+
+            _logger.LogError(e, "[AvailableSlotController] Time slot arguments invalid");
+            return BadRequest(new { message = e.Message });
+        }
         catch (InvalidOperationException)  // Handles operation exceptions
         {
             return StatusCode(500, "Internal error creating the available slot"); // Returns 500 at operation exceptions
@@ -113,7 +119,7 @@ public class AvailableSlotController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] AvailableSlotDto slotDto) // Healthcare workers and Admins can update slots
     {
-        if (id != slotDto.Id) return BadRequest("ID mismatch"); // Checks if id and slot id are the same
+        if (id != slotDto.Id) return BadRequest(new { message = "ID mismatch" }); // Checks if id and slot id are the same
         var (role, authUserId) = UserContext(); 
         bool isAdmin = role == "Admin";
         try
@@ -131,7 +137,7 @@ public class AvailableSlotController : ControllerBase
         {
 
             _logger.LogError(e, "[AvailableSlotController] Arguments missing");
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message });
         }
         catch (InvalidOperationException) // Handles operation exceptions
         {
@@ -172,7 +178,7 @@ public class AvailableSlotController : ControllerBase
         {
 
             _logger.LogWarning("[AvailableSlotController] Arguments missing");
-            return BadRequest(e.Message);
+            return BadRequest(new { message = e.Message });
         }
         catch (Exception ex) // Handles general exceptions
         {

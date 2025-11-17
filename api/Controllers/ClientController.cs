@@ -133,7 +133,7 @@ public class ClientController : ControllerBase
         catch (ArgumentException e)
         {
             _logger.LogWarning("[ClientController] Bad request while registering new client for {Username}: {Message}", registerDto.Email, e.Message);
-            return BadRequest(e.Message);
+            return BadRequest( new { message = e.Message });
         } catch (Exception ex)
         {
             _logger.LogError(ex, "[ClientController] Error registering new client for {Username}", registerDto.Email);
@@ -189,7 +189,7 @@ public class ClientController : ControllerBase
         var (role, authUserId) = UserContext();
         if (id != updateUserDto.Id)
         {
-            return BadRequest("ID mismatch");
+            return BadRequest( new { message = "ID mismatch" });
         }
         try
         {
