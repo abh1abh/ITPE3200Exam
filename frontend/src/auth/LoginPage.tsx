@@ -31,10 +31,9 @@ const LoginPage: React.FC = () => {
           <Form.Group className="mb-3" controlId="formBasicUsername">
             <Form.Label>E-mail</Form.Label>
             <Form.Control
-              type="text"
+              type="email" // Type email for validation
               placeholder="Enter email"
               value={username}
-              pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$" //email pattern
               onChange={(e) => setUsername(e.target.value)}
               required
             />

@@ -11,10 +11,10 @@ type Props = {
 // Delete confirmation modal component
 const UserDeleteModal: React.FC<Props> = ({ user, onConfirm, onCancel, isDeleting }) => (
   <Modal show onHide={onCancel}>
-    <Modal.Header closeButton>Delete Client?</Modal.Header> {/* Modal title */}
+    <Modal.Header closeButton>Delete User?</Modal.Header> {/* Modal title */}
     <Modal.Body>
       <p>
-        Are you sure you want to delete the user? <strong>{user.name}</strong>?{" "}
+        Are you sure you want to delete user <strong>{user.name}</strong>?{" "}
         {/* Confirmation message with user name */}
       </p>
       <Alert variant="danger" className="mt-3">

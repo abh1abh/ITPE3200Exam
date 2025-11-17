@@ -24,21 +24,35 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
   const [email, setEmail] = useState<string>(profileUser.email);
   const [phone, setPhone] = useState<string>(profileUser.phone);
   const [address, setAddress] = useState<string>(profileUser.address);
+
+  // Password states
+  const [isEditingPassword, setIsEditingPassword] = useState<boolean>(false);
   const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [localError, setLocalError] = useState<string | null>(null);
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault(); // Prevent default form submission behavior
+
+    // If user chose to change password, validate it
+    if (isEditingPassword && password !== confirmPassword) {
+      setLocalError("Passwords do not match.");
+      return;
+    }
+
+    // Create updated user object
     const updatedUser: UpdateUserDto = {
-      // Create updated user object
       name,
       email,
       phone,
       address,
-      password: password ? password : undefined,
-      id: (profileUser as any).id,
+      // Only include password if user actually chose to change it and filled it
+      ...(isEditingPassword && password ? { password } : {}),
+      id: profileUser.id,
     };
-    onUserChanged(updatedUser as Client | HealthcareWorker); // Call the onUserChanged callback with updated conditional user type
+    // Call the onUserChanged callback with updated conditional user type
+    onUserChanged(updatedUser);
   };
 
   return (
@@ -53,7 +67,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
               <Form.Control
                 type="text"
                 value={name}
-                pattern="/^[\p{L} '-]{1,100}$/u´"
+                pattern="^[A-Za-zÀ-ÖØ-öø-ÿ' -]{1,100}$"
                 onChange={(e) => setName(e.target.value)}
                 required
               />
@@ -61,8 +75,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
             <Form.Group className="mb-3" controlId="formEmail">
               <Form.Label>Email</Form.Label>
               <Form.Control
-                type="email"
-                pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+                type="email" // Type email for validation
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -72,7 +85,7 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
               <Form.Label>Phone Number</Form.Label>
               <Form.Control
                 type="text"
-                pattern="^(\+?\d{1,3}[- ]?)?(\(?\d{1,4}\)?[- ]?)?\d{1,4}([- ]?\d{1,9})$"
+                pattern="^\+?[0-9\s-]{3,15}$"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
@@ -82,23 +95,66 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
               <Form.Label>Address</Form.Label>
               <Form.Control
                 type="text"
-                pattern="^[A-Za-z0-9#.,'\/\-\s]{3,200}$"
+                pattern="^[A-Za-z0-9#.,'/ ]{3,200}$"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 required
               />
             </Form.Group>
+            {/* Password section behind a button */}
             <Form.Group className="mb-3" controlId="formPassword">
-              <Form.Label>Password (leave blank to keep current password)</Form.Label>{" "}
-              {/* Password field with note. Leave empty to keep current password*/}
-              <Form.Control
-                type="password"
-                pattern="^(|(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,})$"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <Form.Label>Password</Form.Label>
+              {!isEditingPassword ? (
+                <>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <Form.Text className="text-muted">Current password is unchanged.</Form.Text>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      type="button"
+                      onClick={() => setIsEditingPassword(true)}>
+                      Change password
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Form.Text className="text-muted d-block mb-2">
+                    Enter a new password. Leave both fields empty to keep the current password.
+                  </Form.Text>
+                  <Form.Control
+                    className="mt-2"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="New password"
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <Form.Control
+                    className="mt-2"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                  <Button
+                    variant="outline-secondary"
+                    className=" mt-2 "
+                    type="button"
+                    onClick={() => {
+                      setIsEditingPassword(false);
+                      setPassword("");
+                      setConfirmPassword("");
+                      setLocalError(null);
+                    }}>
+                    Cancel password change
+                  </Button>
+                </>
+              )}
             </Form.Group>
-            {serverError && <div className="text-danger mb-3">{serverError}</div>}
+            {(localError || serverError) && <div className="text-danger mb-3">{localError || serverError}</div>}{" "}
             <div className="d-flex justify-content-end">
               <Button variant="secondary" className="me-2" onClick={onCancel}>
                 Cancel

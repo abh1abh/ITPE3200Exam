@@ -13,19 +13,11 @@ namespace api.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
-        private readonly IClientService _clientService;
-        private readonly IHealthcareWorkerService _healthcareWorkerService;
 
-        public AuthController(
-            IAuthService authService,
-            ILogger<AuthController> logger,
-            IClientService clientService,
-            IHealthcareWorkerService healthcareWorkerService)
+        public AuthController( IAuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
             _logger = logger;
-            _clientService = clientService;
-            _healthcareWorkerService = healthcareWorkerService;
         }
 
         private (string? role, string? authUserId) UserContext() // Get role and AuthUserId from JWT token

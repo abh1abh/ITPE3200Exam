@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import * as HealthcareWorkerService from "../healtcareWorker/healthcareWorkerService";
 import * as ClientService from "../client/clientService";
 import { useAuth } from "../auth/AuthContext";
@@ -11,17 +11,18 @@ import { useState } from "react";
 
 const ProfilePage: React.FC = () => {
   const { user, hasRole, logout } = useAuth();
-  const [profileData, setProfileData] = React.useState<Client | HealthcareWorker | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const [profileData, setProfileData] = useState<Client | HealthcareWorker | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const role = user?.role;
   const [isDeleting, setIsDeleting] = useState(false);
-  const [toDelete, setToDelete] = useState<HealthcareWorker | null>(null);
+  const [toDelete, setToDelete] = useState<HealthcareWorker | Client | null>(null);
 
+  // Fetch profile data
   const fetchProfileData = async () => {
-    // Fetch profile data
     setLoading(true);
     setError(null);
+
     try {
       if (user?.role === "HealthcareWorker") {
         // Fetch healthcare worker data if user is a worker
@@ -41,54 +42,43 @@ const ProfilePage: React.FC = () => {
       setLoading(false);
     }
   };
-  React.useEffect(() => {
+  useEffect(() => {
     fetchProfileData();
   }, []);
 
-  const confirmDeleteWorker = async (
-    user: HealthcareWorker // Confirm deletion of worker
-  ) => {
-    if (!toDelete?.id) return;
+  // Confirm delete user
+  const confirmDelete = async (userToDelete: Client | HealthcareWorker) => {
+    // If no user to delete, return
+    if (!userToDelete?.id) return;
+
+    // Set loading and clear previous errors
     setError(null);
     setIsDeleting(true);
-    setToDelete(user as HealthcareWorker); // Set the worker to be deleted
+
+    // Attempt to delete user based on role
     try {
-      await HealthcareWorkerService.deleteWorker(toDelete.id); // Call delete service
-      if (hasRole("HealthcareWorker")) {
-        // If the deleted user is viewing their own profile,
+      if (role === "HealthcareWorker") {
+        await HealthcareWorkerService.deleteWorker(userToDelete.id);
+      } else if (role === "Client") {
+        await ClientService.deleteClient(userToDelete.id);
+      } else {
+        throw new Error("Unknown user role");
+      }
+
+      // If the deleted user is the logged-in user, log them out
+      if (hasRole("HealthcareWorker") || hasRole("Client")) {
         logout();
       }
+
       setToDelete(null);
     } catch (error) {
-      console.error("Error deleting Worker: ", error);
-      setError("Error deleting Worker. Try again later.");
-      setToDelete(null);
+      console.error("Error deleting user: ", error);
+      setError("Error deleting user. Try again later.");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const confirmDeleteClient = async (user: Client) => {
-    // Confirm deletion of client
-    if (!toDelete?.id) return;
-    setError(null);
-    setIsDeleting(true);
-    setToDelete(user as Client); // Set the client to be deleted
-    try {
-      await ClientService.deleteClient(toDelete.id); // Call delete service
-      if (hasRole("Client")) {
-        // If the deleted user is viewing their own profile,
-        logout();
-      }
-      setToDelete(null);
-    } catch (error) {
-      console.error("Error deleting Client: ", error);
-      setError("Error deleting Client. Try again later.");
-      setToDelete(null);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
   return (
     <div>
       <h2>Profile</h2>
@@ -99,19 +89,11 @@ const ProfilePage: React.FC = () => {
       ) : profileData ? (
         <>
           <UserDetailsCard user={profileData} onDeleteClick={setToDelete} />
-          {toDelete && role === "HealthcareWorker" && (
+          {toDelete && (
             <UserDeleteModal
               user={toDelete}
               onCancel={() => setToDelete(null)}
-              onConfirm={() => confirmDeleteWorker(toDelete as HealthcareWorker)}
-              isDeleting={isDeleting}
-            />
-          )}
-          {toDelete && role === "Client" && (
-            <UserDeleteModal
-              user={toDelete}
-              onCancel={() => setToDelete(null)}
-              onConfirm={() => confirmDeleteClient(toDelete as Client)}
+              onConfirm={() => confirmDelete(toDelete)}
               isDeleting={isDeleting}
             />
           )}

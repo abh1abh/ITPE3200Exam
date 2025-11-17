@@ -61,10 +61,9 @@ const RegisterAdmin: React.FC = () => {
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
             <Form.Control
-              type="email"
+              type="email" // Type of email validates input
               name="email"
               value={formData.email}
-              pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
               onChange={handleChange}
               required
             />
@@ -88,18 +87,18 @@ const RegisterAdmin: React.FC = () => {
               type="text"
               name="name"
               value={formData.name}
-              pattern="/^[\p{L} '-]{1,100}$/u´"
+              pattern="^[A-Za-zÀ-ÖØ-öø-ÿ' -]{1,100}$"
               onChange={handleChange}
               required
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Number</Form.Label>
+            <Form.Label>Phone Number</Form.Label>
             <Form.Control
               type="text"
               name="phone"
-              pattern="^(\+?\d{1,3}[- ]?)?(\(?\d{1,4}\)?[- ]?)?\d{1,4}([- ]?\d{1,9})$"
+              pattern="^\+?[0-9\s-]{3,15}$"
               value={formData.phone}
               onChange={handleChange}
               required
@@ -111,7 +110,7 @@ const RegisterAdmin: React.FC = () => {
             <Form.Control
               type="text"
               name="address"
-              pattern="^[A-Za-z0-9#.,'\/\-\s]{3,200}$"
+              pattern="^[A-Za-z0-9#.,'/ ]{3,200}$"
               value={formData.address}
               onChange={handleChange}
               required
@@ -120,7 +119,8 @@ const RegisterAdmin: React.FC = () => {
           <Form.Group className="mb-3">
             <Form.Label>Role</Form.Label>
             <Form.Select name="role" value={formData.role} onChange={handleChange} required>
-              <option value="">Select a role</option>*<option value="Admin">Admin</option>
+              <option value="">Select a role</option>
+              <option value="Admin">Admin</option>
               <option value="HealthcareWorker">HealthcareWorker</option>
               <option value="Client">Client</option>
             </Form.Select>

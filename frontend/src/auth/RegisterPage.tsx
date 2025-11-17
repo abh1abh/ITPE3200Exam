@@ -53,7 +53,13 @@ const RegisterPage: React.FC = () => {
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
-            <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} required />
+            <Form.Control
+              type="email" // Type email for validation
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
           </Form.Group>
 
           <Form.Group className="mb-3">
@@ -73,7 +79,7 @@ const RegisterPage: React.FC = () => {
             <Form.Control
               type="text"
               name="name"
-              pattern="/^[\p{L} '-]{1,100}$/u´"
+              pattern="^[A-Za-zÀ-ÖØ-öø-ÿ' -]{1,100}$"
               value={formData.name}
               onChange={handleChange}
               required
@@ -81,11 +87,11 @@ const RegisterPage: React.FC = () => {
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Number</Form.Label>
+            <Form.Label>Phone Number</Form.Label>
             <Form.Control
               type="text"
               name="phone"
-              pattern="^(\+?\d{1,3}[- ]?)?(\(?\d{1,4}\)?[- ]?)?\d{1,4}([- ]?\d{1,9})$"
+              pattern="^\+?[0-9\s-]{3,15}$"
               value={formData.phone}
               onChange={handleChange}
               required
@@ -97,7 +103,7 @@ const RegisterPage: React.FC = () => {
             <Form.Control
               type="text"
               name="address"
-              pattern="^[A-Za-z0-9#.,'\/\-\s]{3,200}$"
+              pattern="^[A-Za-z0-9#.,'/ ]{3,200}$"
               value={formData.address}
               onChange={handleChange}
               required
