@@ -16,6 +16,7 @@ namespace api.DAL
                 if (!await roleMgr.RoleExistsAsync(r))
                     await roleMgr.CreateAsync(new IdentityRole(r));
 
+            // Seedresult to hold created user IDs for later use in App DbInit
             var result = new SeedResult();
 
             // Admin
@@ -49,7 +50,7 @@ namespace api.DAL
                 if (!create.Succeeded)
                     throw new Exception($"Failed creating user {email}: {create.Errors}");
             }
-
+            // Ensure user is in the specified role
             if (!await userMgr.IsInRoleAsync(user, role))
             {
                 await userMgr.AddToRoleAsync(user, role);

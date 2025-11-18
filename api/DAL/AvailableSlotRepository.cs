@@ -129,9 +129,8 @@ public class AvailableSlotRepository : IAvailableSlotRepository
         try
         {
             // Query for overlapping slots
-            var slots = _db.AvailableSlots.Where(s => s.HealthcareWorkerId == healthcareWorkerId &&
-                                     s.Start < end &&
-                                     s.End > start);
+            var slots = _db.AvailableSlots.Where(s => s.HealthcareWorkerId == healthcareWorkerId && s.Start < end && s.End > start);
+            
             // If ignoreId is provided, exclude that slot from the check
             if (ignoreId.HasValue)
             {

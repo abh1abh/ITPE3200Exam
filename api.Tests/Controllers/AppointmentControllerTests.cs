@@ -173,6 +173,10 @@ public class AppointmentControllerTests
 
         // Assert
         Assert.IsType<NotFoundObjectResult>(result);
+
+        // Verify that the service method was called once
+        _appointmentService.Verify(s => s.GetById(appointmentId, role, authUserId), Times.Once);
+
     }
 
     [Fact]
@@ -252,6 +256,10 @@ public class AppointmentControllerTests
 
         // Assert 
         Assert.IsType<ForbidResult>(result);
+
+        // Verify that the service method was called once
+        _appointmentService.Verify(s => s.Create(inputDto, role, authUserId), Times.Once);
+
     }
 
     [Fact]
@@ -272,7 +280,7 @@ public class AppointmentControllerTests
         };
 
         _appointmentService
-            .Setup(s => s.Create(inputDto, authUserId, role))
+            .Setup(s => s.Create(inputDto, role, authUserId))
             .ThrowsAsync(new Exception("unexpected"));
 
         var controller = CreateController(BuildUser(role, authUserId));
@@ -283,6 +291,10 @@ public class AppointmentControllerTests
         // Assert 
         var status = Assert.IsType<ObjectResult>(result);
         Assert.Equal(500, status.StatusCode);
+
+        // Verify that the service method was called once
+        _appointmentService.Verify(s => s.Create(inputDto, role, authUserId), Times.Once);
+
     }
 
 
@@ -316,7 +328,8 @@ public class AppointmentControllerTests
 
         // Assert
         Assert.IsType<NoContentResult>(result);
-
+        
+        // Verify that the service method was called once
         _appointmentService.Verify(
             s => s.Update(appointmentId, dto, role, authUserId),
             Times.Once
@@ -324,7 +337,7 @@ public class AppointmentControllerTests
     }
 
     [Fact]
-    public async Task PositveTestDeleteAppointment()
+    public async Task PositiveTestDeleteAppointment()
     {
         // Arrange
         const string role = "Client";
@@ -343,6 +356,7 @@ public class AppointmentControllerTests
         // Assert 
         Assert.IsType<NoContentResult>(result);
 
+        // Verify that the service method was called once
         _appointmentService.Verify(
             s => s.Delete(appointmentId, role, authUserId),
             Times.Once
@@ -369,6 +383,7 @@ public class AppointmentControllerTests
         // Assert 
         Assert.IsType<ForbidResult>(result);
 
+        // Verify that the service method was called once
         _appointmentService.Verify(
             s => s.Delete(appointmentId, role, authUserId),
             Times.Once
