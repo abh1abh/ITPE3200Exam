@@ -130,6 +130,7 @@ builder.Logging.AddSerilog(logger);
 var app = builder.Build();
 
 // Initialize and seed databases 
+// Helped by ChatGPT to setup database initialization flag option and seeding order
 using (var scope = app.Services.CreateScope())
 {
     var sp = scope.ServiceProvider; // Get the service provider

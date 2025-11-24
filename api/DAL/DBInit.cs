@@ -51,16 +51,16 @@ public static class DBInit
             new AvailableSlot
             {
                 HealthcareWorkerId = workers[0].Id,
-                Start = new DateTime(2025, 12, 9, 14, 0, 0), // Dec 9, 2025 at 14:00
-                End   = new DateTime(2025, 12, 9, 15, 0, 0), // Dec 9, 2025 at 15:00
+                Start = new DateTime(2025, 12, 9, 14, 0, 0), 
+                End   = new DateTime(2025, 12, 9, 15, 0, 0),
                 IsBooked = false
             },
             new AvailableSlot
             {
                 HealthcareWorkerId = workers[0].Id,
-                Start = new DateTime(2025, 12, 10, 14, 0, 0), // Dec 10, 2025 at 14:00
-                End   = new DateTime(2025, 12, 10, 15, 0, 0), // Dec 10, 2025 at 15:00
-                IsBooked = false // set false for now; will flip after linking
+                Start = new DateTime(2025, 12, 10, 14, 0, 0), 
+                End   = new DateTime(2025, 12, 10, 15, 0, 0), 
+                IsBooked = false // set false for now. Flip after linking
             }
         };
         appDbContext.AvailableSlots.AddRange(slots); // Add slots to context

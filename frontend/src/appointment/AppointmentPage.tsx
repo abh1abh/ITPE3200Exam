@@ -56,10 +56,10 @@ const AppointmentPage: React.FC = () => {
   }, []);
 
   // Sort most recent. useMemo so it only resorts when appointments change
-  const sortedAppointments = useMemo(
-    () => [...appointments].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
-    [appointments]
-  );
+  // const sortedAppointments = useMemo(
+  //   () => [...appointments].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
+  //   [appointments]
+  // );
 
   // Confirm delete appointment
   const confirmDelete = async () => {
@@ -101,7 +101,7 @@ const AppointmentPage: React.FC = () => {
           )}
 
           <AppointmentTable
-            appointments={sortedAppointments}
+            appointments={appointments}
             onDeleteClick={setToDelete}
             isAdmin={isAdmin}
             isWorker={isWorker}
