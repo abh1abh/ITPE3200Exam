@@ -14,33 +14,27 @@ public static class DBInit
         if (await appDbContext.Clients.AnyAsync()) return;
 
 
-        var clients = new[]
-        {
-            new Client { Name="John Doe",  Address="123 Main St",  Phone="555-1234", Email="client@homecare.local", AuthUserId = authSeed.UserIds["Client"] },
-            new Client { Name="Jane Smith",Address="456 Oak Ave", Phone="555-5678", Email="client2@homecare.local", AuthUserId = authSeed.UserIds["Client2"] }
+        var client = new Client { 
+            Name="John Doe",  
+            Address="123 Main St",  
+            Phone="555-1234", 
+            Email="client@homecare.local",
+            AuthUserId = authSeed.UserIds["Client"] 
         };
 
-        appDbContext.Clients.AddRange(clients);
+        appDbContext.Clients.Add(client);
         await appDbContext.SaveChangesAsync();
 
-        // Init of HealthcareWorkers with IdentityUser link and claim
-        var workers= new[]
-        {
-            new HealthcareWorker {
-                Name="Alice Brown",
-                Address="12 Health St",
-                Phone="555-1111",
-                Email="worker@homecare.local",
-                AuthUserId=authSeed.UserIds["HealthcareWorker"] },
-            new HealthcareWorker {
-                Name="Bob Johnson",
-                Address="34 Health St",
-                Phone="555-2222",
-                Email="worker2@homecare.local",
-                AuthUserId=authSeed.UserIds["HealthcareWorker2"] }
+        // Init of HealthcareWorker with IdentityUser link and claim
+        var worker = new HealthcareWorker {
+            Name="Alice Brown",
+            Address="12 Health St",
+            Phone="555-1111",
+            Email="worker@homecare.local",
+            AuthUserId=authSeed.UserIds["HealthcareWorker"] 
         };
 
-        appDbContext.HealthcareWorkers.AddRange(workers);
+        appDbContext.HealthcareWorkers.AddRange(worker);
         await appDbContext.SaveChangesAsync();
 
 
@@ -50,16 +44,23 @@ public static class DBInit
         {
             new AvailableSlot
             {
-                HealthcareWorkerId = workers[0].Id,
-                Start = new DateTime(2025, 12, 9, 14, 0, 0), 
-                End   = new DateTime(2025, 12, 9, 15, 0, 0),
+                HealthcareWorkerId = worker.Id,
+                Start = new DateTime(2025, 12, 10, 14, 0, 0), // 10.12.2025, 14:00
+                End   = new DateTime(2025, 12, 10, 15, 0, 0), // 10.12.2025, 15:00
                 IsBooked = false
             },
             new AvailableSlot
             {
-                HealthcareWorkerId = workers[0].Id,
-                Start = new DateTime(2025, 12, 10, 14, 0, 0), 
-                End   = new DateTime(2025, 12, 10, 15, 0, 0), 
+                HealthcareWorkerId = worker.Id,
+                Start = new DateTime(2025, 11, 24, 14, 0, 0), // 24.11.2025, 14:00
+                End   = new DateTime(2025, 11, 24, 15, 0, 0), // 24.11.2025, 15:00
+                IsBooked = false // set false for now. Flip after linking
+            },
+            new AvailableSlot
+            {
+                HealthcareWorkerId = worker.Id,
+                Start = new DateTime(2025, 11, 25, 11, 0, 0), // 25.11.2025, 11:00
+                End   = new DateTime(2025, 11, 25, 12, 0, 0), // 25.11.2025, 12:00
                 IsBooked = false // set false for now. Flip after linking
             }
         };
@@ -71,16 +72,33 @@ public static class DBInit
         {
             new Appointment
             {
-                ClientId = clients[0].Id,
-                HealthcareWorkerId = workers[0].Id,
+                ClientId = client.Id,
+                HealthcareWorkerId = worker.Id,
+                Start = slots[2].Start,
+                End   = slots[2].End,
+                Notes = "Assistance with mobility exercises",
+                AvailableSlot = slots[2],
+                AppointmentTasks = new List<AppointmentTask>
+                {
+                    new AppointmentTask { Description = "Help with walking exercises", IsCompleted = true },
+                    new AppointmentTask { Description = "Physiotherapy session", IsCompleted = true }
+                }
+            },
+
+            new Appointment
+            {
+                ClientId = client.Id,
+                HealthcareWorkerId = worker.Id,
                 Start = slots[1].Start,
                 End   = slots[1].End,
                 Notes = "Assistance with mobility exercises",
                 AvailableSlot = slots[1],
                 AppointmentTasks = new List<AppointmentTask>
                 {
-                    new AppointmentTask { Description = "Help with walking exercises" }
+                    new AppointmentTask { Description = "Help with walking exercises", IsCompleted = true },
+                    new AppointmentTask { Description = "Clean the room", IsCompleted = false }
                 }
+                
             }
         };
         appDbContext.Appointments.AddRange(appts); // Add appointments to context
@@ -89,12 +107,46 @@ public static class DBInit
         // Mark the linked slots as booked 
         slots[0].IsBooked = false;
         slots[1].IsBooked = true;
+        slots[2].IsBooked = true;
         await appDbContext.SaveChangesAsync();
 
+        
         // Change logs for appointments
-        appDbContext.ChangeLogs.AddRange(
-            new ChangeLog { AppointmentId = appts[0].Id, AppointmentIdSnapshot= appts[0].Id, ChangeDate = DateTime.Now, ChangedByUserId = workers[0].AuthUserId!, ChangeDescription = "Rescheduled due to patient request" }
-        );
+        var changeLogs = new List<ChangeLog>
+        {
+            new ChangeLog { 
+                AppointmentId = appts[0].Id, 
+                AppointmentIdSnapshot= appts[0].Id,
+                ChangeDate = DateTime.Now, 
+                ChangedByUserId = worker.AuthUserId!, 
+                ChangeDescription = "Task 'Help with walking exercises' completed." 
+            },
+            new ChangeLog { 
+                AppointmentId = appts[0].Id, 
+                AppointmentIdSnapshot= appts[0].Id,
+                ChangeDate = DateTime.Now, 
+                ChangedByUserId = worker.AuthUserId!, 
+                ChangeDescription = "Task 'Physiotherapy session' completed." 
+            },
+            new ChangeLog { 
+                AppointmentId = appts[1].Id, 
+                AppointmentIdSnapshot= appts[1].Id,
+                ChangeDate = DateTime.Now, 
+                ChangedByUserId = worker.AuthUserId!, 
+                ChangeDescription = "Changed time of appointment to 24.11.2025, 14:00." 
+            },
+               new ChangeLog { 
+                AppointmentId = appts[1].Id, 
+                AppointmentIdSnapshot= appts[1].Id,
+                ChangeDate = DateTime.Now, 
+                ChangedByUserId = worker.AuthUserId!, 
+                ChangeDescription = "Task 'Help with walking exercises' completed." 
+            }
+        };
+        
+        appDbContext.ChangeLogs.AddRange(changeLogs);
+        
+        // Final save
         await appDbContext.SaveChangesAsync();
 
 
