@@ -105,7 +105,7 @@ const ProfilePage: React.FC = () => {
             className="btn btn-primary me-2">
             Update
           </Link>
-          <Button variant="danger" onClick={() => confirmDelete(profileData)}>
+          <Button variant="danger" onClick={() => setToDelete(profileData)}>
             Delete
           </Button>
 
