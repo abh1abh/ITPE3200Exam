@@ -7,20 +7,9 @@ import { useAuth } from "../../auth/AuthContext";
 
 interface UserDetailsCardProps {
   user: Client | HealthcareWorker;
-  onDeleteClick: (user: Client | HealthcareWorker) => void;
-  isHealthcareWorker?: boolean;
 }
 // User details card component that displays role based user information and provides options to update or delete the user.
-const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user, isHealthcareWorker, onDeleteClick }) => {
-  const { hasRole } = useAuth(); //Handles roles
-  if (hasRole("Client")) {
-    // If user is a client
-    isHealthcareWorker = false;
-  }
-  if (hasRole("HealthcareWorker")) {
-    // If user is a healthcare worker
-    isHealthcareWorker = true;
-  }
+const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user }) => {
   return (
     <Container style={{ maxWidth: "35rem" }}>
       <Card className="mb-3 border-0">
@@ -49,16 +38,6 @@ const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user, isHealthcareWor
               <div className="fw-semibold">{user.address}</div>
             </Col>
           </Row>
-          <Link
-            to={
-              `/${isHealthcareWorker ? "healthcareworker" : "client"}/${user.id}/update` // Navigate to update page based on user role
-            }
-            className="btn btn-sm btn-primary me-2">
-            Update
-          </Link>
-          <Button variant="danger" size="sm" onClick={() => onDeleteClick(user)}>
-            Delete
-          </Button>
         </Card.Body>
       </Card>
     </Container>

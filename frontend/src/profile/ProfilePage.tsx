@@ -8,15 +8,21 @@ import { HealthcareWorker } from "../types/healthcareWorker";
 import Loading from "../shared/Loading";
 import UserDeleteModal from "../shared/user/UserDeleteModal";
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "react-bootstrap";
 
 const ProfilePage: React.FC = () => {
-  const { user, hasRole, logout } = useAuth();
+  const { hasRole, logout } = useAuth();
   const [profileData, setProfileData] = useState<Client | HealthcareWorker | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const role = user?.role;
+  const isHealthcareWorker = hasRole("HealthcareWorker");
+  const isClient = hasRole("Client");
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [toDelete, setToDelete] = useState<HealthcareWorker | Client | null>(null);
+
+  const navigate = useNavigate();
 
   // Fetch profile data
   const fetchProfileData = async () => {
@@ -24,11 +30,11 @@ const ProfilePage: React.FC = () => {
     setError(null);
 
     try {
-      if (hasRole("HealthcareWorker")) {
+      if (isHealthcareWorker) {
         // Fetch healthcare worker data if user is a worker
         const worker = await HealthcareWorkerService.fetchWorkerBySelf();
         setProfileData(worker);
-      } else if (hasRole("Client")) {
+      } else if (isClient) {
         // Fetch client data if user is a client
         const client = await ClientService.fetchClientBySelf();
         setProfileData(client);
@@ -57,16 +63,16 @@ const ProfilePage: React.FC = () => {
 
     // Attempt to delete user based on role
     try {
-      if (role === "HealthcareWorker") {
+      if (isHealthcareWorker) {
         await HealthcareWorkerService.deleteWorker(userToDelete.id);
-      } else if (role === "Client") {
+      } else if (isClient) {
         await ClientService.deleteClient(userToDelete.id);
       } else {
         throw new Error("Unknown user role");
       }
 
       // If the deleted user is the logged-in user, log them out
-      if (hasRole("HealthcareWorker") || hasRole("Client")) {
+      if (isHealthcareWorker || isClient) {
         logout();
       }
 
@@ -88,7 +94,21 @@ const ProfilePage: React.FC = () => {
         <p style={{ color: "red" }}>{error}</p>
       ) : profileData ? (
         <>
-          <UserDetailsCard user={profileData} onDeleteClick={setToDelete} />
+          <UserDetailsCard user={profileData} />
+          <Button variant="secondary" className="me-2" onClick={() => navigate(-1)}>
+            Back
+          </Button>
+          <Link
+            to={
+              `/${isHealthcareWorker ? "healthcareworker" : "client"}/${profileData.id}/update` // Navigate to update page based on user role
+            }
+            className="btn btn-primary me-2">
+            Update
+          </Link>
+          <Button variant="danger" onClick={() => confirmDelete(profileData)}>
+            Delete
+          </Button>
+
           {toDelete && (
             <UserDeleteModal
               user={toDelete}

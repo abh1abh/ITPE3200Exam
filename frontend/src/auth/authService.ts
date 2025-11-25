@@ -26,10 +26,6 @@ export const register = async (userData: RegisterDto): Promise<any> => {
 };
 
 export const registerAdmin = async (userData: RegisterAdminDto): Promise<any> => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("No authentication token found.");
-  }
   const role = userData.role; //get role from userData
   const user: RegisterDto = {
     //create user object to map correctly to backend

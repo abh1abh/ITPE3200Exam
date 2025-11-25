@@ -78,8 +78,18 @@ public class ClientRepository : IClientRepository
             var client = await _db.Clients.FindAsync(id); // Find the client by ID
             if (client == null) return false;  // Return false if client not found
 
+            // Handle unbooking of associated appointments before deletion
+            foreach (var appointment in client.Appointments ?? Enumerable.Empty<Appointment>())
+            {
+                if (appointment.AvailableSlot != null)
+                {
+                    appointment.AvailableSlot.IsBooked = false; // Mark slot as available
+                    appointment.AvailableSlotId = null; // Remove slot association
+                }
+            }
             _db.Clients.Remove(client); // Remove the client
             await _db.SaveChangesAsync(); // Save changes to the database
+
             return true; // Return true on success
         }
         catch (Exception e)
