@@ -23,12 +23,10 @@ const UserDeleteModal: React.FC<Props> = ({ user, onConfirm, onCancel, isDeletin
     </Modal.Body>
     <Modal.Footer>
       <Button variant="secondary" onClick={onCancel} disabled={isDeleting}>
-        {" "}
         {/* Cancel button */}
         Cancel
       </Button>
       <Button variant="danger" onClick={onConfirm} disabled={isDeleting}>
-        {" "}
         {/* Confirm delete button */}
         {isDeleting ? "Deleting..." : "Delete"}
       </Button>

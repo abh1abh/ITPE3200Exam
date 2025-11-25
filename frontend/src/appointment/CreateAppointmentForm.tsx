@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Appointment, AppointmentTask } from "../types/appointment";
 import { Client } from "../types/client";
 import { AvailableSlot } from "../types/availableSlot";
-import Loading from "../shared/Loading";
 
 // Props for CreateAppointmentForm
 interface CreateAppointmentFormProps {

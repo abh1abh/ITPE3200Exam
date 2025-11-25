@@ -1,4 +1,5 @@
 // Utility functions for date and time manipulation and formatting
+// Helped from ChatGPT to format and manipulate date and time
 
 // Pad single digit numbers with leading zero
 export const pad = (n: number) => String(n).padStart(2, "0");

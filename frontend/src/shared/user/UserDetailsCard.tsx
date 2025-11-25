@@ -1,14 +1,12 @@
 import React from "react";
 import { Client } from "../../types/client";
 import { HealthcareWorker } from "../../types/healthcareWorker";
-import { Card, Col, Container, Row, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { useAuth } from "../../auth/AuthContext";
+import { Card, Col, Container, Row } from "react-bootstrap";
 
 interface UserDetailsCardProps {
   user: Client | HealthcareWorker;
 }
-// User details card component that displays role based user information and provides options to update or delete the user.
+// User details card component that displays role based user information
 const UserDetailsCard: React.FC<UserDetailsCardProps> = ({ user }) => {
   return (
     <Container style={{ maxWidth: "35rem" }}>

@@ -29,7 +29,7 @@ const RegisterPage: React.FC = () => {
     setSuccess(null);
     try {
       await authService.register({
-        //register function from authService
+        // Register function from authService
         ...formData,
       });
       setSuccess("Registration successful! You can now log in.");
