@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import * as ClientService from "./clientService";
-import { useAuth } from "../auth/AuthContext";
 import UserDetailsCard from "../shared/user/UserDetailsCard";
 import { Client } from "../types/client";
 import Loading from "../shared/Loading";

@@ -24,13 +24,13 @@ const RegisterAdmin: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    /*Submitting data form input to authService*/
+    // Submitting data form input to authService
     e.preventDefault();
     setError(null);
     setSuccess(null);
     try {
       await authService.registerAdmin({
-        //registerAdmin function from authService
+        // RegisterAdmin function from authService
         ...formData,
       });
       setSuccess("Registration successful!");

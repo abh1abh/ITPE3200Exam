@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import * as clientService from "./clientService";
 import { Client } from "../types/client";
 import UserUpdateForm from "../shared/user/UserUpdateForm";
-import { useAuth } from "../auth/AuthContext";
 import Loading from "../shared/Loading";
 import { Alert } from "react-bootstrap";
 import { UpdateUserDto } from "../types/user";

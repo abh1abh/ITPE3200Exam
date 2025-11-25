@@ -102,23 +102,24 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
               />
             </Form.Group>
             {/* Password section behind a button */}
-            <Form.Group className="mb-3" controlId="formPassword">
-              <Form.Label>Password</Form.Label>
-              {!isEditingPassword ? (
-                <>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <Form.Text className="text-muted">Current password is unchanged.</Form.Text>
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      type="button"
-                      onClick={() => setIsEditingPassword(true)}>
-                      Change password
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <>
+            {!isEditingPassword ? (
+              <Form.Group className="mb-3" controlId="formPassword">
+                <Form.Label>Password</Form.Label>
+                <div className="d-flex justify-content-between align-items-center">
+                  <Form.Text className="text-muted">Current password is unchanged.</Form.Text>
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    type="button"
+                    onClick={() => setIsEditingPassword(true)}>
+                    Change password
+                  </Button>
+                </div>
+              </Form.Group>
+            ) : (
+              <>
+                <Form.Group className="mb-3" controlId="formPassword">
+                  <Form.Label>New password</Form.Label>
                   <Form.Text className="text-muted d-block mb-2">
                     Enter a new password. Leave both fields empty to keep the current password.
                   </Form.Text>
@@ -131,6 +132,10 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="formConfirmPassword">
+                  <Form.Label>Confirm new password</Form.Label>
                   <Form.Control
                     className="mt-2"
                     type="password"
@@ -139,21 +144,21 @@ const UserUpdateForm: React.FC<UserUpdateFormProps> = ({
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
-                  <Button
-                    variant="outline-secondary"
-                    className=" mt-2 "
-                    type="button"
-                    onClick={() => {
-                      setIsEditingPassword(false);
-                      setPassword("");
-                      setConfirmPassword("");
-                      setLocalError(null);
-                    }}>
-                    Cancel password change
-                  </Button>
-                </>
-              )}
-            </Form.Group>
+                </Form.Group>
+                <Button
+                  variant="outline-secondary"
+                  className=" mt-1 mb-3"
+                  type="button"
+                  onClick={() => {
+                    setIsEditingPassword(false);
+                    setPassword("");
+                    setConfirmPassword("");
+                    setLocalError(null);
+                  }}>
+                  Cancel password change
+                </Button>
+              </>
+            )}
             {(localError || serverError) && <div className="text-danger mb-3">{localError || serverError}</div>}{" "}
             <div className="d-flex justify-content-end">
               <Button variant="secondary" className="me-2" onClick={onCancel}>
