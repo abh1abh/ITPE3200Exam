@@ -11,6 +11,7 @@ interface AppointmentTableProps {
   isAdmin?: boolean;
   isWorker?: boolean;
   isClient?: boolean;
+  isPrev?: boolean;
 }
 
 const AppointmentTable: React.FC<AppointmentTableProps> = ({
@@ -19,6 +20,7 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
   isAdmin = false,
   isWorker = false,
   isClient = false,
+  isPrev = false,
 }) => {
   // Dynamic column count for proper no appointments found
   const nameCols = isAdmin ? 2 : isWorker || isClient ? 1 : 0;
@@ -76,11 +78,17 @@ const AppointmentTable: React.FC<AppointmentTableProps> = ({
                 <Link to={`/appointment/${a.id}`} className="btn btn-primary btn-sm me-2">
                   Details
                 </Link>
-                <Link to={`/appointment/${a.id}/update`} className="btn btn-primary btn-sm me-2">
-                  Update
-                </Link>
-                {onDeleteClick && (
-                  <Button variant="danger" size="sm" onClick={() => onDeleteClick(a)}>
+                {!isPrev && (
+                  <Link to={`/appointment/${a.id}/update`} className="btn btn-primary btn-sm me-2">
+                    Update
+                  </Link>
+                )}
+                {onDeleteClick && !isPrev && (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    disabled={new Date(a.start) < new Date()}
+                    onClick={() => onDeleteClick(a)}>
                     Cancel
                   </Button>
                 )}

@@ -31,6 +31,7 @@ const AuthSection: React.FC<AuthSectionProps> = ({ onAnyClick }) => {
     navigate("/admin/register");
   };
 
+  // Fetch user name based on role on component mount or user change
   useEffect(() => {
     const fetchProfileData = async () => {
       try {

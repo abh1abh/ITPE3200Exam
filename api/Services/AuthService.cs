@@ -253,6 +253,7 @@ public class AuthService: IAuthService{
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()) // Issued at timestamp
             };
 
+        // Add user roles as claims. Help from AI to include roles in JWT token.
         var roles = await _userManager.GetRolesAsync(user);
         foreach (var r in roles)
         {

@@ -6,6 +6,7 @@ import UpdateAppointmentForm from "./UpdateAppointmentForm";
 import { useAuth } from "../auth/AuthContext";
 import Loading from "../shared/Loading";
 import { Alert } from "react-bootstrap";
+import { APPOINTMENT_GRACE_MINUTES } from "./appointmentConfig";
 
 const AppointmentUpdatePage: React.FC = () => {
   // Get appointment id from URL parameters
@@ -13,6 +14,10 @@ const AppointmentUpdatePage: React.FC = () => {
   const navigate = useNavigate();
   // Appointment state
   const [appointment, setAppointment] = useState<AppointmentView | null>(null);
+
+  // State for previous appointment and started appointment
+  const [isPrev, setIsPrev] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Get user roles
   const { hasRole } = useAuth();
@@ -35,6 +40,12 @@ const AppointmentUpdatePage: React.FC = () => {
         // Fetch appointment data by ID
         const data = await appointmentService.fetchAppointmentById(Number(id));
         setAppointment(data);
+        // Compute if appointment is previous and has started
+        const now = new Date();
+        setHasStarted(new Date(data.start) <= now);
+        // Add grace period to end time to let users edit shortly after end time
+        const endWithGrace = new Date(data.end).getTime() + APPOINTMENT_GRACE_MINUTES * 60 * 1000;
+        setIsPrev(endWithGrace < now.getTime());
       } catch (error) {
         // Log and set fetch error
         console.error("Error fetching appointment:", error);
@@ -63,10 +74,19 @@ const AppointmentUpdatePage: React.FC = () => {
     }
   };
 
+  if (isPrev) {
+    return (
+      <Alert variant="warning" className="mt-3">
+        You cannot update a past appointment.
+      </Alert>
+    );
+  }
+
   // Render component. If loading, show loading. If no appointment, show warning. If fetch error, show error. Otherwise show update form.
   return (
     <div>
       <h2>Update Appointment</h2>
+
       {loading ? (
         <Loading />
       ) : !appointment ? (
@@ -86,6 +106,7 @@ const AppointmentUpdatePage: React.FC = () => {
           isAdmin={isAdmin}
           isClient={isClient}
           isWorker={isWorker}
+          hasStarted={hasStarted}
         />
       )}
     </div>

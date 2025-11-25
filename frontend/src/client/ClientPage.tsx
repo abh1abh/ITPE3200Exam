@@ -5,6 +5,7 @@ import { Alert, Button } from "react-bootstrap";
 import { Client } from "../types/client";
 import UserTable from "../shared/user/UserTable";
 import UserDeleteModal from "../shared/user/UserDeleteModal";
+import Loading from "../shared/Loading";
 
 const ClientPage: React.FC = () => {
   const { hasRole } = useAuth();
@@ -58,6 +59,7 @@ const ClientPage: React.FC = () => {
   return (
     <div>
       <h2>Clients</h2>
+      {loading && <Loading />}
       <Button onClick={fetchClientData} className="btn btn-primary mb-3 me-2" disabled={loading}>
         {loading ? "Loading..." : "Refresh clients"}
       </Button>

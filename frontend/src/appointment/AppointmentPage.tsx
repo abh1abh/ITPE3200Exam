@@ -12,6 +12,7 @@ const AppointmentPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPrev, setShowPrev] = useState(false);
 
   // Get user and roles
   const { user, hasRole } = useAuth();
@@ -55,11 +56,19 @@ const AppointmentPage: React.FC = () => {
     fetchAppointments();
   }, []);
 
-  // Sort most recent. useMemo so it only resorts when appointments change
-  const sortedAppointments = useMemo(
-    () => [...appointments].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
-    [appointments]
-  );
+  // Get previous appointments and sort from most recent to oldest. useMemo so it only resorts when appointments change
+  const prevAppointments = useMemo(() => {
+    const now = new Date();
+    return [...appointments]
+      .filter((a) => new Date(a.end) < now)
+      .sort((a, b) => new Date(b.start).getTime() - new Date(a.start).getTime());
+  }, [appointments]);
+
+  // Get upcoming appointments (Already sorted from soonest to latest). useMemo so it only resorts when appointments change
+  const upcomingAppointments = useMemo(() => {
+    const now = new Date();
+    return [...appointments].filter((a) => new Date(a.end) >= now);
+  }, [appointments]);
 
   // Confirm delete appointment
   const confirmDelete = async () => {
@@ -95,19 +104,33 @@ const AppointmentPage: React.FC = () => {
       {!loading && (
         <>
           {user && (isAdmin || isClient) && (
-            <Button className="mb-3" onClick={() => navigate("/appointment/create")}>
+            <Button className="mb-3 mt-3" onClick={() => navigate("/appointment/create")}>
               Add New Appointment
             </Button>
           )}
-
+          <h3 className="mb-4">Upcoming Appointments</h3>
           <AppointmentTable
-            appointments={sortedAppointments}
+            appointments={upcomingAppointments}
             onDeleteClick={setToDelete}
             isAdmin={isAdmin}
             isWorker={isWorker}
             isClient={isClient}
           />
-
+          <Button variant="secondary" className="mb-3 mt-3" onClick={() => setShowPrev((prev) => !prev)}>
+            {showPrev ? "Hide Previous Appointments" : "Show Previous Appointments"}
+          </Button>
+          {showPrev && (
+            <>
+              <h3 className="mb-4 ">Previous Appointments</h3>
+              <AppointmentTable
+                appointments={prevAppointments}
+                isAdmin={isAdmin}
+                isWorker={isWorker}
+                isClient={isClient}
+                isPrev={true}
+              />
+            </>
+          )}
           {/* Delete confirmation modal */}
           {toDelete && (
             <AppointmentDeleteModal

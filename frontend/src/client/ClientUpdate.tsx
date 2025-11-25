@@ -12,10 +12,6 @@ const ClientUpdatePage: React.FC = () => {
   // Get client ID from URL params
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  // Get auth context
-  const { hasRole } = useAuth();
-  const isAdmin = hasRole("Admin");
-  const isClient = hasRole("Client");
 
   // States for client data, loading, and errors
   const [client, setClient] = useState<Client | null>(null);
@@ -46,13 +42,10 @@ const ClientUpdatePage: React.FC = () => {
     try {
       await clientService.updateClient(Number(id), updated); // Call update service
       setSuccess("Update successful!");
-      if (isAdmin) {
-        setTimeout(() => navigate("/clients"), 2000); // Redirect after 2 seconds
-      } else if (isClient) {
-        setTimeout(() => navigate("/profile"), 2000); // Redirect after 2 seconds
-      }
+      // Redirect back to previous page after a delay
+      setTimeout(() => navigate(-1), 1000); // Redirect after 1 second
     } catch (error) {
-      console.error("error update client:", error);
+      console.error("Error update client:", error);
       setSubmitError("Failed to update client.");
     }
   };

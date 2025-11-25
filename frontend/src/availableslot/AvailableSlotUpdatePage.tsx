@@ -72,7 +72,7 @@ const AvailableSlotUpdatePage: React.FC = () => {
       {isFetching ? (
         <Loading />
       ) : fetchError ? (
-        <Alert variant="danger" className="mt-3">
+        <Alert variant="warning" className="mt-3">
           {fetchError}
         </Alert>
       ) : (

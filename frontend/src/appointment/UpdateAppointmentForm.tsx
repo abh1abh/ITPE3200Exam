@@ -12,6 +12,7 @@ interface UpdateAppointmentFormProps {
   isAdmin?: boolean;
   isClient?: boolean;
   isWorker?: boolean;
+  hasStarted?: boolean;
 }
 
 const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
@@ -21,6 +22,7 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
   isAdmin,
   isClient,
   isWorker,
+  hasStarted = false,
 }) => {
   const navigate = useNavigate();
   const onCancel = () => navigate(-1);
@@ -53,6 +55,13 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
   // Function to add a new task
   const addTask = () => {
     setError(null);
+
+    // If appointment has started, cannot add tasks
+    if (hasStarted) {
+      setError("Cannot add tasks to an appointment that has already started");
+      return;
+    }
+
     const trimmed = taskInput.trim();
     if (!trimmed) {
       // If task description is empty, set error
@@ -65,6 +74,8 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
 
   // Function to remove a task
   const removeTask = (index: number) => {
+    // If appointment has started, cannot remove tasks
+    if (hasStarted) return;
     // Prevent removal of locked (completed) tasks
     setAppointmentTasks((prev) => {
       const task = prev[index];
@@ -161,7 +172,13 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="formNotes" className="mb-3">
               <Form.Label className="fw-semibold small mb-1">Notes</Form.Label>
-              <Form.Control as="textarea" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={notes}
+                disabled={hasStarted}
+                onChange={(e) => setNotes(e.target.value)}
+              />
             </Form.Group>
 
             {appointmentTasks.length > 0 && (
@@ -236,8 +253,9 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
                       addTask();
                     }
                   }}
+                  disabled={hasStarted}
                 />
-                <Button variant="outline-primary" onClick={addTask}>
+                <Button variant="outline-primary" onClick={addTask} disabled={hasStarted}>
                   Add task
                 </Button>
               </InputGroup>

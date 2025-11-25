@@ -7,6 +7,7 @@ import { useAuth } from "../auth/AuthContext";
 import { Alert, Button } from "react-bootstrap";
 import Loading from "../shared/Loading";
 import AppointmentDeleteModal from "./AppointmentDeleteModal";
+import { APPOINTMENT_GRACE_MINUTES } from "./appointmentConfig";
 
 const AppointmentDetailsPage: React.FC = () => {
   // Get appointment ID from URL params
@@ -15,6 +16,10 @@ const AppointmentDetailsPage: React.FC = () => {
   const [appointment, setAppointment] = useState<AppointmentView | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // State for previous appointment and started appointment
+  const [isPrev, setIsPrev] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   // State for delete modal and delete operation
   const [showDelete, setShowDelete] = useState(false);
@@ -37,6 +42,14 @@ const AppointmentDetailsPage: React.FC = () => {
         // Call service to fetch appointment by id
         const data = await appointmentService.fetchAppointmentById(Number(id));
         setAppointment(data);
+
+        // Compute if appointment is previous or has started
+        const now = new Date();
+        setHasStarted(new Date(data.start) <= now);
+
+        // Add grace period to end time to let users edit shortly after end time
+        const endWithGrace = new Date(data.end).getTime() + APPOINTMENT_GRACE_MINUTES * 60 * 1000;
+        setIsPrev(endWithGrace < now.getTime());
       } catch (error) {
         console.error("Error fetching appointment:", error);
         setError("Failed to fetch appointment data");
@@ -95,6 +108,7 @@ const AppointmentDetailsPage: React.FC = () => {
             isAdmin={isAdmin}
             isClient={isClient}
             isWorker={isWorker}
+            isPrev={isPrev}
           />
 
           {/* Navigation buttons */}
@@ -105,12 +119,16 @@ const AppointmentDetailsPage: React.FC = () => {
             <Link to={`/appointment/${appointment!.id}/changelog`} className="btn btn-outline-primary">
               View Changes
             </Link>
-            <Link to={`/appointment/${appointment.id}/update`} className="btn btn-primary ">
-              Edit
-            </Link>
-            <Button variant="danger" onClick={() => setShowDelete(true)}>
-              Cancel appointment
-            </Button>
+            {!isPrev && (
+              <Link to={`/appointment/${appointment.id}/update`} className="btn btn-primary ">
+                Edit
+              </Link>
+            )}
+            {!hasStarted && (
+              <Button variant="danger" onClick={() => setShowDelete(true)}>
+                Cancel appointment
+              </Button>
+            )}
           </div>
           {/* Delete confirmation modal */}
           {showDelete && (

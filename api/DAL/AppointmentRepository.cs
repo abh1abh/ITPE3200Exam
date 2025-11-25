@@ -18,7 +18,7 @@ public class AppointmentRepository : IAppointmentRepository
     {
         try
         {
-            return await _db.Appointments.ToListAsync(); // Try to get all appointments
+            return await _db.Appointments.OrderBy(a => a.Start).ToListAsync(); // Try to get all appointments
         }
         catch (Exception e) // Catch any exceptions
         {
@@ -96,7 +96,7 @@ public class AppointmentRepository : IAppointmentRepository
     {
         try
         {
-            return await _db.Appointments.Where(a => a.ClientId == clientId).ToListAsync(); // Get appointments by client ID
+            return await _db.Appointments.Where(a => a.ClientId == clientId).OrderBy(a => a.Start).ToListAsync(); // Get appointments by client ID
         }
         catch (Exception e)
         {
@@ -109,7 +109,7 @@ public class AppointmentRepository : IAppointmentRepository
     {
         try
         {
-            return await _db.Appointments.Where(a => a.HealthcareWorkerId == healthcareWorkerId).ToListAsync(); // Get appointments by healthcare worker ID
+            return await _db.Appointments.Where(a => a.HealthcareWorkerId == healthcareWorkerId).OrderBy(a => a.Start).ToListAsync(); // Get appointments by healthcare worker ID
         }
         catch (Exception e)
         {

@@ -87,6 +87,7 @@ builder.Services.AddScoped<IChangeLogRepository, ChangeLogRepository>();
 // Configure Authentication and Authorization with JWT 
 builder.Services.AddAuthorization(options =>
 {
+    // Define policies for roles. Helped by AI to add these policies.
     options.AddPolicy("IsAdmin", p => p.RequireRole("Admin"));
     options.AddPolicy("IsHealthcareWorker", p => p.RequireRole("HealthcareWorker"));
     options.AddPolicy("IsClient", p => p.RequireRole("Client"));
@@ -129,6 +130,7 @@ builder.Logging.AddSerilog(logger);
 var app = builder.Build();
 
 // Initialize and seed databases 
+// Helped by ChatGPT to setup database initialization flag option and seeding order
 using (var scope = app.Services.CreateScope())
 {
     var sp = scope.ServiceProvider; // Get the service provider
@@ -142,7 +144,6 @@ using (var scope = app.Services.CreateScope())
     // If appsettings.Development.ResetDatabasesOnStartup = true we reset databases
     if (reset) 
     {
-
         await authDb.Database.EnsureDeletedAsync();
         await appDb.Database.EnsureDeletedAsync();
     }
@@ -151,7 +152,7 @@ using (var scope = app.Services.CreateScope())
     await authDb.Database.MigrateAsync();
     await appDb.Database.MigrateAsync();
 
-    // Seed identity first (roles/users), then domain data
+    // Seed identity first (roles/users), returns SeedResult, then domain data
     SeedResult seedResult = await AuthDbInit.SeedAsync(sp);
     await DBInit.SeedAsync(sp, seedResult);
 }

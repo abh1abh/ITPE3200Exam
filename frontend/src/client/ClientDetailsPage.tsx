@@ -6,7 +6,8 @@ import { Client } from "../types/client";
 import Loading from "../shared/Loading";
 import UserDeleteModal from "../shared/user/UserDeleteModal";
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Button } from "react-bootstrap";
 
 const ClientDetailsPage: React.FC = () => {
   // Get client ID from URL params
@@ -18,6 +19,8 @@ const ClientDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toDelete, setToDelete] = useState<Client | null>(null);
+
+  const navigate = useNavigate();
 
   // Fetch profile data on component mount
   const fetchProfileData = async () => {
@@ -68,14 +71,28 @@ const ClientDetailsPage: React.FC = () => {
   // Render profile component
   return (
     <div>
-      <h2>Profile</h2>
+      <h2>Client profile</h2>
       {loading ? (
         <Loading />
       ) : error ? (
         <p style={{ color: "red" }}>{error}</p>
       ) : profileData ? (
         <>
-          <UserDetailsCard user={profileData} onDeleteClick={setToDelete} />
+          <UserDetailsCard user={profileData} />
+          <Button variant="secondary" className="me-2" onClick={() => navigate(-1)}>
+            Back
+          </Button>
+          <Link
+            to={
+              `/client/${profileData.id}/update` // Navigate to update page based on user role
+            }
+            className="btn btn-primary me-2">
+            Update
+          </Link>
+          <Button variant="danger" onClick={() => confirmDeleteClient(profileData)}>
+            Delete
+          </Button>
+
           {toDelete && (
             <UserDeleteModal
               user={toDelete}

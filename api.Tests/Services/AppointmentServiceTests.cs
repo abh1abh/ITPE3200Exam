@@ -99,7 +99,7 @@ public class AppointmentServiceTests
         Assert.Equal(appt.AvailableSlotId, dto.AvailableSlotId);
         Assert.Single(dto.AppointmentTasks!);
 
-        // Asserts if the cleint repository method are called called once during the GetById execution
+        // Verify calls 
         _clientRepository.Verify(r => r.GetByAuthUserId(clientAuthId), Times.Once);
         _healthcareWorkerRepository.Verify(r => r.GetByAuthUserId(It.IsAny<string>()), Times.Never);
     }
@@ -130,7 +130,7 @@ public class AppointmentServiceTests
         Assert.Equal(appt.AvailableSlotId, dto.AvailableSlotId);
         Assert.Single(dto.AppointmentTasks!);
         
-        // Asserts if the healthcare worker repository method are called called once during the GetById execution
+        // Verify calls 
         _healthcareWorkerRepository.Verify(r => r.GetByAuthUserId(workerAuthId), Times.Once);
         _clientRepository.Verify(r => r.GetByAuthUserId(It.IsAny<string>()), Times.Never);
     }
@@ -152,13 +152,13 @@ public class AppointmentServiceTests
             await service.GetById(appt.Id, role: "HealthcareWorker", authUserId: unrelatedId);
         });
 
-        // Asserts that authorization check is called
+        // Verify calls 
         _healthcareWorkerRepository.Verify(r => r.GetByAuthUserId(unrelatedId), Times.Once);
         _clientRepository.Verify(r => r.GetByAuthUserId(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task PostiveTestCreateClient()
+    public async Task PositiveTestCreateClient()
     {
         // Arrange 
         var authUserId = "client-auth-100";
@@ -289,7 +289,7 @@ public class AppointmentServiceTests
         _clientRepository.Setup(r => r.GetByAuthUserId(authUserId))
             .ReturnsAsync(new Client { Id = clientId, AuthUserId = authUserId });
 
-        // Slot lookup. Slot is free and in the future
+        // Slot lookup. Slot is already booked
         var slot = new AvailableSlot
         {
             Id = slotId,
@@ -337,7 +337,12 @@ public class AppointmentServiceTests
                 new() { Description = "Task B", IsCompleted = false },
             }
         };
-
+        
+        // Client lookup for authUserId returns null
+        _clientRepository
+            .Setup(r => r.GetByAuthUserId(authUserId))
+            .ReturnsAsync((Client?)null);
+        
         var service = CreateService();
 
         // Act and Assert
@@ -408,7 +413,7 @@ public class AppointmentServiceTests
             service.Create(dto, role: "Client", authUserId: authUserId));
 
         // Assert 
-        // Correct exception and slot unbooked in the catch block
+        // Capture the IsBooked states passed into Update() // Idea came from AI. We can verify both states with a list of bools  
         Assert.Contains("Could not create appointment", ex.Message, StringComparison.OrdinalIgnoreCase);
 
 
@@ -418,7 +423,6 @@ public class AppointmentServiceTests
         Assert.False(bookedStates[1]);  // unbooked after failure
 
         // Assert no tasks should be created
-        // Nothing should proceed after validation fails
         _clientRepository.Verify(r => r.GetByAuthUserId(authUserId), Times.Once);
         _availableSlotRepository.Verify(r => r.GetById(slotId), Times.Once);
         _availableSlotRepository.Verify(r => r.Update(It.IsAny<AvailableSlot>()), Times.Exactly(2));
@@ -611,7 +615,7 @@ public class AppointmentServiceTests
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
                 service.Update(id: appointmentId, appointmentDto: dto, role: "HealthcareWorker", authUserId: authUserId));
 
-        // Asserts if the healthcare worker repository method are called called once during the GetById execution
+        // Verify calls 
         _appointmentRepository.Verify(r => r.GetById(It.IsAny<int>()), Times.Once);
         _healthcareWorkerRepository.Verify(r => r.GetByAuthUserId(authUserId), Times.Once);
         _clientRepository.Verify(r => r.GetByAuthUserId(It.IsAny<string>()), Times.Never);
@@ -620,7 +624,7 @@ public class AppointmentServiceTests
     }
 
     [Fact]
-    public async Task PostiveTestDelete()
+    public async Task PositiveTestDelete()
     {
         // Arrange 
         var appointmentId = 1;
@@ -657,7 +661,7 @@ public class AppointmentServiceTests
             HealthcareWorkerId = workerId,
             Start = start,
             End = end,
-            IsBooked = false
+            IsBooked = true
         };
         _availableSlotRepository.Setup(r => r.GetById(slotId)).ReturnsAsync(slot);
 
@@ -774,24 +778,7 @@ public class AppointmentServiceTests
 
         // Auth for Client role
         _clientRepository.Setup(r => r.GetByAuthUserId(authUserId))
-            .ReturnsAsync(new Client { Id = clientId, AuthUserId = authUserId });
-
-        // Slot lookup
-        var slot = new AvailableSlot
-        {
-            Id = slotId,
-            HealthcareWorkerId = workerId,
-            Start = start,
-            End = end,
-            IsBooked = false
-        };
-        _availableSlotRepository.Setup(r => r.GetById(slotId)).ReturnsAsync(slot);
-
-        // Update from booked to unbooked
-        AvailableSlot? updatedSlot = null;
-        _availableSlotRepository.Setup(r => r.Update(It.IsAny<AvailableSlot>()))
-            .Callback<AvailableSlot>(s => updatedSlot = s)
-            .ReturnsAsync(true);
+            .ReturnsAsync(new Client { Id = clientId, AuthUserId = authUserId });    
 
         // Delete return false
         _appointmentRepository.Setup(r => r.Delete(appointmentId)).ReturnsAsync(false);

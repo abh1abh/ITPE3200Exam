@@ -5,7 +5,9 @@ namespace api.DAL
 {
     public static class AuthDbInit
     {
-        public static async Task<SeedResult> SeedAsync(IServiceProvider sp) // Seed method to initialize the Auth database
+        // Seed method to initialize the Auth database
+        // Helped by ChatGPT to return created user IDs for later use in App DbInit
+        public static async Task<SeedResult> SeedAsync(IServiceProvider sp) 
         {
 
             var roleMgr = sp.GetRequiredService<RoleManager<IdentityRole>>();
@@ -16,6 +18,7 @@ namespace api.DAL
                 if (!await roleMgr.RoleExistsAsync(r))
                     await roleMgr.CreateAsync(new IdentityRole(r));
 
+            // Seedresult to hold created user IDs for later use in App DbInit
             var result = new SeedResult();
 
             // Admin
@@ -49,7 +52,7 @@ namespace api.DAL
                 if (!create.Succeeded)
                     throw new Exception($"Failed creating user {email}: {create.Errors}");
             }
-
+            // Ensure user is in the specified role
             if (!await userMgr.IsInRoleAsync(user, role))
             {
                 await userMgr.AddToRoleAsync(user, role);

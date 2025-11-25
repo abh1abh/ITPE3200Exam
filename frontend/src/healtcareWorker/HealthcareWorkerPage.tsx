@@ -5,6 +5,7 @@ import { Alert, Button } from "react-bootstrap";
 import { HealthcareWorker } from "../types/healthcareWorker";
 import UserTable from "../shared/user/UserTable";
 import UserDeleteModal from "../shared/user/UserDeleteModal";
+import Loading from "../shared/Loading";
 
 const HealthcareWorkerPage: React.FC = () => {
   const { hasRole } = useAuth();
@@ -59,6 +60,7 @@ const HealthcareWorkerPage: React.FC = () => {
     // Render the table component
     <div>
       <h2>Healthcare Workers</h2>
+      {loading && <Loading />}
       <Button onClick={fetchWorkerData} className="btn btn-primary mb-3 me-2" disabled={loading}>
         {loading ? "Loading..." : "Refresh workers"}
       </Button>

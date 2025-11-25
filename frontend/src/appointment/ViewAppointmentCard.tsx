@@ -9,9 +9,16 @@ interface ViewAppointmentCard {
   isAdmin?: boolean;
   isClient?: boolean;
   isWorker?: boolean;
+  isPrev?: boolean;
 }
 
-const ViewAppointmentCard: React.FC<ViewAppointmentCard> = ({ initialData, isAdmin, isClient, isWorker }) => {
+const ViewAppointmentCard: React.FC<ViewAppointmentCard> = ({
+  initialData,
+  isAdmin,
+  isClient,
+  isWorker,
+  isPrev = false,
+}) => {
   // Render appointment details in a card layout. If user is admin, show client and worker names. If client, show worker name. If worker, show client name.
   return (
     <Container style={{ maxWidth: "35rem" }}>
@@ -95,8 +102,21 @@ const ViewAppointmentCard: React.FC<ViewAppointmentCard> = ({ initialData, isAdm
                       <tr key={`${t.description}-${idx}`}>
                         <td>{t.description}</td>
                         <td>
-                          <Badge bg={t.isCompleted ? "success" : "secondary"}>
-                            {t.isCompleted ? "Completed" : "Pending"}
+                          <Badge
+                            bg={
+                              t.isCompleted
+                                ? "success" // Ongoing/Pending
+                                : isPrev && !t.isCompleted
+                                ? "danger" // Ended and completed
+                                : "secondary" // Ended and not completed
+                            }>
+                            {
+                              t.isCompleted
+                                ? "Completed" // Ongoing/Pending
+                                : isPrev && !t.isCompleted
+                                ? "Incomplete" // Ended and completed
+                                : "Pending" // Ended and not completed
+                            }
                           </Badge>
                         </td>
                       </tr>

@@ -6,7 +6,8 @@ import { HealthcareWorker } from "../types/healthcareWorker";
 import Loading from "../shared/Loading";
 import UserDeleteModal from "../shared/user/UserDeleteModal";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import Button from "react-bootstrap/esm/Button";
 
 const HealthcareWorkerDetailsPage: React.FC = () => {
   // Get worker ID from URL params
@@ -70,14 +71,28 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
 
   return (
     <div>
-      <h2>Profile</h2>
+      <h2>Healthcare Worker profile</h2>
       {loading ? (
         <Loading />
       ) : error ? (
         <p style={{ color: "red" }}>{error}</p>
       ) : profileData ? (
         <>
-          <UserDetailsCard user={profileData} onDeleteClick={setToDelete} isHealthcareWorker />{" "}
+          <UserDetailsCard user={profileData} />
+          <Button variant="secondary" className="me-2" onClick={() => navigate(-1)}>
+            Back
+          </Button>
+          <Link
+            to={
+              `/healthcareworker/${profileData.id}/update` // Navigate to update page based on user role
+            }
+            className="btn btn-primary me-2">
+            Update
+          </Link>
+          <Button variant="danger" onClick={() => confirmDeleteWorker(profileData)}>
+            Delete
+          </Button>
+
           {/* Reusable user details card component */}
           {toDelete && (
             <UserDeleteModal // Reusable user delete confirmation modal

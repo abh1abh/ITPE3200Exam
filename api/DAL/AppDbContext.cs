@@ -8,7 +8,6 @@ namespace api.DAL
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-            // Database.EnsureCreated();
         }
 
         public DbSet<Client> Clients { get; set; } // Clients table
@@ -28,17 +27,13 @@ namespace api.DAL
         {
             base.OnModelCreating(modelBuilder); // Keep Identity mappings
 
-            // Keep ChangeLogs even when the Appointment row is deleted (suggestion from ChatGPT, might move to soft deleting later)
+            // Keep ChangeLogs even when the Appointment row is deleted (suggestion from ChatGPT)
             modelBuilder.Entity<Appointment>()
                 .HasMany(a => a.ChangeLogs)
                 .WithOne(cl => cl.Appointment)
                 .HasForeignKey(cl => cl.AppointmentId)
                 .OnDelete(DeleteBehavior.SetNull);
         
-            // Male sure AuthUserId is unique  
-            modelBuilder.Entity<HealthcareWorker>()
-                .HasIndex(x => x.AuthUserId)
-                .IsUnique();
         }
     }
 }
