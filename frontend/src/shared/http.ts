@@ -15,6 +15,12 @@ export const handleResponse = async (response: Response) => {
     if (response.status === 204) return null;
     return response.json();
   } else {
+    // Handle unauthorized access
+    if (response.status === 403) {
+      // Log and throw unauthorized error
+      console.error("Error 403: Unauthorized access");
+      throw new Error("Unauthorized access");
+    }
     const errorData = await response.json();
     console.log(errorData);
     const errorMessage = errorData?.message || errorData?.title || "An error occurred";
