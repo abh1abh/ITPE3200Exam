@@ -71,4 +71,5 @@ export const formatTimeOnly = (d: string | Date) =>
   new Date(d).toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false, // 24-hour format
   });
