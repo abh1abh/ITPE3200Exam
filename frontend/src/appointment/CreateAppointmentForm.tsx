@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Appointment, AppointmentTask } from "../types/appointment";
 import { Client } from "../types/client";
 import { AvailableSlot } from "../types/availableSlot";
+import { formatDateOnly, formatDateTime, formatTimeOnly } from "../shared/timeUtils";
 
 // Props for CreateAppointmentForm
 interface CreateAppointmentFormProps {
@@ -149,7 +150,7 @@ const CreateAppointmentForm: React.FC<CreateAppointmentFormProps> = ({
           {unbookedSlots.length > 0 ? (
             unbookedSlots.map((slot) => (
               <option key={slot.id} value={slot.id}>
-                {new Date(slot.start).toLocaleString()} — {new Date(slot.end).toLocaleString()}
+                {formatDateOnly(slot.start)}: {formatTimeOnly(slot.start)} - {formatTimeOnly(slot.end)}
               </option>
             ))
           ) : (
@@ -188,7 +189,7 @@ const CreateAppointmentForm: React.FC<CreateAppointmentFormProps> = ({
           {/* Input for task description. If Enter is pressed, add the task */}
           <Form.Control
             type="text"
-            placeholder="e.g., Take vitals, Initial consultation"
+            placeholder="e.g., Take vitals, Blood test, etc."
             value={taskInput}
             onChange={(e) => setTaskInput(e.target.value)}
             onKeyDown={(e) => {
