@@ -12,7 +12,6 @@ import Button from "react-bootstrap/esm/Button";
 const HealthcareWorkerDetailsPage: React.FC = () => {
   // Get worker ID from URL params
   const { id } = useParams<{ id: string }>();
-  const { hasRole } = useAuth();
 
   // States for profile data, loading, errors, and deletion
   const [profileData, setProfileData] = useState<HealthcareWorker | null>(null);
@@ -21,9 +20,6 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [toDelete, setToDelete] = useState<HealthcareWorker | null>(null);
   const navigate = useNavigate();
-
-  // Check if the current user is a healthcare worker
-  const isHealthcareWorker = hasRole("HealthcareWorker");
 
   // Fetch profile data
   const fetchProfileData = async () => {
@@ -54,12 +50,7 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
     try {
       await HealthcareWorkerService.deleteWorker(toDelete.id); // Call delete service
       setToDelete(null);
-      if (isHealthcareWorker) {
-        // If the deleted user is viewing their own profile, redirect to home
-        navigate("/");
-      } else {
-        navigate("/healthcareworkers"); // Redirect to workers list after deletion
-      }
+      navigate(-1); // Navigate back after deletion
     } catch (error) {
       console.error("Error deleting Worker: ", error);
       setError("Error deleting Worker. Try again later.");
@@ -89,7 +80,7 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
             className="btn btn-primary me-2">
             Update
           </Link>
-          <Button variant="danger" onClick={() => confirmDeleteWorker(profileData)}>
+          <Button variant="danger" onClick={() => setToDelete(profileData)}>
             Delete
           </Button>
 
@@ -98,7 +89,7 @@ const HealthcareWorkerDetailsPage: React.FC = () => {
             <UserDeleteModal // Reusable user delete confirmation modal
               user={toDelete} // User to be deleted
               onCancel={() => setToDelete(null)} // Cancel deletion
-              onConfirm={() => confirmDeleteWorker(toDelete as HealthcareWorker)} // Confirm deletion
+              onConfirm={() => confirmDeleteWorker(toDelete)} // Confirm deletion
               isDeleting={isDeleting} // Deletion in progress state
             />
           )}

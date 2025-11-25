@@ -7,6 +7,7 @@ import UserDeleteModal from "../shared/user/UserDeleteModal";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "react-bootstrap";
+import { useAuth } from "../auth/AuthContext";
 
 const ClientDetailsPage: React.FC = () => {
   // Get client ID from URL params
@@ -18,6 +19,9 @@ const ClientDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [toDelete, setToDelete] = useState<Client | null>(null);
+
+  const { hasRole } = useAuth();
+  const isClient = hasRole("Client");
 
   const navigate = useNavigate();
 
@@ -57,6 +61,7 @@ const ClientDetailsPage: React.FC = () => {
     setToDelete(user as Client); // Set the client to be deleted
     try {
       await ClientService.deleteClient(toDelete.id); // Call delete service
+      navigate(-1); // Navigate back after deletion
       setToDelete(null);
     } catch (error) {
       console.error("Error deleting Client: ", error);
@@ -88,7 +93,7 @@ const ClientDetailsPage: React.FC = () => {
             className="btn btn-primary me-2">
             Update
           </Link>
-          <Button variant="danger" onClick={() => confirmDeleteClient(profileData)}>
+          <Button variant="danger" onClick={() => setToDelete(profileData)}>
             Delete
           </Button>
 

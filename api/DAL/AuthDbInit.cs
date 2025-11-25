@@ -29,14 +29,10 @@ namespace api.DAL
             // Client   
             var client = await EnsureUserInRole(userMgr, "client@homecare.local", "Client123!", "Client");
             result.UserIds["Client"] = client.Id;
-            var client2 = await EnsureUserInRole(userMgr, "client2@homecare.local", "Client123!", "Client");
-            result.UserIds["Client2"] = client2.Id;
 
             // Worker 
             var worker = await EnsureUserInRole(userMgr, "worker@homecare.local", "Worker123!", "HealthcareWorker");
             result.UserIds["HealthcareWorker"] = worker.Id;
-            var worker2 = await EnsureUserInRole(userMgr, "worker2@homecare.local", "Worker123!", "HealthcareWorker");
-            result.UserIds["HealthcareWorker2"] = worker2.Id;
 
             return result;
         }
