@@ -47,6 +47,13 @@ function App() {
               <Route path="/team" element={<TeamPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/careers" element={<CareersPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/about" element={<AboutPage />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route element={<RequireRole roles={["Admin"]} />}>
@@ -76,13 +83,6 @@ function App() {
                   <Route path="/appointment/:id" element={<AppointmentDetailsPage />} />
                   <Route path="/appointment/:id/changelog" element={<AppointmentChangeLogPage />} />
                 </Route>
-                <Route path="/pricing" element={<PricingPage />} />
-                <Route path="/services" element={<ServicesPage />} />
-                <Route path="/faq" element={<FAQPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/careers" element={<CareersPage />} />
-                <Route path="/blog" element={<BlogPage />} />
-                <Route path="/about" element={<AboutPage />} />
               </Route>
             </Routes>
           </div>
