@@ -67,7 +67,7 @@ Below are all the pre-seeded user accounts created by the database initializer (
 | ----------- | ------------------------ | -------------- | ---------------- |
 |             | **admin@homecare.local** | **Admin123!**  | Admin            |
 | John Doe    | **john@homecare.local**  | **Client123!** | Client           |
-| Alice Brown | **alice@homecare.local** | **Worker123!**  | HealthcareWorker |
+| Alice Brown | **alice@homecare.local** | **Worker123!** | HealthcareWorker |
 
 ## Running Test (Backend)
 
