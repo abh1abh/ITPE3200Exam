@@ -7,6 +7,11 @@ export const pad = (n: number) => String(n).padStart(2, "0");
 // Convert Date object to 'YYYY-MM-DD' format for date input fields
 export const toDateInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
+// Convert Date object to local ISO string 'YYYY-MM-DDTHH:MM:SS' for backend compatibility
+export const toLocalIsoString = (d: Date) =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+  `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
 // Add minutes to a Date object and return a new Date
 export const addMinutes = (d: Date, mins: number) => {
   const copy = new Date(d);
@@ -56,6 +61,7 @@ export const formatDateTime = (d: string | Date) =>
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Europe/Oslo",
   });
 
 // Format date as 'MMM DD, YYYY'
@@ -64,6 +70,7 @@ export const formatDateOnly = (d: string | Date) =>
     year: "numeric",
     month: "short",
     day: "2-digit",
+    timeZone: "Europe/Oslo",
   });
 
 // Format time as 'HH:MM'
@@ -72,4 +79,5 @@ export const formatTimeOnly = (d: string | Date) =>
     hour: "2-digit",
     minute: "2-digit",
     hour12: false, // 24-hour format
+    timeZone: "Europe/Oslo",
   });

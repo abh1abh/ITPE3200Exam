@@ -3,7 +3,14 @@ import { Button, Form, Row, Col, Container, Spinner } from "react-bootstrap";
 import { AvailableSlot } from "../types/availableSlot";
 import { useNavigate } from "react-router-dom";
 import { HealthcareWorker } from "../types/healthcareWorker";
-import { addMinutes, combineDateTime, pad, quarterOptions, toDateInput } from "../shared/timeUtils";
+import {
+  addMinutes,
+  combineDateTime,
+  pad,
+  quarterOptions,
+  toDateInput,
+  toLocalIsoString,
+} from "../shared/timeUtils";
 
 // Props for the AvailableSlotForm component
 interface AvailableSlotFormProps {
@@ -118,8 +125,8 @@ const AvailableSlotForm: React.FC<AvailableSlotFormProps> = ({
     const availableSlot: AvailableSlot = {
       id: availableSlotId,
       healthcareWorkerId: effectiveWorkerId ?? 0, // Will be set server-side if null
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
+      start: toLocalIsoString(startDate), // Convert to local ISO string for backend
+      end: toLocalIsoString(endDate), // Convert to local ISO string for backend
       isBooked: false,
     };
     onAvailableSlotChanged(availableSlot);
