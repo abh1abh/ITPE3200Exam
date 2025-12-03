@@ -12,7 +12,7 @@ const AppointmentPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPrev, setShowPrev] = useState(false);
+  const [showPrev, setShowPrev] = useState<boolean>(false);
 
   // Get user and roles
   const { user, hasRole } = useAuth();

@@ -4,7 +4,6 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import AuthSection from "../auth/AuthSection";
 //Shared Navigation.
-//Placed in the 'shared' so that all pages can use it.
 //Get role based permissions.
 const NavMenu: React.FC = () => {
   const { hasRole, user } = useAuth(); // Admin, Client and Worker.

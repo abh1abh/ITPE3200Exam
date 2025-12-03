@@ -15,7 +15,7 @@ const HealthcareWorkerPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [workers, setWorkers] = useState<HealthcareWorker[]>([]);
   const [toDelete, setToDelete] = useState<HealthcareWorker | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [success, setSuccess] = useState<string | null>(null);
 
   // Fetch profile data

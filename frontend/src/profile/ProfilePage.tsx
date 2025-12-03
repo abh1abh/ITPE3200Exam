@@ -19,7 +19,7 @@ const ProfilePage: React.FC = () => {
   const isHealthcareWorker = hasRole("HealthcareWorker");
   const isClient = hasRole("Client");
 
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [toDelete, setToDelete] = useState<HealthcareWorker | Client | null>(null);
 
   const navigate = useNavigate();

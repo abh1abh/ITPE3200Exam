@@ -33,7 +33,7 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
   const [taskInput, setTaskInput] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
-  // useRef to keep track of locked task IDs. Tasks that are completed cannot be modified or removed.
+  // useRef to keep track of locked task Ids. Tasks that are completed cannot be modified or removed.
   const lockedTaskKeysRef = useRef(
     new Set(initialData.appointmentTasks.filter((t) => t.isCompleted).map((t) => t.id))
   );
@@ -75,7 +75,10 @@ const UpdateAppointmentForm: React.FC<UpdateAppointmentFormProps> = ({
   // Function to remove a task
   const removeTask = (index: number) => {
     // If appointment has started, cannot remove tasks
-    if (hasStarted) return;
+    if (hasStarted) {
+      setError("Cannot remove tasks from an appointment that has already started");
+      return;
+    }
     // Prevent removal of locked (completed) tasks
     setAppointmentTasks((prev) => {
       const task = prev[index];

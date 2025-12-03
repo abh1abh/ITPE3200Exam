@@ -7,7 +7,7 @@ import { UpdateUserDto } from "../../types/user";
 
 interface UserUpdateFormProps {
   profileUser: Client | HealthcareWorker;
-  role: "Client" | "HealthcareWorker";
+  role: string;
   onUserChanged: (updated: Client | HealthcareWorker) => void;
   serverError?: string | null;
 }
