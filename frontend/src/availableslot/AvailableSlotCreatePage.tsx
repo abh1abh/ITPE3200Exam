@@ -37,7 +37,14 @@ const AvailableSlotCreatePage: React.FC = () => {
     } catch (error: any) {
       // Log and set error message if creation fails
       console.error("Error creating available slot:", error);
-      setSubmitError("Failed to create available slot. Try again later");
+      // Specific error handling for overlapping slots
+      if (
+        error?.message.includes("There is already an available slot for this healthcare worker in that time range")
+      ) {
+        setSubmitError("An available slot for this healthcare worker already exists in the selected time range.");
+      } else {
+        setSubmitError("Failed to create available slot. Try again later");
+      }
     } finally {
       // Reset submission state
       setIsSubmitting(false);

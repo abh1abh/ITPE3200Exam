@@ -15,7 +15,7 @@ const ClientPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
   const [toDelete, setToDelete] = useState<Client | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [success, setSuccess] = useState<string | null>(null);
 
   // Fetch profile data on component mount

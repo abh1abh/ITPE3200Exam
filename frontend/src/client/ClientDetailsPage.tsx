@@ -17,11 +17,8 @@ const ClientDetailsPage: React.FC = () => {
   const [profileData, setProfileData] = useState<Client | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [toDelete, setToDelete] = useState<Client | null>(null);
-
-  const { hasRole } = useAuth();
-  const isClient = hasRole("Client");
 
   const navigate = useNavigate();
 

@@ -29,6 +29,7 @@ public class AppointmentServiceTests
         _logger.Object
     );
 
+    // Helper to create a sample appointment with tasks
     private static Appointment MakeSampleAppointment(int appointmentId = 1, int slotId = 1, int clientId = 1, int workerId = 1)
     {
         return new Appointment

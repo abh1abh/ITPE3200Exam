@@ -194,7 +194,7 @@ public class ClientController : ControllerBase
         try
         {
 
-            string? clientUpdate = await _service.Update(updateUserDto, authUserId!, role!); // sUpdate client in App Database
+            string? clientUpdate = await _service.Update(updateUserDto, authUserId!, role!); // Update client in App Database
             if(clientUpdate == null)
             {
                 _logger.LogWarning("[ClientController] Client not found for Id {id:0000}", id);

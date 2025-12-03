@@ -16,8 +16,8 @@ const AppointmentUpdatePage: React.FC = () => {
   const [appointment, setAppointment] = useState<AppointmentView | null>(null);
 
   // State for previous appointment and started appointment
-  const [isPrev, setIsPrev] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
+  const [isPrev, setIsPrev] = useState<boolean>(false);
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
 
   // Get user roles
   const { hasRole } = useAuth();

@@ -18,12 +18,12 @@ const AppointmentDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // State for previous appointment and started appointment
-  const [isPrev, setIsPrev] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
+  const [isPrev, setIsPrev] = useState<boolean>(false);
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
 
   // State for delete modal and delete operation
-  const [showDelete, setShowDelete] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDelete, setShowDelete] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Get user roles

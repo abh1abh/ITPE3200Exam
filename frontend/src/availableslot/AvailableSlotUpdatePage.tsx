@@ -13,9 +13,9 @@ const AvailableSlotUpdatePage: React.FC = () => {
 
   // State for available slot, fetching, errors, and submission
   const [availableSlot, setAvailableSlot] = useState<AvailableSlot | null>(null);
-  const [isFetching, setIsFetching] = useState(false);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Get user role
