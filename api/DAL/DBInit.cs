@@ -16,8 +16,8 @@ public static class DBInit
 
         var client = new Client { 
             Name="John Doe",  
-            Address="123 Main St",  
-            Phone="555-1234", 
+            Address="Karl Johans gate 20",  
+            Phone="47474747", 
             Email="client@homecare.local",
             AuthUserId = authSeed.UserIds["Client"] 
         };
@@ -28,8 +28,8 @@ public static class DBInit
         // Init of HealthcareWorker with IdentityUser link and claim
         var worker = new HealthcareWorker {
             Name="Alice Brown",
-            Address="12 Health St",
-            Phone="555-1111",
+            Address="Storgata 15",
+            Phone="45454545",
             Email="worker@homecare.local",
             AuthUserId=authSeed.UserIds["HealthcareWorker"] 
         };
