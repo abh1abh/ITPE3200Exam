@@ -71,9 +71,17 @@ Below are all the pre-seeded user accounts created by the database initializer (
 
 ## Running Test (Backend)
 
-From the `api.Tests` folder:
+1. From the `api.Tests` folder:
 
-```bash
-cd api.Test
-dotnet test
-```
+   ```bash
+   cd api.Tests
+   ```
+
+2. Restore dependencies
+   ```bash
+   dotnet restore
+   ```
+3. Run tests:
+   ```bash
+   dotnet test
+   ```
